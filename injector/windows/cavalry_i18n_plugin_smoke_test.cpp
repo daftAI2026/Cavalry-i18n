@@ -16,6 +16,7 @@
 #include <QtCore/QLibrary>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <QtCore/QTimer>
 #include <QtCore/QDebug>
 #include <QtGui/QAction>
 #include <QtGui/QGenericPlugin>
@@ -69,6 +70,44 @@ bool expectMenuText(
 {
     actual.remove(QChar('&'));
     return expectEqual(surface, actual, expected);
+}
+
+int directApplicationTimerCount(QApplication &application)
+{
+    int timerCount = 0;
+    for (QObject *child : application.children()) {
+        if (qobject_cast<QTimer *>(child) != nullptr) {
+            ++timerCount;
+        }
+    }
+    return timerCount;
+}
+
+bool verifyDiagnosticSamplingGate(
+    QApplication &application,
+    int timerCountBeforePlugin)
+{
+    const QString expected = qEnvironmentVariable(
+        "CAVALRY_I18N_EXPECT_DIAGNOSTIC_SAMPLING");
+    if (expected != QStringLiteral("0")
+        && expected != QStringLiteral("1")) {
+        return fail(
+            QStringLiteral(
+                "Test must declare expected diagnostic sampling state as 0 or 1."));
+    }
+
+    application.processEvents();
+    const int timerDelta =
+        directApplicationTimerCount(application) - timerCountBeforePlugin;
+    const int expectedTimerDelta = expected == QStringLiteral("1") ? 1 : 0;
+    if (timerDelta != expectedTimerDelta) {
+        return fail(
+            QStringLiteral(
+                "Unexpected direct QApplication timer delta: expected %1, got %2.")
+                .arg(expectedTimerDelta)
+                .arg(timerDelta));
+    }
+    return true;
 }
 
 bool verifyMarker()
@@ -512,6 +551,9 @@ bool verifyDisplayTranslation(QApplication &application)
 int main(int argc, char *argv[])
 {
     QApplication application(argc, argv);
+    application.processEvents();
+    const int timerCountBeforePlugin =
+        directApplicationTimerCount(application);
 
     std::unique_ptr<QPluginLoader> explicitLoader;
     QObject *explicitRuntime = nullptr;
@@ -557,6 +599,12 @@ int main(int argc, char *argv[])
             QStringLiteral("zh-Hans"));
         if (explicitRuntime == nullptr) {
             fail(QStringLiteral("Valid explicit language was rejected."));
+            return 1;
+        }
+        if (!verifyDiagnosticSamplingGate(
+                application,
+                timerCountBeforePlugin)) {
+            delete explicitRuntime;
             return 1;
         }
     }

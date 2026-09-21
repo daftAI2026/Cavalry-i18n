@@ -823,17 +823,48 @@ if(BUILD_TESTING)
 
     add_dependencies(cavalryi18n_plugin_smoke_test cavalryi18n)
 
-    add_test(
-        NAME cavalryi18n_plugin_explicit_specification
-        COMMAND
-            "${CMAKE_COMMAND}" -E env
-            "--unset=QT_QPA_GENERIC_PLUGINS"
-            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
-            "QT_QPA_PLATFORM=offscreen"
-            "CAVALRY_I18N_LANG=must-not-enable-empty-specification"
-            "CAVALRY_I18N_DIAGNOSTIC_MARKER=${CMAKE_BINARY_DIR}/plugin-explicit-marker.json"
-            "$<TARGET_FILE:cavalryi18n_plugin_smoke_test>"
-            "--explicit"
-            "$<TARGET_FILE:cavalryi18n>"
+    function(add_cavalryi18n_plugin_smoke_case
+        test_name
+        diagnostic_sampling_value
+        expected_diagnostic_sampling)
+        if(diagnostic_sampling_value STREQUAL "__UNSET__")
+            set(diagnostic_sampling_setting
+                "--unset=CAVALRY_I18N_DIAGNOSTIC_SAMPLING")
+        else()
+            set(diagnostic_sampling_setting
+                "CAVALRY_I18N_DIAGNOSTIC_SAMPLING=${diagnostic_sampling_value}")
+        endif()
+
+        add_test(
+            NAME "${test_name}"
+            COMMAND
+                "${CMAKE_COMMAND}" -E env
+                "--unset=QT_QPA_GENERIC_PLUGINS"
+                "${diagnostic_sampling_setting}"
+                "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+                "QT_QPA_PLATFORM=offscreen"
+                "CAVALRY_I18N_LANG=must-not-enable-empty-specification"
+                "CAVALRY_I18N_EXPECT_DIAGNOSTIC_SAMPLING=${expected_diagnostic_sampling}"
+                "CAVALRY_I18N_DIAGNOSTIC_MARKER=${CMAKE_BINARY_DIR}/${test_name}-marker.json"
+                "$<TARGET_FILE:cavalryi18n_plugin_smoke_test>"
+                "--explicit"
+                "$<TARGET_FILE:cavalryi18n>"
+        )
+    endfunction()
+
+    add_cavalryi18n_plugin_smoke_case(
+        cavalryi18n_plugin_explicit_specification
+        __UNSET__
+        0
+    )
+    add_cavalryi18n_plugin_smoke_case(
+        cavalryi18n_plugin_diagnostic_sampling_1
+        1
+        1
+    )
+    add_cavalryi18n_plugin_smoke_case(
+        cavalryi18n_plugin_diagnostic_sampling_true
+        true
+        0
     )
 endif()
