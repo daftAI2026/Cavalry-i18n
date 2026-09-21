@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条翻译 hook、独立时间轴系统字体 hook、受控 Qt 显示槽与 exact Classic `ListWidget`/真实 viewport surface predicate；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
- * [OUTPUT]: 产品分区安装 translator/显示投影、在 Show/Paint 事件中接入受控显示属性与 Classic 空结果 surface、传递真实 Assets producer 并独立记录文字路径与时间轴字体诊断；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
- * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，Paint 只把 exact Classic 列表本体/真实 viewport 交给显示层，不遍历或拦截通用 item view，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
+ * [OUTPUT]: 产品分区安装 translator/显示投影、在 Show/Paint 事件中接入受控显示属性与 Classic 空结果 surface、传递真实 Assets producer 并以单一低频采样门记录文字路径与时间轴字体诊断；安装状态变化立即落盘；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
+ * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，Paint 只把 exact Classic 列表本体/真实 viewport 交给显示层，不遍历或拦截通用 item view，也不进入诊断 marker 写盘，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #ifdef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
@@ -50,6 +50,7 @@
 #include <QtWidgets/QWidget>
 
 #include <array>
+#include <cstdint>
 #include <string>
 
 #define WIN32_LEAN_AND_MEAN
@@ -424,14 +425,14 @@ bool CavalryI18nRuntime::configure()
         std::make_unique<CavalryExtensionLayerHook>(*translator_);
     timelineFontHook_ =
         std::make_unique<CavalryTimelineFontHook>(*translator_);
+    diagnosticClock_.start();
     ensureExtensionLayerHook();
     application->installEventFilter(this);
     const QString diagnosticMarker =
         qEnvironmentVariable(kMarkerEnvironment).trimmed();
     if (QDir::isAbsolutePath(diagnosticMarker)) {
         // generic plugin 可能在 QApplication 的事件分发器启动前构造。
-        // 把轮询器的创建也投递给 application，确保早期插件线程无事件
-        // 分发器时，ExtensionLayer/text-path 诊断仍由 GUI 线程持续推进。
+        // 诊断采样留在 GUI 线程，并与高频 QWidget 事件彻底解耦。
         const QPointer<CavalryI18nRuntime> guardedRuntime(this);
         QMetaObject::invokeMethod(
             application,
@@ -440,7 +441,9 @@ bool CavalryI18nRuntime::configure()
                     return;
                 }
                 auto *diagnosticTimer = new QTimer(application);
-                diagnosticTimer->setInterval(75);
+                diagnosticTimer->setInterval(
+                    static_cast<int>(CavalryRuntimeDiagnosticSampler::
+                                         kDefaultIntervalMilliseconds));
                 QObject::connect(
                     diagnosticTimer,
                     &QTimer::timeout,
@@ -449,6 +452,7 @@ bool CavalryI18nRuntime::configure()
                         if (guardedRuntime.isNull()) {
                             return;
                         }
+                        guardedRuntime->ensureExtensionLayerHook();
                         guardedRuntime->maybeWriteTextPathDiagnostic();
                     });
                 diagnosticTimer->start();
@@ -463,10 +467,17 @@ bool CavalryI18nRuntime::configure()
         [this]() { refreshAllTopLevelWidgets(); },
         Qt::QueuedConnection);
 
-    writeDiagnostic(
+    const auto initialDiagnosticSnapshot = diagnosticSnapshot();
+    const auto initialDiagnosticTime =
+        diagnosticClock_.isValid() ? diagnosticClock_.elapsed() : 0;
+    if (writeDiagnostic(
         QStringLiteral("ready"),
         QStringLiteral("Embedded translation table installed."),
-        true);
+        true)) {
+        diagnosticSampler_.prime(
+            initialDiagnosticSnapshot,
+            initialDiagnosticTime);
+    }
     return true;
 }
 
@@ -491,8 +502,6 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
         // 先于目标 QWidget 的 Show/Paint 处理；若 ExtensionLayer 刚刚加载，首帧即可接住。
         ensureExtensionLayerHook();
     }
-    maybeWriteTextPathDiagnostic();
-
     auto *widget = qobject_cast<QWidget *>(watched);
     if (widget == nullptr) {
         return false;
@@ -2047,15 +2056,30 @@ void CavalryI18nRuntime::ensureExtensionLayerHook()
     if (extensionLayerHook_->status() != previousStatus
         || (timelineFontHook_ != nullptr
             && timelineFontHook_->status() != previousFontStatus)) {
-        writeDiagnostic(
+        const auto statusSnapshot = diagnosticSnapshot();
+        const auto statusTime =
+            diagnosticClock_.isValid() ? diagnosticClock_.elapsed() : 0;
+        if (writeDiagnostic(
             QStringLiteral("ready"),
             QStringLiteral("Embedded translation table installed."),
-            true);
-        lastTextPathDiagnosticRevision_ =
-            extensionLayerHook_->textPathDiagnostics().revision;
-        lastTimelineFontDiagnosticRevision_ = timelineFontHook_ != nullptr
-            ? timelineFontHook_->diagnostics().revision : 0;
+            true)) {
+            diagnosticSampler_.prime(statusSnapshot, statusTime);
+        }
     }
+}
+
+CavalryRuntimeDiagnosticSnapshot
+CavalryI18nRuntime::diagnosticSnapshot() const
+{
+    const CavalryTextPathHookDiagnostics textPathDiagnostics =
+        extensionLayerHook_ == nullptr
+        ? CavalryTextPathHookDiagnostics {}
+        : extensionLayerHook_->textPathDiagnostics();
+    return CavalryRuntimeDiagnosticSnapshot {
+        textPathDiagnostics.revision,
+        timelineFontHook_ != nullptr
+            ? timelineFontHook_->diagnostics().revision : 0,
+    };
 }
 
 void CavalryI18nRuntime::maybeWriteTextPathDiagnostic()
@@ -2063,21 +2087,22 @@ void CavalryI18nRuntime::maybeWriteTextPathDiagnostic()
     if (!translatorInstalled_ || extensionLayerHook_ == nullptr) {
         return;
     }
-    const CavalryTextPathHookDiagnostics diagnostics =
-        extensionLayerHook_->textPathDiagnostics();
-    const std::uint64_t fontRevision = timelineFontHook_ != nullptr
-        ? timelineFontHook_->diagnostics().revision : 0;
-    if (diagnostics.revision == lastTextPathDiagnosticRevision_
-        && fontRevision == lastTimelineFontDiagnosticRevision_) {
+    const auto snapshot = diagnosticSnapshot();
+    const auto nowMilliseconds =
+        diagnosticClock_.isValid() ? diagnosticClock_.elapsed() : 0;
+    const auto sampled = diagnosticSampler_.sample(
+        snapshot,
+        nowMilliseconds);
+    if (!sampled.has_value()) {
         return;
     }
-    lastTextPathDiagnosticRevision_ = diagnostics.revision;
-    lastTimelineFontDiagnosticRevision_ = fontRevision;
-    writeDiagnostic(
-        QStringLiteral("ready"),
-        QStringLiteral(
-            "Embedded translation table installed; rendering diagnostics advanced."),
-        true);
+    if (writeDiagnostic(
+            QStringLiteral("ready"),
+            QStringLiteral(
+                "Embedded translation table installed; rendering diagnostics advanced."),
+            true)) {
+        diagnosticSampler_.prime(sampled.value(), nowMilliseconds);
+    }
 }
 
 void CavalryI18nRuntime::queueRefresh(QWidget *root)
@@ -2120,7 +2145,7 @@ void CavalryI18nRuntime::refreshWindow(QWidget *window)
     displayTranslator_->translateWidgetTree(window);
 }
 
-void CavalryI18nRuntime::writeDiagnostic(
+bool CavalryI18nRuntime::writeDiagnostic(
     const QString &status,
     const QString &message,
     bool translatorInstalled) const
@@ -2140,7 +2165,7 @@ void CavalryI18nRuntime::writeDiagnostic(
     const QString markerPath =
         qEnvironmentVariable(kMarkerEnvironment).trimmed();
     if (markerPath.isEmpty()) {
-        return;
+        return false;
     }
 
     if (!QDir::isAbsolutePath(markerPath)) {
@@ -2148,7 +2173,7 @@ void CavalryI18nRuntime::writeDiagnostic(
             << QStringLiteral(
                    "[%1] Ignoring relative diagnostic marker path.")
                    .arg(QString::fromLatin1(kPluginKey));
-        return;
+        return false;
     }
 
     const QFileInfo markerInfo(QDir::cleanPath(markerPath));
@@ -2157,7 +2182,7 @@ void CavalryI18nRuntime::writeDiagnostic(
             << QStringLiteral(
                    "[%1] Diagnostic marker parent directory does not exist.")
                    .arg(QString::fromLatin1(kPluginKey));
-        return;
+        return false;
     }
 
     const CavalryTextPathHookDiagnostics textPathDiagnostics =
@@ -2287,17 +2312,28 @@ void CavalryI18nRuntime::writeDiagnostic(
                    .arg(
                        QString::fromLatin1(kPluginKey),
                        markerFile.errorString());
-        return;
+        return false;
     }
 
-    markerFile.write(QJsonDocument(marker).toJson(QJsonDocument::Indented));
+    const QByteArray payload =
+        QJsonDocument(marker).toJson(QJsonDocument::Indented);
+    if (markerFile.write(payload) != payload.size()) {
+        qWarning().noquote()
+            << QStringLiteral("[%1] Cannot write diagnostic marker: %2")
+                   .arg(
+                       QString::fromLatin1(kPluginKey),
+                       markerFile.errorString());
+        return false;
+    }
     if (!markerFile.commit()) {
         qWarning().noquote()
             << QStringLiteral("[%1] Cannot commit diagnostic marker: %2")
                    .arg(
                        QString::fromLatin1(kPluginKey),
                        markerFile.errorString());
+        return false;
     }
+    return true;
 }
 
 #endif

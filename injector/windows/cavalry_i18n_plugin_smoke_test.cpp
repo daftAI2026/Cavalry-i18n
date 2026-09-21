@@ -154,24 +154,25 @@ bool verifyDiagnosticSampling()
 {
     // 以可控单调时间模拟每帧 measure/draw；测试写入回调代表 QSaveFile 提交。
     using Snapshot = CavalryRuntimeDiagnosticSnapshot;
-    CavalryRuntimeDiagnosticSampler sampler(1'000);
+    CavalryRuntimeDiagnosticSampler sampler(
+        CavalryRuntimeDiagnosticSampler::kDefaultIntervalMilliseconds);
     sampler.prime(Snapshot {}, 0);
 
     int writeCount = 0;
     Snapshot persisted {};
     const auto sample =
         [&](const Snapshot &observed,
-            std::int64_t nowMilliseconds,
-            bool installationStateChanged = false) {
+            std::int64_t nowMilliseconds) {
             const auto ready = sampler.sample(
                 observed,
-                nowMilliseconds,
-                installationStateChanged);
+                nowMilliseconds);
             if (!ready.has_value()) {
                 return false;
             }
             ++writeCount;
             persisted = ready.value();
+            // 模拟 QSaveFile 成功提交；失败时不推进 sampler 基线，下一 tick 会重试。
+            sampler.prime(persisted, nowMilliseconds);
             return true;
         };
 
@@ -197,13 +198,8 @@ bool verifyDiagnosticSampling()
                 "Diagnostic sampler did not emit the latest counters at the sampling boundary."));
     }
 
-    // Hook installation/status transitions retain the immediate diagnostic path.
-    if (!sample(latest, 1'001, true) || writeCount != 2) {
-        return fail(
-            QStringLiteral(
-                "Diagnostic sampler delayed an installation-state change."));
-    }
-
+    // 安装状态由 ensureExtensionLayerHook() 即时写出后，才建立新的成功落盘基线。
+    sampler.prime(latest, 1'001);
     for (std::int64_t now = 1'002; now < 2'001; ++now) {
         latest = Snapshot {
             static_cast<std::uint64_t>(now),
@@ -217,12 +213,26 @@ bool verifyDiagnosticSampling()
     }
 
     if (!sample(latest, 2'001)
-        || writeCount != 3
+        || writeCount != 2
         || persisted.textPathRevision != latest.textPathRevision
         || persisted.timelineFontRevision != latest.timelineFontRevision) {
         return fail(
             QStringLiteral(
-                "Diagnostic sampler lost the final counters observed before its deadline."));
+            "Diagnostic sampler lost the final counters observed before its deadline."));
+    }
+
+    if (sampler.sample(latest, 4'002).has_value()) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler repeated a write while counters were unchanged."));
+    }
+
+    const Snapshot retrySnapshot { 9'999, 10'009 };
+    if (!sampler.sample(retrySnapshot, 4'003).has_value()
+        || !sampler.sample(retrySnapshot, 4'004).has_value()) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler consumed a revision after a failed write."));
     }
 
     return true;
