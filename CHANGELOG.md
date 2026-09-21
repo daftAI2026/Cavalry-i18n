@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - 选择带有“可更新”徽章的语言后，收起下拉菜单仍显示该徽章，并随补丁状态刷新。
+- 修复 Windows 时间编辑器中的中文、日文图层名称显示为方框；字体回退按名称实际字符选择，支持不同界面语言下的混合名称。
 
 ## [1.0.3] - 2026-09-10
 
