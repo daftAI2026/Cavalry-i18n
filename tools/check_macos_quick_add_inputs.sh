@@ -58,6 +58,7 @@ compile_fixture() {
   clang++ -std=c++17 -O2 -fno-omit-frame-pointer -fobjc-arc -DQT_NO_VERSION_TAGGING \
     "$source" \
     "$ROOT/injector/cavalry_i18n_macos_tool_help_text_path.cpp" \
+    "$ROOT/injector/cavalry_i18n_macos_timeline_font.cpp" \
     "$ROOT/injector/cavalry_i18n_macos_classic_rank.cpp" \
     "$ROOT/injector/cavalry_i18n_macos_quick_add_placeholder.cpp" \
     "$ROOT/injector/cavalry_i18n_macos_quick_add_category.cpp" \

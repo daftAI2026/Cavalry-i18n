@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK及版本化 QPA 头、CMake、generated_translations.inc、可选只读 vendor 二进制与安装根激活 manifest
-[OUTPUT]: 对外提供 Windows QPA 代理 + generic runtime 的构建、目录/激活布局、受控翻译、静态 ABI 合同与诊断判定说明
+[OUTPUT]: 对外提供 Windows QPA 代理 + generic runtime 的构建、目录/激活布局、受控翻译、时间轴系统字体适配、静态 ABI 合同与诊断判定说明
 [POS]: injector/windows 的操作边界文档，把原生入口委托、翻译 fail-open 与既有精确 UI hook 收束为可重复发布合同
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -12,8 +12,8 @@
 Windows 发布包含两个职责分离的 DLL：
 
 - `qpa/qwindows.dll` 是 Qt `windows` 平台插件代理，只负责委托原厂 QPA 和启动翻译；
-- `generic/cavalryi18n.dll` 是唯一翻译 runtime，承载 translator、显示投影与四条精确
-  ExtensionLayer IAT 边界。
+- `generic/cavalryi18n.dll` 是唯一翻译 runtime，承载 translator、显示投影、四条精确
+  ExtensionLayer 翻译 IAT 边界，以及独立的时间轴名称字体适配。
 
 部署层把 Cavalry 2.7.2 原厂 `qwindows.dll` 持久化为
 `cavalry-i18n-qpa/vendor-qwindows.dll`，再以代理占据安装根原入口。代理先通过绝对路径
@@ -68,6 +68,20 @@ generic runtime 使用 Qt 官方 `QGenericPlugin` 扩展点；QPA 代理显式�
 版本化私有平台插件 ABI。两个 DLL 都链接 Cavalry 已加载的同版 Qt，不复制 Qt DLL，
 不做远程进程注入。安装根原子替换、持久化原厂备份与恢复由 Tauri 部署层负责，本目录
 runtime 不执行写安装根操作。
+
+### 时间轴名称的系统字体适配
+
+新版 `SkTimeEditorView` 的名称使用 Skia 单字体测量和绘制，不能依赖 Qt 的字体合并。
+独立适配器只接入经过二进制和实机证明的名称测量/绘制调用。源字体缺字时，先尝试当前
+界面语言的系统字体候选，再尝试其他支持语种的候选，按名称实际字形覆盖选择；名称语言
+不受界面语言限制。原字体已覆盖或名称为
+纯 ASCII 时保留原样。测量与绘制使用同一选择规则，仅借用字体副本，名称、模型身份、
+字号和字体变换不变。候选不可用、输入不受支持或 ABI 不匹配时保留原厂绘制。
+
+这条边界独立于固定工具提示的 CJK Path 翻译，失败不会关闭已有翻译。显式 diagnostic
+marker 中的 `timelineFontHookStatus`、`timelineFontHookDetail` 和 `timelineFontDiagnostics`
+用于区分安装状态与实际测量/绘制命中；`installed` 本身不代表字形已经通过实机验收。
+本适配器为 Windows 专属；macOS 的字体发现和调用点必须单独验证。
 
 插件安装嵌入式 `QTranslator` 后，会主动翻译 Cavalry 已存在和动态创建的
 菜单/动作，以及窗口标题、标签、按钮、分组框、输入框 placeholder、标签页、

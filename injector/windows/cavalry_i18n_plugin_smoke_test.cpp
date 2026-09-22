@@ -1,6 +1,8 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、QPA 等价显式 specification 与 diagnostic marker
- * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、普通输入原值与占位提示分离及含 64 位 source mask 的九项 text-path marker 结构
+ * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离，以及 text-path 与独立时间轴字体 hook 的诊断；缺少厂商模块不阻断已有翻译，并锁定低频诊断采样的写盘上界、安装状态即时性与最终 revision 收敛
+ *              由 CTest expected env 驱动真实 QApplication 直接子 QTimer gate，覆盖 unset/1/true 三种采样输入。
+ * 对外验证环境空 specification 被拒、显式语言成功、普通输入原值与占位提示分离及含 64 位 source mask 的九项 text-path marker 结构
  * [POS]: injector/windows 的端到端回归 smoke；证明只有正式 QPA 显式入口能创建翻译运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,6 +17,7 @@
 #include <QtCore/QLibrary>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
+#include <QtCore/QTimer>
 #include <QtCore/QDebug>
 #include <QtGui/QAction>
 #include <QtGui/QGenericPlugin>
@@ -33,6 +36,8 @@
 
 #include <cstdio>
 #include <memory>
+
+#include "cavalry_i18n_runtime.h"
 
 namespace {
 
@@ -66,6 +71,44 @@ bool expectMenuText(
 {
     actual.remove(QChar('&'));
     return expectEqual(surface, actual, expected);
+}
+
+int directApplicationTimerCount(QApplication &application)
+{
+    int timerCount = 0;
+    for (QObject *child : application.children()) {
+        if (qobject_cast<QTimer *>(child) != nullptr) {
+            ++timerCount;
+        }
+    }
+    return timerCount;
+}
+
+bool verifyDiagnosticSamplingGate(
+    QApplication &application,
+    int timerCountBeforePlugin)
+{
+    const QString expected = qEnvironmentVariable(
+        "CAVALRY_I18N_EXPECT_DIAGNOSTIC_SAMPLING");
+    if (expected != QStringLiteral("0")
+        && expected != QStringLiteral("1")) {
+        return fail(
+            QStringLiteral(
+                "Test must declare expected diagnostic sampling state as 0 or 1."));
+    }
+
+    application.processEvents();
+    const int timerDelta =
+        directApplicationTimerCount(application) - timerCountBeforePlugin;
+    const int expectedTimerDelta = expected == QStringLiteral("1") ? 1 : 0;
+    if (timerDelta != expectedTimerDelta) {
+        return fail(
+            QStringLiteral(
+                "Unexpected direct QApplication timer delta: expected %1, got %2.")
+                .arg(expectedTimerDelta)
+                .arg(timerDelta));
+    }
+    return true;
 }
 
 bool verifyMarker()
@@ -127,6 +170,109 @@ bool verifyMarker()
         || marker.value(QStringLiteral("processId")).toString()
             != expectedProcessId) {
         return fail(QStringLiteral("Plugin marker contract mismatch."));
+    }
+
+    const QJsonObject timelineDiagnostics = marker.value(
+        QStringLiteral("timelineFontDiagnostics")).toObject();
+    if (!marker.value(QStringLiteral("timelineFontHookStatus"))
+             .toString().startsWith(QStringLiteral("waiting"))
+        || !marker.value(QStringLiteral("timelineFontHookDetail"))
+                .toString().contains(QStringLiteral("ExtensionLayer.dll"))
+        || !timelineDiagnostics.contains(QStringLiteral("revision"))
+        || timelineDiagnostics.value(QStringLiteral("revision")).toInteger() != 0
+        || !timelineDiagnostics.contains(QStringLiteral("measureFallback"))
+        || timelineDiagnostics.value(QStringLiteral("measureFallback")).toInteger() != 0
+        || !timelineDiagnostics.contains(QStringLiteral("drawFallback"))
+        || timelineDiagnostics.value(QStringLiteral("drawFallback")).toInteger() != 0) {
+        return fail(QStringLiteral(
+            "Timeline font hook must wait independently without blocking embedded translations."));
+    }
+    return true;
+}
+
+bool verifyDiagnosticSampling()
+{
+    // 以可控单调时间模拟每帧 measure/draw；测试写入回调代表 QSaveFile 提交。
+    using Snapshot = CavalryRuntimeDiagnosticSnapshot;
+    CavalryRuntimeDiagnosticSampler sampler(
+        CavalryRuntimeDiagnosticSampler::kDefaultIntervalMilliseconds);
+    sampler.prime(Snapshot {}, 0);
+
+    int writeCount = 0;
+    Snapshot persisted {};
+    const auto sample =
+        [&](const Snapshot &observed,
+            std::int64_t nowMilliseconds) {
+            const auto ready = sampler.sample(
+                observed,
+                nowMilliseconds);
+            if (!ready.has_value()) {
+                return false;
+            }
+            ++writeCount;
+            persisted = ready.value();
+            // 模拟 QSaveFile 成功提交；失败时不推进 sampler 基线，下一 tick 会重试。
+            sampler.prime(persisted, nowMilliseconds);
+            return true;
+        };
+
+    Snapshot latest {};
+    for (std::int64_t now = 1; now < 1'000; ++now) {
+        latest = Snapshot {
+            static_cast<std::uint64_t>(now),
+            static_cast<std::uint64_t>(now),
+        };
+        if (sample(latest, now)) {
+            return fail(
+                QStringLiteral(
+                    "Diagnostic counters were persisted during the per-frame burst."));
+        }
+    }
+
+    if (!sample(latest, 1'000)
+        || writeCount != 1
+        || persisted.textPathRevision != latest.textPathRevision
+        || persisted.timelineFontRevision != latest.timelineFontRevision) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler did not emit the latest counters at the sampling boundary."));
+    }
+
+    // 安装状态由 ensureExtensionLayerHook() 即时写出后，才建立新的成功落盘基线。
+    sampler.prime(latest, 1'001);
+    for (std::int64_t now = 1'002; now < 2'001; ++now) {
+        latest = Snapshot {
+            static_cast<std::uint64_t>(now),
+            static_cast<std::uint64_t>(now + 10),
+        };
+        if (sample(latest, now)) {
+            return fail(
+                QStringLiteral(
+                    "Diagnostic sampler persisted a second per-frame burst before its deadline."));
+        }
+    }
+
+    if (!sample(latest, 2'001)
+        || writeCount != 2
+        || persisted.textPathRevision != latest.textPathRevision
+        || persisted.timelineFontRevision != latest.timelineFontRevision) {
+        return fail(
+            QStringLiteral(
+            "Diagnostic sampler lost the final counters observed before its deadline."));
+    }
+
+    if (sampler.sample(latest, 4'002).has_value()) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler repeated a write while counters were unchanged."));
+    }
+
+    const Snapshot retrySnapshot { 9'999, 10'009 };
+    if (!sampler.sample(retrySnapshot, 4'003).has_value()
+        || !sampler.sample(retrySnapshot, 4'004).has_value()) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler consumed a revision after a failed write."));
     }
 
     return true;
@@ -406,6 +552,9 @@ bool verifyDisplayTranslation(QApplication &application)
 int main(int argc, char *argv[])
 {
     QApplication application(argc, argv);
+    application.processEvents();
+    const int timerCountBeforePlugin =
+        directApplicationTimerCount(application);
 
     std::unique_ptr<QPluginLoader> explicitLoader;
     QObject *explicitRuntime = nullptr;
@@ -453,6 +602,12 @@ int main(int argc, char *argv[])
             fail(QStringLiteral("Valid explicit language was rejected."));
             return 1;
         }
+        if (!verifyDiagnosticSamplingGate(
+                application,
+                timerCountBeforePlugin)) {
+            delete explicitRuntime;
+            return 1;
+        }
     }
 
     const QString exact =
@@ -467,7 +622,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const bool passed = verifyEmbeddedTranslationSamples()
+    const bool passed = verifyDiagnosticSampling()
+            && verifyEmbeddedTranslationSamples()
             && verifyDisplayTranslation(application) && verifyMarker()
         ? true
         : false;

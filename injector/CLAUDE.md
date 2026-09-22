@@ -2,6 +2,11 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+cavalry_i18n_macos_abi.h: 共享 Mach-O 映像/UUID/符号与机器码读取、64 位 Skia borrowed 存储；TransformTool 和时间轴各自定义准入而不重复解析。
+cavalry_i18n_macos_timeline_font.h / .cpp: Mac 时间轴名称两个 exact caller 的字体适配；启动期固定三个系统候选，按完整名称覆盖选择，同一策略服务测量与绘制，原始文本和24字节字体除typeface外保持原值；无逐帧IO或名称缓存。
+cavalry_i18n_macos_timeline_font_policy.h: UTF-8 严格解码与完整字形覆盖纯策略，ASCII/未知输入保持原字体，borrowed副本不拥有字体引用。
+cavalry_i18n_macos_timeline_font_contract.h: Cavalry 2.7.2双架构时间轴名称caller包络、ExtensionLayer/Skia UUID与四个字体导出地址/前缀锁；漂移保持原厂绘制。
+
 cavalry_i18n_macos_quick_add_category.h / .cpp: Mac 完整分类源 getter 适配，复用已 pin 映像函数解析并验证双架构字节，截短显示不冒充完整源，写显示仍由共享 tabs 策略负责。
 cavalry_i18n_quick_add_placeholder.h: Classic 空结果无缓存显示策略，exact owner/viewport 与当前英文 source 同时成立才调用一次平台 setter。
 cavalry_i18n_macos_quick_add_placeholder.h / .cpp: 复用 Classic 锁定映像解析门，双架构函数字节与 Qt 类型大小证明 placeholder 只读边界，写入走 vendor setter。
@@ -23,7 +28,7 @@ cavalry_i18n_classic_search.h: Classic QuickAddWindow/ListWidget 专用 role0 �
 generated_translations.inc: 由 `tools/generate_embedded_translations.js` 从 `tools/*.ts` 与 display-only 模型名词典自动生成、并携带生成式 GEB L3 契约的 C++ 编译期翻译表，不可手动编辑。
 generated_quick_add_descriptions.inc: 由 `tools/generate_quick_add_descriptions.js` 从四语 JSON 的 nodeInfo/layerInfo 稳定身份生成，提供英文与三语完整说明的编译期字节表；不可手工编辑，不进入通用 Qt 翻译表。
 libCavalryTranslatorInjector.dylib: 不纳入 Git 的 universal macOS 平台构建产物；由 `tools/build_translator_injector.sh` 从当前源码生成并以 `@loader_path` 优先解析所选 app 同目录 Qt/libskia，Tauri 打包时作为 bundle resource 嵌入。
-windows/: Classic 空结果仅在已验证 vendor ABI 与 exact ListWidget/真实 viewport 内投影既有三语提示，重复 Paint 不重复写入；Windows Qt 6.6.3 x64 MSVC 双模块；`qpa/qwindows.dll` 以版本化私有 QPA ABI 委托持久化原厂平台插件，只有安装根 exact manifest v1、三项实际 SHA-256 与非英语 marker 同时通过才显式传语言启动 `generic/cavalryi18n.dll`，不写进程环境，翻译失败保留原厂 integration。generic 显示层与 macOS 对齐逐行翻译 `标题\n说明` tooltip，并以显示属性 + 厂商父系/对话框双门投影 selected-count/认证倒计时、Mesh Explorer 整数 QLabel、Color Settings QComboBox 模板与单索引 QPlainTextEdit 占位文字；ExtensionLayer 聚合 helper、placeholder、MessageBar 与 text-path 四条精确 IAT 边界，后者覆盖三十六项静态文本（含 SkeletonTool Bone Tool 四组提示）及 CogTool 动态整数 Pitch，单独的 `Space` 等纯键位保持原文。MessageBar 只批准 history/live 双 return 与单条 HTML 尾部正文并排除 `js_logger`。插件永久 PIN 是任一 aggregate IAT 安装写入的前置资格，text-path 另在私有 Core/skia 映像逐范围通过 PE64 timestamp/size、精确导出 RVA 与关键 ownership bytes 后独立 PIN 并允许 CJK Path；每次 callback 继续复核完整 caller 字节包络及精确 context。callback 使用无静态析构的 process-lifetime 槽，restore 失败保留 forward-only original；诊断以 64 位 source mask/原子计数进入显式 marker，保留 Pitch bit 28 并分配 Bone bits 29–36，渲染路径无 IO。
+windows/: 时间轴名称以独立的精确测量/绘制边界选择系统字体，只借用字体副本并保留模型原文；与已有固定提示 CJK Path 共存。Classic 空结果仅在已验证 vendor ABI 与 exact ListWidget/真实 viewport 内投影既有三语提示，重复 Paint 不重复写入；Windows Qt 6.6.3 x64 MSVC 双模块；`qpa/qwindows.dll` 以版本化私有 QPA ABI 委托持久化原厂平台插件，只有安装根 exact manifest v1、三项实际 SHA-256 与非英语 marker 同时通过才显式传语言启动 `generic/cavalryi18n.dll`，不写进程环境，翻译失败保留原厂 integration。generic 显示层与 macOS 对齐逐行翻译 `标题\n说明` tooltip，并以显示属性 + 厂商父系/对话框双门投影 selected-count/认证倒计时、Mesh Explorer 整数 QLabel、Color Settings QComboBox 模板与单索引 QPlainTextEdit 占位文字；ExtensionLayer 聚合 helper、placeholder、MessageBar 与 text-path 四条精确 IAT 边界，后者覆盖三十六项静态文本（含 SkeletonTool Bone Tool 四组提示）及 CogTool 动态整数 Pitch，单独的 `Space` 等纯键位保持原文。MessageBar 只批准 history/live 双 return 与单条 HTML 尾部正文并排除 `js_logger`。插件永久 PIN 是任一 aggregate IAT 安装写入的前置资格，text-path 另在私有 Core/skia 映像逐范围通过 PE64 timestamp/size、精确导出 RVA 与关键 ownership bytes 后独立 PIN 并允许 CJK Path；每次 callback 继续复核完整 caller 字节包络及精确 context。callback 使用无静态析构的 process-lifetime 槽，restore 失败保留 forward-only original；诊断以 64 位 source mask/原子计数进入显式 marker，保留 Pitch bit 28 并分配 Bone bits 29–36，渲染路径无 IO。
 
 依赖边界:
 

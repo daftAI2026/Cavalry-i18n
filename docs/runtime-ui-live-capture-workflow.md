@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖 tools/run_live_full_ui_matrix.js、injector/CavalryTranslatorInjector.mm 的 live inventory / cursorWidget / itemModels 诊断能力，以及 macOS Accessibility 窗口截图证据
+[INPUT]: 依赖 tools/run_live_full_ui_matrix.js、injector/CavalryTranslatorInjector.mm 的 live inventory / cursorWidget / itemModels 诊断能力、Windows 显式绘制计数采样与 macOS Accessibility 窗口截图证据
 [OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model / JSON 数据复用 / ModalDialog 诊断、ExtensionLayer 平台精确边界（QLineEdit 仅翻译 `placeholderText`，名称/查询实际值保持原文）、覆盖率复抓与 canary 验证流程
 [POS]: docs 的运行时抓取主流程文档，连接 injector 诊断能力、语言资源同步和 audits 实跑报告
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -417,6 +417,12 @@ Space + click + drag / Pan
 
 这些字符串来自 `/Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.dylib` 的 `__TEXT,__cstring`，Cavalry 在 panel/viewport 内部绘制它们，不暴露为 `QLabel::text()`、`QAction::text()` 或 AX 文本节点。翻译表里有不等于会生效；Qt translator 和 widget 遍历都碰不到。
 
+### 时间轴用户名称：字体覆盖，不是翻译
+
+Scene 列表显示正常而时间轴同名方框时，先核对 UTF-8 名称与原字体 glyph；不得把用户名称加入翻译表或更改模型身份。macOS 与 Windows 的时间轴名称适配分别锁定自己的 Cavalry 2.7.2 调用点/ABI，测量和绘制按同一完整名称覆盖规则借用字体，不能复制另一平台地址或系统字体名。
+
+macOS 启动时准备有限系统字体候选，纯 ASCII 与原字体完整覆盖的名称保持原字体；只为两个验证通过的名称 caller 借用同字号/缩放/倾斜/flags 的字体副本。没有逐帧字体创建、名称缓存或诊断文件写入。验收必须含三语界面下同一组英文、简中、繁中、日文、混排、长名称及缩放/滚动/裁切，并保留既有工具提示对照；计数增长不等于屏幕字形正确。
+
 ### `Viewport Quality: High`：已批准的 macOS 英文边界
 
 > **范围：macOS-only。** 以下结论仅来自 Cavalry `2.7.2` 在 macOS 上的 runtime/live
@@ -495,6 +501,10 @@ translatedSourceMask 命中目标场景完整位图
 fallbackSourceMask=0
 rendererFailure=0
 ```
+
+Windows 的 `CAVALRY_I18N_DIAGNOSTIC_MARKER` 也用于普通 Switcher 启动确认，因此设置 marker 路径本身不启用持续采样。普通启动只在就绪或 hook 安装状态变化时写出；绘制计数变化不触发写盘。需要上述累计计数的验收启动，必须额外向该 Cavalry 子进程设置 `CAVALRY_I18N_DIAGNOSTIC_SAMPLING=1`，并提供绝对 marker 路径；其他值不启用。仓库 Windows live-clone 编排已显式设置，无需改用户或系统环境。
+
+采样模式每秒检查一次，只有计数变化才写出最新快照，写入失败不推进已保存基线。读取工具应等待同一 PID 的计数收敛，不要求下一帧立即写盘。诊断模式结束后退出测试进程；不要把采样变量写入日常启动配置。
 
 只看到 generic translator 已加载，不能证明这些自绘提示已经翻译；必须同时保存对应窗口截图和上述 marker。
 

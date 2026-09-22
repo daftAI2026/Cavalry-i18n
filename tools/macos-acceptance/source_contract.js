@@ -1,5 +1,5 @@
 /**
- * [INPUT]: canonical repository root、acceptance producer 根目录与包含共享翻译/输入/Quick Add context/顶部标签/空结果与完整分类 ABI/搜索/Classic/Quick Add 描述及 macOS-only 显示策略的生产源码。
+ * [INPUT]: 依赖 Mac 共享 ABI 与时间轴字体源闭包； canonical repository root、acceptance producer 根目录与包含共享翻译/输入/Quick Add context/顶部标签/空结果与完整分类 ABI/搜索/Classic/Quick Add 描述及 macOS-only 显示策略的生产源码。
  * [OUTPUT]: 返回 acceptance-v2 必须冻结的完整、确定性 source→snapshot 路径闭包及 Guide staging 文件表。
  * [POS]: live producer 与独立 release verifier 共用的 source-closure 真相源，防止任一侧省略受审源码。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -55,6 +55,11 @@ function sourceEntries(repo, acceptanceRoot = path.join(repo, 'tools', 'macos-ac
     'injector/cavalry_i18n_macos_quick_add_placeholder.cpp',
     'injector/cavalry_i18n_macos_quick_add_category.h',
     'injector/cavalry_i18n_macos_quick_add_category.cpp',
+    'injector/cavalry_i18n_macos_abi.h',
+    'injector/cavalry_i18n_macos_timeline_font.h',
+    'injector/cavalry_i18n_macos_timeline_font.cpp',
+    'injector/cavalry_i18n_macos_timeline_font_policy.h',
+    'injector/cavalry_i18n_macos_timeline_font_contract.h',
     'injector/cavalry_i18n_macos_tool_help_text_path.h',
     'injector/cavalry_i18n_macos_tool_help_text_path.cpp',
     'injector/generated_translations.inc',

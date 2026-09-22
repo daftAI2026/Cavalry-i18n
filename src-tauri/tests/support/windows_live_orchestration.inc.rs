@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖安装布局、语言 apply、English baseline、Onboarding/Adjacent 专用 Qt 测试 profile、TEMP-owned FullSurfaces profile、acceptance-only plugin 字节、clone guard、tools/macos-acceptance/fixtures 的双平台 Assets 媒体与 exact-PID/HWND 清理
- * [OUTPUT]: 在父测试模块内提供语言安装/验证、现场启动、可重建并按原始拓扑清理缺失 generic 目录的验收插件临时部署、三语编排、WM_CLOSE/ForceStop 清理与 English 恢复
+ * [OUTPUT]: 在父测试模块内提供语言安装/验证、显式开启绘制诊断低频采样的现场启动、可重建并按原始拓扑清理缺失 generic 目录的验收插件临时部署、三语编排、WM_CLOSE/ForceStop 清理与 English 恢复
  * [POS]: src-tauri/tests/support 的 live-clone 事务编排分片；FullSurfaces launch 覆盖到 run-root 下的 disposable TEMP profile，Onboarding/Adjacent 使用 sentinel-owned qttest，并允许已恢复 English 的 clone 在受守卫目录中重复安装验收插件且不遗留测试创建的目录；所有 clone/evidence 写入均经过 disposable TEMP 根与 reparse 守卫
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -216,6 +216,11 @@
             .ok_or_else(|| format!("state is missing before launching {language}"))?;
         let mut launch =
             windows_runtime::prepare_launch(layout, state_dir, &current_state, repo, repo)?;
+        // 只有现场验收消费累计绘制计数；普通 Switcher 启动仅需就绪状态。
+        launch.environment.push((
+            OsString::from("CAVALRY_I18N_DIAGNOSTIC_SAMPLING"),
+            OsString::from("1"),
+        ));
         let marker = launch
             .diagnostic_marker
             .ok_or_else(|| format!("{language} launch did not request a diagnostic marker"))?;
