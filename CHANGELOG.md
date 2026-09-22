@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-09-22
+
 ### Fixed
 - 修复素材和图层名称在编辑时被翻译、导致按原输入搜索不到的问题；普通输入框仅翻译提示文字，保留实际名称、查询和替换内容。
 - 修复语言包把默认字体族和样式当成文案翻译、导致文本图层提示缺少字体的问题；字体查找参数始终保留英文基线原值。
