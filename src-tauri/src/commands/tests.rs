@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖无补丁回执的旧安装保留重应用入口、command DTO、启动期 Windows pending marker/English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [OUTPUT]: 覆盖 macOS 完整 official baseline 准入/收敛替换、旧 JSON-only provenance 在历史 revision 字符串下优先返回重装提示、完整基线绑定漂移安全拒绝，以及 command DTO、Windows legacy QPA、snapshot/provenance、签名残留清理、事务 marker 与四阶段 apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -30,6 +30,8 @@ use std::{
 
 #[cfg(target_os = "windows")]
 use std::ffi::OsString;
+#[cfg(target_os = "macos")]
+use std::os::unix::fs::PermissionsExt;
 
 #[derive(Clone, Default)]
 struct RecordingOperationReporter {
@@ -472,6 +474,14 @@ fn bundle_lock_conflicts_releases_and_blocks_restart() {
 fn write(path: &Path, value: impl AsRef<[u8]>) {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, value).unwrap();
+    #[cfg(unix)]
+    if path
+        .file_name()
+        .is_some_and(|name| name == "libCavalryTranslatorInjector.dylib")
+    {
+        use std::os::unix::fs::PermissionsExt;
+        fs::set_permissions(path, fs::Permissions::from_mode(0o755)).unwrap();
+    }
 }
 
 #[cfg(target_os = "windows")]
@@ -1330,6 +1340,197 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
 
 #[test]
 #[cfg(target_os = "macos")]
+fn old_macos_managed_install_without_official_baseline_returns_reinstall_code_prewrite() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    write(
+        &app.join("Contents/MacOS/CavalryLauncher"),
+        b"old released wrapper",
+    );
+    fs::set_permissions(
+        app.join("Contents/MacOS/CavalryLauncher"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    write(
+        &app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
+        b"old released injector",
+    );
+    write(
+        &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+        b"zh-Hans\n",
+    );
+    state::write_state(
+        &state_dir,
+        &State {
+            app_path: app.to_string_lossy().to_string(),
+            cavalry_version: "2.7.2".to_string(),
+            current_lang: "zh-Hans".to_string(),
+            ..State::default()
+        },
+    )
+    .unwrap();
+    let before = [
+        app.join("Contents/Info.plist"),
+        app.join("Contents/MacOS/CavalryLauncher"),
+        app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
+        app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+        app.join("Contents/assets/Definitions/appStrings.json"),
+        state_dir.join("state.json"),
+    ]
+    .map(|path| (path.clone(), fs::read(&path).unwrap()));
+
+    let result = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hant",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:01:00.000Z",
+    )
+    .unwrap();
+
+    assert!(!result.ok);
+    assert_eq!(result.error_code.as_deref(), Some("reinstallRequired"));
+    for (path, bytes) in before {
+        assert_eq!(fs::read(&path).unwrap(), bytes, "{}", path.display());
+    }
+
+    // P4/P5 的真实旧 state 有路径与 bundle-version revision，却没有统一 vendor
+    // generation；不能先拿旧 revision 格式与新版摘要比较，误报为安装漂移。
+    let legacy_revision = "bundle-version:2.7.2";
+    state::write_state(
+        &state_dir,
+        &State {
+            app_path: fs::canonicalize(&app)
+                .unwrap()
+                .to_string_lossy()
+                .to_string(),
+            cavalry_version: "2.7.2".to_string(),
+            cavalry_revision: legacy_revision.to_string(),
+            current_lang: "zh-Hans".to_string(),
+            english_snapshot_provenance: Some(EnglishSnapshotProvenance {
+                install_root: fs::canonicalize(&app)
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string(),
+                immutable_revision: legacy_revision.to_string(),
+                snapshot_generation: None,
+                snapshot_manifest_sha256: None,
+                vendor_baseline_id: None,
+            }),
+            ..State::default()
+        },
+    )
+    .unwrap();
+    let legacy_before = [
+        app.join("Contents/Info.plist"),
+        app.join("Contents/MacOS/CavalryLauncher"),
+        app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
+        app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+        app.join("Contents/assets/Definitions/appStrings.json"),
+        state_dir.join("state.json"),
+    ]
+    .map(|path| (path.clone(), fs::read(&path).unwrap()));
+    for action in ["zh-Hant", "restore-official"] {
+        let result = apply_language_inner(
+            &repo,
+            &state_dir,
+            &resources,
+            &app,
+            action,
+            &mut RecordingRunner::default(),
+            "2026-09-25T00:01:00.000Z",
+        )
+        .unwrap();
+        assert!(!result.ok);
+        assert_eq!(result.error_code.as_deref(), Some("reinstallRequired"));
+        for (path, bytes) in &legacy_before {
+            assert_eq!(fs::read(path).unwrap(), *bytes, "{}", path.display());
+        }
+    }
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn macos_state_binding_drift_is_not_reported_as_reinstall_required() {
+    for mismatch in ["path", "revision"] {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let state_dir = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let app = make_bundle(temp.path());
+        write(
+            &app.join("Contents/MacOS/CavalryLauncher"),
+            b"old managed wrapper",
+        );
+        fs::set_permissions(
+            app.join("Contents/MacOS/CavalryLauncher"),
+            fs::Permissions::from_mode(0o755),
+        )
+        .unwrap();
+        let revision = crate::detect::read_bundle_revision_for_write(&app).unwrap();
+        let provenance = EnglishSnapshotProvenance {
+            install_root: if mismatch == "path" {
+                temp.path().join("other-app").to_string_lossy().to_string()
+            } else {
+                fs::canonicalize(&app)
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string()
+            },
+            immutable_revision: if mismatch == "revision" {
+                "different-revision".to_string()
+            } else {
+                revision.clone()
+            },
+            snapshot_generation: Some("c".repeat(64)),
+            snapshot_manifest_sha256: Some("a".repeat(64)),
+            vendor_baseline_id: Some("b".repeat(64)),
+        };
+        state::write_state(
+            &state_dir,
+            &State {
+                app_path: fs::canonicalize(&app)
+                    .unwrap()
+                    .to_string_lossy()
+                    .to_string(),
+                cavalry_version: "2.7.2".to_string(),
+                cavalry_revision: revision,
+                current_lang: "zh-Hans".to_string(),
+                english_snapshot_provenance: Some(provenance),
+                ..State::default()
+            },
+        )
+        .unwrap();
+
+        let result = apply_language_inner(
+            &repo,
+            &state_dir,
+            &resources,
+            &app,
+            "zh-Hant",
+            &mut RecordingRunner::default(),
+            "2026-09-25T00:00:00.000Z",
+        );
+
+        let error = match result {
+            Err(error) => error,
+            Ok(_) => panic!("binding drift must fail closed"),
+        };
+        assert!(
+            error.contains("installation path") || error.contains("immutable content revision"),
+            "unexpected error for {mismatch} mismatch: {error}"
+        );
+    }
+}
+
+#[test]
+#[cfg(target_os = "macos")]
 fn structurally_supported_clean_bundle_does_not_use_vendor_team_as_translation_license() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -1663,7 +1864,7 @@ fn managed_second_apply_accepts_only_a_code_signature_blob_change() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn managed_runtime_drift_is_rejected_before_a_second_bundle_mutation() {
+fn unknown_managed_runtime_is_replaced_from_the_full_official_baseline() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -1686,14 +1887,18 @@ fn managed_runtime_drift_is_rejected_before_a_second_bundle_mutation() {
     )
     .unwrap();
     let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
-    let before = fs::read(&app_strings).unwrap();
     write(
         &app.join("Contents/MacOS/CavalryLauncher"),
         b"drifted wrapper",
     );
+    fs::set_permissions(
+        app.join("Contents/MacOS/CavalryLauncher"),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
     let mut runner = RecordingRunner::default();
 
-    let error = apply_language_inner(
+    let result = apply_language_inner(
         &repo,
         &state_dir,
         &resources,
@@ -1702,16 +1907,24 @@ fn managed_runtime_drift_is_rejected_before_a_second_bundle_mutation() {
         &mut runner,
         "2026-04-23T00:01:00.000Z",
     )
-    .unwrap_err();
+    .unwrap();
 
-    assert!(error.contains("launcher wrapper has drifted"), "{error}");
-    assert_eq!(fs::read(app_strings).unwrap(), before);
-    assert!(!runner.commands.iter().any(|command| {
-        command.program == "xattr" || command.args.iter().any(|arg| arg == "--sign")
+    assert!(result.ok, "{result:?}");
+    assert_eq!(result.current_lang.as_deref(), Some("zh-Hant"));
+    assert_eq!(
+        fs::read_to_string(app.join("Contents/MacOS/CavalryLauncher")).unwrap(),
+        crate::mac_runtime::build_launch_wrapper()
+    );
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&fs::read(app_strings).unwrap()).unwrap(),
+        serde_json::json!({"value":"translated"})
+    );
+    assert!(runner.commands.iter().any(|command| {
+        command.program == "codesign" && command.args.iter().any(|arg| arg == "--sign")
     }));
     assert_eq!(
         state::read_state(&state_dir).unwrap().current_lang,
-        "zh-Hans"
+        "zh-Hant"
     );
 }
 
@@ -1795,7 +2008,6 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
         &temp.path().join("staging"),
         None,
         None,
-        false,
     )
     .unwrap();
 

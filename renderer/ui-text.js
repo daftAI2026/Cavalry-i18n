@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、真正验证失败的分级恢复路径、真实任务 Event、typed 写入拒绝后的 macOS 权限 handoff 与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、缺少完整官方恢复基线时的官方重装/重开/重试路径、真实任务 Event、typed 写入拒绝后的 macOS 权限 handoff 与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -130,7 +130,7 @@ const UI_TEXT = {
       'Cavalry’s folder isn’t writable. Administrator retry only supports Program Files. Choose a writable copy or change the folder permissions.',
     readyToApply: 'Choose a language, then switch.',
     chooseAppToContinue: 'Choose a Cavalry installation to continue.',
-    reinstallRequired: 'The Switcher can’t verify the integrity of the Cavalry installation. Reinstall Cavalry from the official installer, then reopen the Switcher.',
+    reinstallRequired: 'This Cavalry installation has no complete, verified original backup. Updating its language or restoring English is unsafe. Reinstall Cavalry {supportedVersion} from the official installer, reopen the Switcher, then choose a language again.',
     olderVersionUnsupported: 'This Switcher currently supports Cavalry {supportedVersion}. Update Cavalry to {supportedVersion}, then reopen the Switcher. Your installation has not been changed.',
     newerVersionUnsupported: 'This Switcher currently supports Cavalry {supportedVersion} and won’t modify this installation. Keep using Cavalry, then try again after a compatible Switcher update is available.',
     unknownVersionUnsupported: 'This Switcher supports Cavalry {supportedVersion} and has not changed your installation.',
@@ -299,7 +299,7 @@ const UI_TEXT = {
       'Cavalry 文件夹不可写。仅“Program Files”中的安装可以管理员身份重试。请选择可写副本或修改文件夹权限。',
     readyToApply: '选择语言，然后切换。',
     chooseAppToContinue: '请选择 Cavalry 安装位置后继续。',
-    reinstallRequired: '语言切换器无法验证 Cavalry 安装的完整性。请使用官方安装包重新安装 Cavalry，再重新打开语言切换器。',
+    reinstallRequired: '此 Cavalry 安装缺少完整且可验证的原厂备份，无法安全更新语言或恢复英文。请使用官方安装包重新安装 Cavalry {supportedVersion}，重新打开语言切换器，再选择语言。',
     olderVersionUnsupported: '语言切换器目前支持 Cavalry {supportedVersion}。请先将 Cavalry 更新至 {supportedVersion}，再重新打开语言切换器。当前安装未被修改。',
     newerVersionUnsupported: '语言切换器目前支持 Cavalry {supportedVersion}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。',
     unknownVersionUnsupported: '此语言切换器支持 Cavalry {supportedVersion}，当前安装未被修改。',
@@ -464,7 +464,7 @@ const UI_TEXT = {
       'Cavalry 資料夾無法寫入。只有「Program Files」中的安裝可用系統管理員身分重試。請選擇可寫入的副本或修改資料夾權限。',
     readyToApply: '選擇語言，然後切換。',
     chooseAppToContinue: '請先選擇 Cavalry 安裝位置再繼續。',
-    reinstallRequired: '語言切換器無法驗證 Cavalry 安裝的完整性。請使用官方安裝程式重新安裝 Cavalry，再重新開啟語言切換器。',
+    reinstallRequired: '此 Cavalry 安裝缺少完整且可驗證的原廠備份，無法安全更新語言或還原英文。請使用官方安裝程式重新安裝 Cavalry {supportedVersion}，重新開啟語言切換器，再選擇語言。',
     olderVersionUnsupported: '語言切換器目前支援 Cavalry {supportedVersion}。請先將 Cavalry 更新至 {supportedVersion}，再重新開啟語言切換器。目前的安裝未被修改。',
     newerVersionUnsupported: '語言切換器目前支援 Cavalry {supportedVersion}，不會修改此安裝。你可以繼續使用 Cavalry；請在相容更新推出後再試。',
     unknownVersionUnsupported: '此語言切換器支援 Cavalry {supportedVersion}，目前安裝未被修改。',
@@ -629,7 +629,7 @@ const UI_TEXT = {
       'Cavalry フォルダーに書き込めません。管理者として再試行できるのは Program Files 内だけです。書き込み可能なコピーを選ぶか、アクセス権を変更してください。',
     readyToApply: '言語を選んで切り替えます。',
     chooseAppToContinue: '続行するには Cavalry のインストール先を選択してください。',
-    reinstallRequired: '言語スイッチャーは Cavalry のインストールの完全性を確認できません。公式インストーラーから Cavalry を再インストールして、言語スイッチャーを開き直してください。',
+    reinstallRequired: 'この Cavalry インストールには完全で検証済みの元のバックアップがないため、言語の更新も英語への復元も安全にできません。公式インストーラーから Cavalry {supportedVersion} を再インストールし、言語スイッチャーを開き直してから言語を選び直してください。',
     olderVersionUnsupported: 'この言語スイッチャーは現在 Cavalry {supportedVersion} に対応しています。Cavalry を {supportedVersion} に更新してから、言語スイッチャーを開き直してください。現在のインストールは変更されていません。',
     newerVersionUnsupported: 'この言語スイッチャーは現在 Cavalry {supportedVersion} に対応しており、このインストールは変更しません。Cavalry はそのまま使用し、対応版の更新後にもう一度お試しください。',
     unknownVersionUnsupported: 'この言語スイッチャーは Cavalry {supportedVersion} に対応しています。現在のインストールは変更されていません。',
