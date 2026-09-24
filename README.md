@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、已发布排序限制与开发分支行为、开发与安全说明
+[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS 受管安装恢复基线要求、已发布排序限制与开发分支行为、开发与安全说明
 [POS]: 仓库英文用户入口；与三份本地化 README 同步发布真相，不替代平台真机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -26,12 +26,14 @@
 - **Four UI languages**: English, Simplified Chinese, Traditional Chinese, and Japanese.
 - **Two platforms**: Cavalry 2.7.2 on macOS and Windows x64.
 - **Complete UI coverage**: Translates JSON assets and text compiled into Cavalry's Qt interface.
-- **Automatic discovery and recovery**: Finds common installations, keeps the current language visible, and prepares the files needed to restore English.
+- **Automatic discovery and recovery**: Finds common installations, keeps the current language visible, and prepares the recovery data required for supported English restoration.
 - **Built-in updates**: Notifies you when a later Switcher version is available and verifies it before installation.
 
 ## Switcher Window
 
 Choose a target language, then select **Switch** or **Restore English**. When the current language has an update badge, select it and choose **Update** to reapply the complete language patch—no language change or English restore is needed first. The current language is disabled only when its patch is up to date. Progress and recovery guidance appear below the actions.
+
+On macOS, changing the language or updating the patch on a managed installation, as well as **Restore English**, requires a complete, verifiable official Cavalry baseline saved for that installation. If it is missing or cannot be verified, the operation stops before writing and asks you to reinstall Cavalry from the official installer before applying a language again. Windows behavior is unchanged.
 
 **Add Layer search in released p8:** You can search in English or the selected language. In the right-hand Add Layer panel, localized title matches may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
 
@@ -47,7 +49,7 @@ On macOS, it tries the change directly and opens **System Settings → Privacy &
 
 On Windows, writable custom locations are handled directly. UAC elevation is limited to Cavalry installations under the system Program Files directories. Unknown DLLs are never deleted or replaced.
 
-**Restore English** returns Cavalry to English; it does not promise that every older modified installation becomes byte-for-byte identical to a fresh vendor install. To recover a completely untouched official installation, reinstall Cavalry 2.7.2 from the official installer.
+On macOS, **Restore English** restores from the saved official baseline; it does not reinstall Cavalry. If a complete, verifiable baseline is unavailable, the restore stops before writing and asks you to reinstall Cavalry 2.7.2 from the official installer before applying a language again.
 
 ## Install From Release
 
@@ -79,7 +81,7 @@ Use the repository's pinned Node, Rust, Qt, Python, and Windows CMake toolchain.
 ## How It Works
 
 1. Detect a Cavalry 2.7.2 installation, or let the user choose one on Windows.
-2. Validate the installation and save or reuse the files required to restore English.
+2. Validate the installation and save or reuse the recovery data required for a supported English restore.
 3. Apply the selected JSON assets and platform runtime translator.
 4. Commit the language marker last; macOS then re-signs the changed app bundle.
 5. Open Cavalry in the selected language.

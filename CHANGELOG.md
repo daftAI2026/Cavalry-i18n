@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- macOS 已受管安装若保有完整、可验证的 Cavalry 官方基线且安装状态未漂移，可跨旧版切换器更新补丁或恢复英文，不再因旧注入器字节不同而拒绝；缺失基线时会在写入前停止，并提示从官方安装器重新安装 Cavalry 后再应用语言。
+
 ## [1.0.4] - 2026-09-22
 
 ### Fixed

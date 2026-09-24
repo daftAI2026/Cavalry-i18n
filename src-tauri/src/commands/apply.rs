@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供摘要验证历史补丁源的跨版本准入、成功事务独占的补丁回执提交及保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于验证完成的 macOS 只读运行态门、用户动作锁内跨平台 journal 静默收敛、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS 完整 official vendor baseline、Program Files typed parent transaction、platform_runtime direct preflight 与 privilege copy completion。
+ * [OUTPUT]: 提供成功事务独占的补丁回执提交及保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于写入的 macOS admission、用户动作锁内跨平台 journal 静默收敛、Clean English no-op、Windows 原字节/三语 canonical overlay、完整官方 baseline 上的 macOS 收敛式 runtime 替换与精确官方恢复、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；缺失或不完整原厂备份先于旧版 revision 比较以稳定 `reinstallRequired` code 收口，完整基线的绑定/运行态漂移仍安全拒绝；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -27,6 +27,7 @@ use super::{
     contract::{
         renderer_warning_for_copy, ActionPayload, NoopReporter, OperationPhase,
         OperationPhaseGuard, OperationReporter, CAVALRY_STILL_RUNNING_ERROR_CODE,
+        REINSTALL_REQUIRED_ERROR_CODE,
     },
     snapshot::{extract_english_snapshot_or_throw, CleanEnglishDisposition},
     status::{project_state_with_bundle, read_state_for_mutation},
@@ -38,102 +39,103 @@ enum CleanEnglishFastPath {
 }
 
 #[cfg(target_os = "macos")]
+enum MacPrewriteTrustError {
+    RecoveryUnavailable(String),
+    Refused(String),
+}
+
+#[cfg(target_os = "macos")]
+impl From<String> for MacPrewriteTrustError {
+    fn from(error: String) -> Self {
+        Self::Refused(error)
+    }
+}
+
+#[cfg(target_os = "macos")]
 fn verify_macos_prewrite_trust(
-    repo_root: &Path,
     state_dir: &Path,
-    resource_dir: &Path,
     app_path: &Path,
     immutable_revision: &str,
     previous_state: &State,
     signature: Option<&privilege::BundleSignatureEvidence>,
-) -> Result<(), String> {
+) -> Result<(), MacPrewriteTrustError> {
     if crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok() {
         return signature
             .is_some_and(|signature| signature.is_recoverable_identity())
             .then_some(())
             .ok_or_else(|| {
+                MacPrewriteTrustError::Refused(
                 "The clean English runtime could not be normalized for recovery before writing."
-                    .to_string()
+                    .to_string(),
+            )
             });
-    }
-    // 对已由本工具拥有、且可由快照/runtime postimage 证明的安装，签名只是最终可启动性
-    // postcondition，不是再次切换语言的准入凭证。正常事务会重新签名并严格复核。
-    if super::snapshot::legacy_snapshot_is_proven(
-        repo_root,
-        state_dir,
-        resource_dir,
-        previous_state,
-        app_path,
-        immutable_revision,
-    ) {
-        return Ok(());
     }
     let provenance = previous_state
         .english_snapshot_provenance
         .as_ref()
-        .ok_or_else(|| {
+        .ok_or_else(|| MacPrewriteTrustError::RecoveryUnavailable(
             "Modified Cavalry has no complete official preimage provenance. Reinstall Cavalry before retrying."
-                .to_string()
-        })?;
-    if Path::new(&previous_state.app_path) != app_path
-        || Path::new(&provenance.install_root) != app_path
-    {
-        return Err(
-            "Modified Cavalry state/provenance belongs to a different installation path; no files were written. Reinstall Cavalry before retrying."
                 .to_string(),
-        );
-    }
-    if previous_state.cavalry_revision != immutable_revision
-        || provenance.immutable_revision != immutable_revision
-    {
-        return Err(
-            "Modified Cavalry state/provenance does not match the selected immutable content revision; no files were written. Reinstall Cavalry before retrying."
-                .to_string(),
-        );
-    }
+        ))?;
     if provenance.snapshot_generation.is_none()
         || provenance.snapshot_manifest_sha256.is_none()
         || provenance.vendor_baseline_id.is_none()
     {
-        return Err(
+        return Err(MacPrewriteTrustError::RecoveryUnavailable(
             "Modified Cavalry's durable state is not bound to one complete unified vendor generation; no files were written."
                 .to_string(),
-        );
+        ));
+    }
+    let canonical_app = fs::canonicalize(app_path).map_err(|error| error.to_string())?;
+    if fs::canonicalize(&previous_state.app_path).ok().as_ref() != Some(&canonical_app)
+        || Path::new(&provenance.install_root) != canonical_app
+    {
+        return Err(MacPrewriteTrustError::Refused(
+            "Modified Cavalry state/provenance belongs to a different installation path; no files were written."
+                .to_string(),
+        ));
+    }
+    if previous_state.cavalry_revision != immutable_revision
+        || provenance.immutable_revision != immutable_revision
+    {
+        return Err(MacPrewriteTrustError::Refused(
+            "Modified Cavalry state/provenance does not match the selected immutable content revision; no files were written."
+                .to_string(),
+        ));
     }
     let baseline = crate::mac_official::load_vendor_baseline(
         state_dir,
         app_path,
         immutable_revision,
         provenance,
-    )?;
-    if let Some(receipt) = previous_state.applied_patch.as_ref() {
-        let old_resources = super::patch_receipt::load_source(
-            state_dir,
-            receipt,
-            app_path,
-            immutable_revision,
-            &receipt.language,
-        )?;
-        let injector = crate::mac_runtime::injector_source_path(&old_resources, &old_resources)?;
-        let wrapper = fs::read(old_resources.join("runtime/CavalryLauncher"))
-            .map_err(|error| format!("Could not read applied launcher receipt: {error}"))?;
-        return baseline.verify_managed_runtime_with_wrapper(app_path, &injector, &wrapper);
+    )
+    .map_err(MacPrewriteTrustError::RecoveryUnavailable)?;
+    baseline
+        .verify_managed_runtime_for_replacement(app_path)
+        .map_err(MacPrewriteTrustError::Refused)?;
+    if !matches!(
+        previous_state.current_lang.as_str(),
+        "en" | "zh-Hans" | "zh-Hant" | "ja_JP"
+    ) {
+        return Err(MacPrewriteTrustError::Refused(
+            "Managed Cavalry state has no canonical language; no files were written. Reinstall Cavalry before retrying."
+                .to_string(),
+        ));
     }
-    let injector = crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
-    match baseline.verify_managed_runtime(app_path, &injector) {
-        Ok(()) => Ok(()),
-        Err(current_runtime_error) => {
-            super::snapshot::verify_macos_managed_runtime_with_released_identity(
-                &baseline,
-                app_path,
-            )
-            .map_err(|legacy_runtime_error| {
-                format!(
-                    "Current managed runtime did not match the Switcher package ({current_runtime_error}); released legacy runtime proof also failed ({legacy_runtime_error})."
-                )
-            })
-        }
+    let marker_path = app_path.join("Contents/Resources/cavalry-i18n-lang.txt");
+    let marker = fs::read(&marker_path).map_err(|error| {
+        MacPrewriteTrustError::Refused(format!(
+            "Managed Cavalry language marker is unavailable: {error}"
+        ))
+    })?;
+    let expected_marker = format!("{}\n", previous_state.current_lang);
+    if marker != expected_marker.as_bytes() {
+        return Err(MacPrewriteTrustError::Refused(
+            "Managed Cavalry state and language marker disagree; no files were written. Reinstall Cavalry before retrying."
+                .to_string(),
+        ));
     }
+    Ok(())
 }
 
 #[cfg(target_os = "macos")]
@@ -455,15 +457,21 @@ where
     }
     #[cfg(target_os = "macos")]
     if app_platform == crate::install::InstallPlatform::Macos {
-        verify_macos_prewrite_trust(
-            repo_root,
+        if let Err(error) = verify_macos_prewrite_trust(
             state_dir,
-            resource_dir,
             &app_path,
             &immutable_revision,
             &previous_state,
             prewrite_signature.as_ref(),
-        )?;
+        ) {
+            verify_phase.error();
+            return Ok(match error {
+                MacPrewriteTrustError::RecoveryUnavailable(message) => {
+                    ActionPayload::error_with_code(&message, REINSTALL_REQUIRED_ERROR_CODE)
+                }
+                MacPrewriteTrustError::Refused(message) => return Err(message),
+            });
+        }
     }
     let mut current_state = project_state_with_bundle(
         state_dir,
@@ -472,52 +480,32 @@ where
         &version,
         &immutable_revision,
     );
-    current_state = super::snapshot::project_legacy_snapshot_provenance(
-        repo_root,
-        state_dir,
-        resource_dir,
-        &previous_state,
-        current_state,
-        &app_path,
-        &version,
-        &immutable_revision,
-    );
-    current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
-        repo_root,
-        state_dir,
-        resource_dir,
-        current_state,
-        &app_path,
-        &immutable_revision,
-    )?;
-    #[cfg(target_os = "macos")]
-    let managed_legacy = app_platform == crate::install::InstallPlatform::Macos
-        && super::snapshot::managed_legacy_baseline_is_usable(
-            current_state.english_snapshot_provenance.as_ref(),
-            super::snapshot::legacy_snapshot_is_proven(
-                repo_root,
-                state_dir,
-                resource_dir,
-                &current_state,
-                &app_path,
-                &immutable_revision,
-            ),
+    #[cfg(target_os = "windows")]
+    {
+        current_state = super::snapshot::project_legacy_snapshot_provenance(
+            repo_root,
+            state_dir,
+            resource_dir,
+            &previous_state,
+            current_state,
+            &app_path,
+            &version,
+            &immutable_revision,
         );
-    #[cfg(not(target_os = "macos"))]
-    let managed_legacy = false;
+        current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
+            repo_root,
+            state_dir,
+            resource_dir,
+            current_state,
+            &app_path,
+            &immutable_revision,
+        )?;
+    }
     #[cfg(target_os = "macos")]
-    let restore_official = restore_requested
-        && current_state
-            .english_snapshot_provenance
-            .as_ref()
-            .is_some_and(|provenance| provenance.vendor_baseline_id.is_some());
+    let restore_official = restore_requested;
     #[cfg(not(target_os = "macos"))]
     let restore_official = false;
-    let transaction_action_lang = if restore_requested && !restore_official {
-        "en"
-    } else {
-        lang
-    };
+    let transaction_action_lang = lang;
 
     verify_phase.completed();
     let mut baseline_phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);
@@ -577,8 +565,28 @@ where
         current_state.english_snapshot_provenance.as_ref(),
         &app_path,
         &immutable_revision,
-    ) && !managed_legacy
-    {
+    ) {
+        #[cfg(target_os = "macos")]
+        if app_platform == crate::install::InstallPlatform::Macos
+            && crate::mac_official::verify_clean_vendor_runtime(&app_path).is_ok()
+        {
+            current_state = extract_english_snapshot_or_throw(
+                repo_root,
+                state_dir,
+                resource_dir,
+                current_state,
+                &app_path,
+                &immutable_revision,
+                runner,
+            )?;
+        } else {
+            baseline_phase.error();
+            return Ok(ActionPayload::error_with_code(
+                "This managed Cavalry installation has no complete verified vendor recovery baseline. Reinstall Cavalry from its official installer before switching languages.",
+                REINSTALL_REQUIRED_ERROR_CODE,
+            ));
+        }
+        #[cfg(not(target_os = "macos"))]
         return Err(
             "English recovery baseline is missing or stale for this Cavalry revision. Restore a clean English installation before applying it."
                 .to_string(),
@@ -589,11 +597,28 @@ where
 
     // ---------- 成功回执候选 ----------
     // generation 先发布为无权威孤立材料；只有事务成功才把引用原子写入 state。
-    // English 若仍保留受管 runtime，旧回执仅用于下次 runtime 准入；原厂恢复才清除。
+    // English UI 若仍保留受管 runtime，保留经过内容寻址重验的来源记录；官方恢复才清除。
     let pending_receipt = if restore_official {
         None
     } else if effective_lang == "en" {
-        current_state.applied_patch.clone()
+        #[cfg(target_os = "macos")]
+        {
+            current_state.applied_patch.as_ref().and_then(|receipt| {
+                super::patch_receipt::load_source(
+                    state_dir,
+                    receipt,
+                    &app_path,
+                    &immutable_revision,
+                    &receipt.language,
+                )
+                .ok()
+                .map(|_| receipt.clone())
+            })
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            current_state.applied_patch.clone()
+        }
     } else {
         super::patch_receipt::prepare(
             repo_root,
@@ -641,11 +666,9 @@ where
                     &immutable_revision,
                     provenance,
                 )?)
-            } else if managed_legacy {
-                None
             } else {
                 return Err(
-                    "macOS apply has neither a verified official baseline nor a proven Managed Legacy postimage."
+                    "macOS apply requires a complete verified official vendor baseline."
                         .to_string(),
                 );
             }
@@ -656,7 +679,7 @@ where
         let english_snapshot_dir = if let Some(baseline) = mac_baseline.as_ref() {
             baseline.english_dir().to_path_buf()
         } else {
-            patch::english_snapshot_dir(state_dir, &app_path, &immutable_revision)?
+            return Err("macOS apply has no complete official English baseline.".to_string());
         };
         #[cfg(not(target_os = "macos"))]
         let english_snapshot_dir =
@@ -848,7 +871,6 @@ where
             &staging_root,
             trusted_macos_info_plist.as_deref(),
             trusted_macos_info_mode,
-            managed_legacy,
         )?;
         #[cfg(not(target_os = "macos"))]
         if let Some(payload) = finish_direct_preflight_result(platform_runtime::preflight_apply(
