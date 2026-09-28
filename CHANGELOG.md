@@ -14,7 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.6] - 2026-09-29
+
 ### Fixed
+- 修复 macOS 切换语言前因无关进程无法读取而误报安装验证失败的问题；实际运行中的 Cavalry 仍会阻止写入。
+- 普通安装验证失败时提供重试与「报告问题」入口，不再误导用户重装；只有确实缺少恢复基线时才建议重装 Cavalry。
 - macOS 主窗口和“关于”窗口仍使用系统原生交通灯，但在创建窗口时交给 Tauri 定位，不再于缩放事件中反复改写原生按钮容器，避免拖动缩放时上下闪动。
 
 ## [1.0.5] - 2026-09-28
