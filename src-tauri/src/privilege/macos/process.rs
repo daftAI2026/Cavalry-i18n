@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、libproc 的进程名/路径探针、固定 JXA terminate 请求与 CommandRunner。
- * [OUTPUT]: 提供先按所选 executable 名称缩小候选、再按 canonical executable/PID 确认的只读运行探针、显式重启场景下的 graceful close、transaction 内复核，并将 vanished PID 与候选路径不可检查错误显式区分。
- * [POS]: macOS 进程边界；普通 Switch/Restore 只读探测并要求用户自行保存退出，只有显式 restart 路径可请求 graceful terminate；不解析无关进程的路径，候选的 proc_pidpath/路径解析错误 fail closed，仅 typed vanished PID 可忽略；名称只用于发现、精确路径才是身份，不强杀可见/未保存进程、不接受动态脚本。
+ * [OUTPUT]: 提供先按所选 executable 名称缩小候选、名称未知时回退路径探针、再按 canonical executable/PID 确认的只读运行探针、显式重启场景下的 graceful close 与 transaction 内复核。
+ * [POS]: macOS 进程边界；普通 Switch/Restore 要求用户自行保存退出，只有显式 restart 可请求 graceful terminate；已知非目标名称不读路径，未知名称只补读原始路径且先比 basename，目标路径不可检查 fail closed，仅 typed vanished PID 可忽略；精确路径才是身份，不强杀可见/未保存进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -201,16 +201,31 @@ fn termination_command(pid: u32, target: &Path) -> crate::privilege::RecordedCom
 }
 
 fn matching_pids(target: &Path) -> Result<Vec<u32>, String> {
+    matching_pids_with(target, all_pids()?, process_name, process_path)
+}
+
+fn matching_pids_with<I, N, F>(
+    target: &Path,
+    pids: I,
+    mut process_name_for: N,
+    process_path_for: F,
+) -> Result<Vec<u32>, String>
+where
+    I: IntoIterator<Item = u32>,
+    N: FnMut(u32) -> Option<OsString>,
+    F: FnMut(u32) -> Result<ProcessPathProbe, String>,
+{
     let target_name = target.file_name().ok_or_else(|| {
         format!(
             "Selected Cavalry executable has no file name: {}",
             target.display()
         )
     })?;
-    let candidates = all_pids()?
-        .into_iter()
-        .filter(|pid| process_name(*pid).as_deref() == Some(target_name));
-    matching_pids_from(target, candidates, process_path)
+    let candidates = pids.into_iter().filter(|pid| match process_name_for(*pid) {
+        Some(name) => name == target_name,
+        None => true, // 名称未知不是非目标；仅此时回退现有路径探针。
+    });
+    matching_pids_from(target, candidates, process_path_for)
 }
 
 fn matching_pids_from<I, F>(
@@ -409,6 +424,64 @@ mod tests {
         let _ = child.wait();
         assert_eq!(result.unwrap(), vec![pid]);
         assert!(matching_pids(&target).unwrap().is_empty());
+    }
+
+    #[test]
+    fn unreadable_name_still_checks_the_running_target_executable() {
+        let temp = tempfile::tempdir().unwrap();
+        let executable = temp.path().join("Cavalry");
+        fs::copy("/bin/sleep", &executable).unwrap();
+        let target = fs::canonicalize(&executable).unwrap();
+        let mut child = std::process::Command::new(&executable)
+            .arg("3")
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        let result = matching_pids_with(&target, [pid], |_| None, process_path);
+        let _ = child.kill();
+        let _ = child.wait();
+        assert_eq!(result.unwrap(), vec![pid]);
+    }
+
+    #[test]
+    fn known_unrelated_name_never_reads_its_path() {
+        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
+        let matching = matching_pids_with(
+            target,
+            [41],
+            |_| Some(OsString::from("verge-mihomo")),
+            |_| panic!("unrelated process path must not be inspected"),
+        )
+        .unwrap();
+        assert!(matching.is_empty());
+    }
+
+    #[test]
+    fn unreadable_name_with_unrelated_raw_path_never_resolves_that_path() {
+        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
+        let unrelated =
+            PathBuf::from("/Library/Application Support/clash-verge-service/cores/verge-mihomo");
+        let matching = matching_pids_with(
+            target,
+            [42],
+            |_| None,
+            |_| Ok(ProcessPathProbe::Path(unrelated.clone())),
+        )
+        .unwrap();
+        assert!(matching.is_empty());
+    }
+
+    #[test]
+    fn unreadable_name_and_unreadable_live_path_fails_closed() {
+        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
+        let error = matching_pids_with(
+            target,
+            [43],
+            |_| None,
+            |_| Err("proc_pidpath denied live process 43".to_string()),
+        )
+        .unwrap_err();
+        assert!(error.contains("denied live process 43"), "{error}");
     }
 
     #[test]
