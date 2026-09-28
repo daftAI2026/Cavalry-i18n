@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、macOS official baseline recovery domain、window_chrome/统一 About 窗口 owner/macOS permission handoff、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths/diagnostics 与 platform_runtime。
- * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用且随 main 退出的独立 About 窗口、仅由 main WebView 执行的跨平台首帧显露、macOS Overlay 对齐与 Windows 透明外壳预初始化、App Management 原生交接、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime；启动期不探测或恢复语言事务 journal。
+ * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、macOS official baseline recovery domain、统一 About 窗口 owner/macOS permission handoff、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths/diagnostics 与 platform_runtime。
+ * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用且随 main 退出的独立 About 窗口、仅由 main WebView 执行的跨平台首帧显露、Windows 透明外壳预初始化、App Management 原生交接、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime；macOS 主窗口原生交通灯由 Tauri 创建配置定位，启动期不探测或恢复语言事务 journal。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、共享运行基础与进程入口边界，但不承载具体写入、事务恢复或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -26,7 +26,6 @@ mod runtime_paths;
 pub mod state;
 #[cfg(target_os = "windows")]
 pub mod uninstall_restore;
-mod window_chrome;
 pub mod windows_install;
 #[cfg(target_os = "windows")]
 pub mod windows_qpa;
@@ -132,7 +131,6 @@ pub fn run() {
                 let main_window = app
                     .get_webview_window("main")
                     .ok_or_else(|| "Main WebView window is unavailable".to_string())?;
-                window_chrome::install_macos_traffic_light_alignment(&main_window)?;
                 about_window::bind_to_main_window(&main_window);
             }
 

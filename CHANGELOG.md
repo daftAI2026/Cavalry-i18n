@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- macOS 主窗口和“关于”窗口仍使用系统原生交通灯，但在创建窗口时交给 Tauri 定位，不再于缩放事件中反复改写原生按钮容器，避免拖动缩放时上下闪动。
+
 ## [1.0.5] - 2026-09-28
 
 ### Fixed
