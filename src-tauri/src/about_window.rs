@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Tauri AppHandle、About 本地页面、固定 `about` 窗口标签与共享 window_chrome；页面内部只消费冻结 bridge 的版本、关闭和项目链接能力。
- * [OUTPUT]: 对外提供唯一的 288px 内容宽 About WebviewWindow owner；macOS 复用主窗口 Overlay/hidden-title/交通灯并在 main 关闭时同步关闭 About，Windows 使用无系统标题栏的透明 compositor 外壳并为 10px 自绘阴影扩展窗口尺寸，同时以 main 为原生 owner 保证主窗口关闭时一并销毁；每次打开按主窗口实时物理外框居中并约束在同一显示器，几何不可用时回退屏幕居中。
+ * [INPUT]: 依赖 Tauri AppHandle、About 本地页面、固定 `about` 窗口标签与 40px Overlay 标题栏几何；页面内部只消费冻结 bridge 的版本、关闭和项目链接能力。
+ * [OUTPUT]: 对外提供唯一的 288px 内容宽 About WebviewWindow owner；macOS 在创建时配置原生交通灯位置并在 main 关闭时同步关闭 About，Windows 使用无系统标题栏的透明 compositor 外壳并为 10px 自绘阴影扩展窗口尺寸，同时以 main 为原生 owner 保证主窗口关闭时一并销毁；每次打开按主窗口实时物理外框居中并约束在同一显示器，几何不可用时回退屏幕居中。
  * [POS]: src-tauri 的 About 窗口边界；被 macOS 应用菜单和 Windows renderer command 共同调用，主窗口与 About 的外壳几何保持同源，不承载页面内容、外部 URL 或业务状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,7 @@ pub(crate) const ABOUT_WINDOW_LABEL: &str = "about";
 
 const ABOUT_BODY_WIDTH: f64 = 288.0;
 const ABOUT_BODY_HEIGHT: f64 = 268.0;
+const ABOUT_TITLEBAR_HEIGHT: f64 = 40.0;
 #[cfg(target_os = "windows")]
 const WINDOW_SHADOW_INSET: f64 = 10.0;
 #[cfg(target_os = "windows")]
@@ -18,9 +19,9 @@ const ABOUT_WINDOW_WIDTH: f64 = ABOUT_BODY_WIDTH + WINDOW_SHADOW_INSET * 2.0;
 const ABOUT_WINDOW_WIDTH: f64 = ABOUT_BODY_WIDTH;
 #[cfg(target_os = "windows")]
 const ABOUT_WINDOW_HEIGHT: f64 =
-    ABOUT_BODY_HEIGHT + crate::window_chrome::TITLEBAR_HEIGHT + WINDOW_SHADOW_INSET * 2.0;
+    ABOUT_BODY_HEIGHT + ABOUT_TITLEBAR_HEIGHT + WINDOW_SHADOW_INSET * 2.0;
 #[cfg(target_os = "macos")]
-const ABOUT_WINDOW_HEIGHT: f64 = ABOUT_BODY_HEIGHT + crate::window_chrome::TITLEBAR_HEIGHT;
+const ABOUT_WINDOW_HEIGHT: f64 = ABOUT_BODY_HEIGHT + ABOUT_TITLEBAR_HEIGHT;
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 const ABOUT_WINDOW_HEIGHT: f64 = ABOUT_BODY_HEIGHT;
 const ABOUT_WINDOW_TITLE: &str = "About Cavalry Language Switcher";
@@ -71,7 +72,8 @@ pub(crate) fn show_about_window(app: &tauri::AppHandle) -> Result<(), String> {
     let builder = builder
         .decorations(true)
         .title_bar_style(tauri::TitleBarStyle::Overlay)
-        .hidden_title(true);
+        .hidden_title(true)
+        .traffic_light_position(tauri::LogicalPosition::new(13.0, 22.0));
 
     #[cfg(target_os = "windows")]
     let builder = builder.decorations(false).transparent(true).shadow(false);
@@ -99,9 +101,6 @@ pub(crate) fn show_about_window(app: &tauri::AppHandle) -> Result<(), String> {
             return Err(format!("About window could not be created: {error}"));
         }
     };
-
-    #[cfg(target_os = "macos")]
-    crate::window_chrome::install_macos_traffic_light_alignment(&window)?;
 
     position_over_main(app, &window)?;
     reveal(&window)

@@ -36,9 +36,6 @@ windows = { version = "=0.61.3", features = [
   "Win32_UI_WindowsAndMessaging",
 ] }
 
-[target.'cfg(target_os = "macos")'.dependencies]
-objc2-app-kit = { version = "=0.3.2", default-features = false, features = ["std", "NSButton", "NSControl", "NSView", "NSWindow"] }
-
 [dev-dependencies]
 base64 = "=0.22.1"
 minisign-verify = "=0.2.5"

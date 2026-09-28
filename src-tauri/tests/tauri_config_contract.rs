@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口跨平台首帧后显露、主窗口/About 共享且按真实按钮中心对齐的 macOS 交通灯 Overlay 与随 main 退出的生命周期、Windows 10px transparent-compositor 外壳及原生 About owner、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
+ * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口跨平台首帧后显露、主窗口/About 在创建时配置的 macOS 原生交通灯 Overlay 与随 main 退出的生命周期、Windows 10px transparent-compositor 外壳及原生 About owner、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -122,17 +122,20 @@ fn tauri_config_declares_capabilities() {
 fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
     let lib_source = include_str!("../src/lib.rs");
     let about_source = include_str!("../src/about_window.rs");
-    let chrome_source = include_str!("../src/window_chrome.rs");
     let shared = read_json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json"));
     let shared_window = &shared["app"]["windows"][0];
-    assert!(chrome_source.contains("pub(crate) const TITLEBAR_HEIGHT: f64 = 40.0;"));
-    assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;"));
-    assert!(chrome_source.contains("close.convertRect_toView(close.bounds(), Some(&*container))"));
-    assert!(chrome_source.contains("button_mid_y + TITLEBAR_HEIGHT / 2.0"));
-    assert!(!chrome_source.contains("MACOS_TRAFFIC_LIGHT_Y"));
-    assert!(
-        lib_source.contains("window_chrome::install_macos_traffic_light_alignment(&main_window)?;")
+    assert!(about_source.contains("const ABOUT_TITLEBAR_HEIGHT: f64 = 40.0;"));
+    assert_eq!(
+        shared_window["trafficLightPosition"],
+        serde_json::json!({"x": 13, "y": 22})
     );
+    assert!(
+        about_source.contains(".traffic_light_position(tauri::LogicalPosition::new(13.0, 22.0))")
+    );
+    assert!(!lib_source.contains("install_macos_traffic_light_alignment"));
+    assert!(!about_source.contains("install_macos_traffic_light_alignment"));
+    assert!(!lib_source.contains("mod window_chrome;"));
+    assert!(!about_source.contains("setFrame"));
     assert!(lib_source.contains("builder.append_invoke_initialization_script("));
     assert!(lib_source.contains("DOMContentLoaded"));
     assert!(lib_source.contains("PageLoadEvent::Finished"));
@@ -148,10 +151,10 @@ fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
     assert!(about_source.contains("let _ = about.close();"));
     assert!(about_source.contains(".owner(&main)"));
     assert_eq!(shared_window["visible"], false);
-    assert!(!chrome_source.contains("SetWindowRgn"));
-    assert!(!chrome_source.contains("DwmSetWindowAttribute"));
-    assert!(chrome_source.contains("tauri::WindowEvent::Resized(_)"));
-    assert!(chrome_source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));
+    assert!(!about_source.contains("SetWindowRgn"));
+    assert!(!about_source.contains("DwmSetWindowAttribute"));
+    assert!(!about_source.contains("tauri::WindowEvent::Resized(_)"));
+    assert!(!about_source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));
 
     let windows = read_json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.windows.conf.json"));
     let window = &windows["app"]["windows"][0];

@@ -275,7 +275,6 @@ dependencies = [
  "chrono",
  "libc",
  "minisign-verify",
- "objc2-app-kit",
  "plist",
  "rfd",
  "serde",
