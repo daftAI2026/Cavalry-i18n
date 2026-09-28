@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、普通验证失败只引导重试/报告而不要求重装、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Select 选中更新徽章及状态刷新清理、Badge、固定 about-label close 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、普通验证失败专有的固定 Issue 表单按钮及外链失败 Toast、typed Cavalry 运行中错误不显露报告入口、无不可见详情/重装建议、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Select 选中更新徽章及状态刷新清理、Badge、固定 about-label close 及 About/外链失败进入局部 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -47,8 +47,9 @@ function runtime({
   statusRequest = null,
   styleValues = {},
   aboutPlatform = 'other',
+  projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -148,7 +149,7 @@ function runtime({
     }
     if (command === 'plugin:app|version') return Promise.resolve('0.7.0');
     if (command === 'open_privacy_security') return Promise.resolve({ ok: true, handoffOutcome: 'opened' });
-    if (command === 'open_project_link') return Promise.resolve({ ok: true });
+    if (command === 'open_project_link') return Promise.resolve(projectLinkResult);
     if (command === 'show_about') return Promise.resolve({ ok: true });
     if (command === 'plugin:window|is_maximized') return Promise.resolve(maximized);
     if (command === 'plugin:window|toggle_maximize') { maximized = !maximized; return Promise.resolve(); }
@@ -935,7 +936,7 @@ test('apply invokes exactly one backend transaction and never exposes a second r
   assert.equal(r.calls.some(({ command }) => command === 'restart_cavalry'), false);
 });
 
-test('generic installation verification failure asks for retry and reporting, not reinstall', async () => {
+test('generic installation verification failure offers its fixed issue form without unavailable details or reinstall', async () => {
   const r = boot({
     status: { supportedVersion: '2.7.2' },
     apply: { ok: false, error: 'private backend diagnostic', errorCode: null },
@@ -947,9 +948,52 @@ test('generic installation verification failure asks for retry and reporting, no
 
   assert.equal(activityTitle(r), 'Couldn’t verify the Cavalry installation');
   assert.match(activityText(r), /Reopen the Switcher and try again/);
-  assert.match(activityText(r), /project issue/);
+  assert.match(activityText(r), /Report a problem/);
+  assert.doesNotMatch(activityText(r), /error details/i);
   assert.doesNotMatch(activityText(r), /reinstall|official installer/i);
   assert.doesNotMatch(activityText(r), /private backend diagnostic/);
+  assert.equal(r.elements['#reportIssueButton'].hidden, false);
+  assert.equal(r.elements['#reportIssueButton'].textContent, 'Report a problem');
+  dispatch(r.elements['#reportIssueButton'], 'click');
+  await flush();
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'open_project_link'))),
+    [{ command: 'open_project_link', payload: { link: 'reportIssue' } }]
+  );
+});
+
+test('typed Cavalry-running verification error does not expose the generic issue form', async () => {
+  const r = boot({ apply: { ok: false, errorCode: 'cavalryStillRunning' } });
+  await flush();
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+
+  assert.equal(activityTitle(r), 'Cavalry is running');
+  assert.equal(r.elements['#reportIssueButton'].hidden, true);
+  assert.equal(r.calls.some(({ command }) => command === 'open_project_link'), false);
+});
+
+test('issue form browser failure uses a peripheral Toast and preserves the failed Activity', async () => {
+  const r = boot({
+    locale: 'zh-CN',
+    apply: { ok: false, errorCode: null },
+    projectLinkResult: { ok: false },
+  });
+  await flush();
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+  const activityBefore = activityText(r);
+  const reportButton = r.elements['#reportIssueButton'];
+  assert.equal(reportButton.hidden, false);
+  dispatch(reportButton, 'click');
+  await flush();
+
+  const viewport = toastViewport(r);
+  assert.ok(viewport, 'the shared Toast viewport must be mounted');
+  assert.match(viewport.textContent, /无法打开项目链接/);
+  assert.equal(activityText(r), activityBefore, 'a peripheral link failure must preserve the failed Activity');
 });
 
 test('Windows englishRestoreNeeded residue is actionable through Restore despite needsExtract', async () => {

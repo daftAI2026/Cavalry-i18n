@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖 tokens/button 及共享 shell/Activity/About/Toast/窗口控件视觉层，依赖 icons/select/tooltip/path/operation/permission-handoff/update/toast/about/window-controls 状态机、冻结 bridge 与四语文案
-  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、Trigger 与空值 popup 均保留占位语义的 Select + Switch/Restore English 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
+  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、Trigger 与空值 popup 均保留占位语义的 Select + Switch/Restore English 主任务流、三轨 Activity 与条件权限/Issue 表单动作、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起共享外壳窗口，Windows 以 Info/Minus/Square/Copy/X 的统一 Phosphor Regular 语义驱动右侧控件
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -119,7 +119,8 @@
           </div>
           <p id="statusOutcome" class="status-message status-outcome" role="status" aria-live="polite" hidden></p>
         </div>
-        <button id="permissionButton" type="button" class="ui-button button button-outline permission-button" hidden>Open permission settings</button>
+        <button id="permissionButton" type="button" class="ui-button button button-outline permission-button status-action-button" hidden>Open permission settings</button>
+        <button id="reportIssueButton" type="button" class="ui-button button button-outline status-action-button" hidden>Report a problem</button>
       </section>
     </main>
   </div>

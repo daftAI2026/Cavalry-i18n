@@ -1,0 +1,72 @@
+# [INPUT]: 依赖 GitHub Issue Forms YAML schema，不依赖应用运行时或本地诊断文件。
+# [OUTPUT]: 对外提供只有现象必填、证据可选的 Cavalry-i18n 缺陷反馈表单。
+# [POS]: .github/ISSUE_TEMPLATE 的用户支持入口，由应用内固定 reportIssue 链接打开；不读取或自动上传本地文件。
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+name: Bug Report
+description: Report a Cavalry-i18n problem / 报告 Cavalry-i18n 问题
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting a problem. You may write in English, 简体中文, 繁體中文, or 日本語.
+        感谢反馈。你可以使用 English、简体中文、繁體中文或日本語填写。
+
+        Screenshots and logs are optional. If you choose to share `diagnostics.jsonl`, first review and redact it, then attach it inside a `.zip` file. macOS: `~/Library/Application Support/com.daftai.cavalry-i18n/diagnostics.jsonl`; Windows: `%APPDATA%\com.daftai.cavalry-i18n\diagnostics.jsonl`. Never attach `state.json`, backup files, or credentials. Nothing is collected or uploaded automatically.
+        截图和日志均为可选。如果你愿意提供 `diagnostics.jsonl`，请先检查并删除隐私信息，再将它放入 `.zip` 压缩包附上。macOS：`~/Library/Application Support/com.daftai.cavalry-i18n/diagnostics.jsonl`；Windows：`%APPDATA%\com.daftai.cavalry-i18n\diagnostics.jsonl`。不要附上 `state.json`、备份文件或凭证。本表单不会自动收集或上传任何本地文件。
+
+        For a security vulnerability, please follow [SECURITY.md](https://github.com/daftAI2026/Cavalry-i18n/blob/main/SECURITY.md) and report it privately instead of opening a public issue.
+        如果这是安全漏洞，请按照 [SECURITY.md](https://github.com/daftAI2026/Cavalry-i18n/blob/main/SECURITY.md) 私下报告，不要提交公开 Issue。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened? / 发生了什么？
+      description: Describe what you were doing and what you saw. Include the exact message if available. / 请描述你当时在做什么、看到了什么；如果方便，请写出完整提示信息。
+      placeholder: Describe the problem here. / 请在这里描述问题。
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: If you can reproduce it, list the steps. For intermittent problems, say how often it occurs. / 如果可以复现，请列出步骤；如果偶尔发生，请说明大致频率。
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior / 预期结果
+      description: What did you expect to happen? / 你原本预期发生什么？
+    validations:
+      required: false
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境信息
+      description: Share whatever you know; unknown details are fine. / 请填写你知道的信息，不清楚的项目可以留空。
+      placeholder: |
+        Switcher version / 切换器版本:
+        Operating system and version / 操作系统及版本:
+        Cavalry version / Cavalry 版本:
+        Selected language / 当前语言:
+    validations:
+      required: false
+
+  - type: upload
+    id: optional-attachments
+    attributes:
+      label: Optional screenshots or logs / 可选截图或日志
+      description: Attach only if useful. Review and redact private information first; never attach state.json or backups. / 仅在确有帮助时附加。请先检查并删除隐私信息；不要附上 state.json 或备份文件。
+    validations:
+      required: false
+      accept: ".zip,.png,.jpg,.jpeg,.webp,.log,.txt"

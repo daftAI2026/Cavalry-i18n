@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS 受管安装恢复基线要求、已发布排序限制与开发分支行为、开发与安全说明
+[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、macOS 受管安装恢复基线要求、已发布排序限制与开发分支行为、缺陷反馈入口、开发与安全说明
 [POS]: 仓库英文用户入口；与三份本地化 README 同步发布真相，不替代平台真机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -147,7 +147,7 @@ Cavalry-i18n/
 ## Support
 
 - If Cavalry-i18n helped you, [share it](https://twitter.com/intent/tweet?url=https://github.com/daftAI2026/Cavalry-i18n&text=Cavalry-i18n%20-%20Switch%20Cavalry%E2%80%99s%20UI%20between%20English,%20Chinese,%20and%20Japanese%20with%20one%20click.) with friends or give it a star.
-- Got ideas or bugs? Open an issue or PR, feel free to contribute your best AI model.
+- Found a bug? Use the [bug report form](https://github.com/daftAI2026/Cavalry-i18n/issues/new?template=bug_report.yml). For ideas or code contributions, open an issue or PR.
 
 ## License
 

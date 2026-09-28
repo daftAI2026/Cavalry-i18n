@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review 补丁状态收敛与结构拒绝 fake bridge/动态目录与热重载入口、typed reinstallRequired remediation 与写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败不得要求重装与 typed 缺失基线错误才要求重装的 Activity 原位/四语文案合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review 补丁状态收敛与结构拒绝 fake bridge/动态目录与热重载入口、typed reinstallRequired remediation 与写入拒绝后的权限 handoff 结构、普通 verify failure 的固定 Issue ID/按钮条件/点击路由与现有 Issue Form、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -85,6 +85,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(workspace, /\.window\[data-surface="handoff"\] \{ width: 100%; height: 100%; border: 0;/);
   assert.match(workspace, /\.stage\[data-kind="handoff"\] \{ display: block; padding: 0; \}/);
   assert.match(workspace, /data-scenario="updateAvailable"[^>]*><span>更新可用 · Tooltip<\/span>/);
+  assert.match(workspace, /data-scenario="verifyFailure"[^>]*><span>普通验证失败 · 报告问题<\/span>/);
+  assert.match(workspace, /data-scenario="error"[^>]*><span>错误立即打断 · Cavalry 仍在运行<\/span>/);
   for (const view of ['feedback', 'icons', 'badges']) {
     assert.match(workspace, new RegExp(`data-view="${view}"`));
     assert.match(workspace, new RegExp(`${view}: '/catalog/${view}'`));
@@ -110,6 +112,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.doesNotMatch(reviewServerSource, /const \{ workspaceHtml, permissionHandoffHtml \} = require\('\.\/ui_review_workspace'\)/);
   assert.doesNotMatch(reviewServerSource, /function rendererRevision\(\)/);
   assert.match(fixture, /window\.cavalryI18n = Object\.freeze/);
+  assert.match(fixture, /scenario === 'verifyFailure' && phase === 'verifyInstallation'[\s\S]*?errorCode: null/);
+  assert.match(fixture, /scenario === 'error' && phase === 'verifyInstallation'[\s\S]*?errorCode: 'cavalryStillRunning'/);
   assert.match(fixture, /\['updateAvailable', 'updateConfirm', 'update', 'updateFailure'\]\.includes\(scenario\)/);
   assert.match(fixture, /scenario === 'permissionMac' \? 'openPrivacy' : 'none'/);
   assert.match(fixture, /installationMode: windowsScenario[\s\S]*?\? 'unknown'/);
@@ -294,7 +298,7 @@ const REQUIRED_IDS = [
   'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText',
   'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton',
   'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton',
-  'permissionButton', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome',
+  'permissionButton', 'reportIssueButton', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome',
   'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText',
 ];
 
@@ -387,8 +391,8 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const uiText = read('renderer/ui-text.js');
   for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
   const staticButtons = [...html.matchAll(/<button\b[^>]*>/g)].map((match) => match[0]);
-  assert.equal(staticButtons.length, 12, 'production shell must keep twelve static button elements');
-  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 11, 'every static action except the Select Trigger must consume ui-button');
+  assert.equal(staticButtons.length, 13, 'production shell must keep thirteen static button elements');
+  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 12, 'every static action except the Select Trigger must consume ui-button');
   assert.match(staticButtons.find((tag) => tag.includes('id="languageSelectTrigger"')) || '', /class="select-trigger"/, 'Select Trigger must preserve its independent component state');
   assert.match(toastControl, /closeButton\.className = 'ui-button toast-close'[\s\S]*?setAttribute\('data-variant', 'ghost'\)/, 'runtime Toast close must consume the ghost ui-button variant');
   assert.doesNotMatch(
@@ -470,10 +474,10 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const statusPanelRule = cssRule(operationStyles, '.status-panel');
   const statusPanelWithPermissionRule = cssRule(
     operationStyles,
-    '.status-panel:has(> .permission-button:not([hidden]))'
+    '.status-panel:has(> .status-action-button:not([hidden]))'
   );
   assert.match(statusPanelRule, /grid-template-rows:\s*minmax\(0,\s*1fr\);/);
-  assert.match(statusPanelRule, /gap:\s*0;/, 'a hidden permission row must not retain a grid gap');
+  assert.match(statusPanelRule, /gap:\s*0;/, 'hidden status actions must not retain a grid gap');
   assert.match(statusPanelWithPermissionRule, /grid-template-rows:\s*minmax\(0,\s*1fr\) auto;/);
   assert.match(statusPanelWithPermissionRule, /gap:\s*var\(--operation-group-gap\);/);
   assert.match(statusPanelRule, /padding:\s*var\(--padding-panel\);/);
@@ -576,7 +580,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"[^>]*>Restore English<\/button>/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
-  assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"/, 'idle, fixed intro, bounded live log, fixed outcome, and recovery action must remain in source order');
+  assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"[^>]*hidden[\s\S]*?id="reportIssueButton"[^>]*hidden/, 'idle, fixed intro, bounded live log, fixed outcome, and conditional recovery/report actions must remain in source order');
   assert.match(tokens, /--control-height:\s*36px/);
   assert.match(tokens, /--space-5:\s*20px/);
   assert.match(tokens, /--padding-window:\s*var\(--space-5\)/);
@@ -634,7 +638,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutWindow, /projectLinkFailedTitle/);
   assert.doesNotMatch(aboutWindow, /showAbout/);
   assert.doesNotMatch(aboutPage, /https?:\/\//, 'About page must use fixed bridge ids, not renderer URLs');
-  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license'\]\)/);
+  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license', 'reportIssue'\]\)/);
   assert.match(bridge, /invoke\('open_project_link', \{ link \}\)/);
   assert.match(bridge, /showAbout:\s*\(\) => invoke\('show_about'\)\.then\(normalizeAction\)/);
   assert.match(bridge, /closeAboutWindow:\s*\(\) => invokeWindow\('close', 'about'\)/);
@@ -891,6 +895,9 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /operationLog\.idle\(\)/);
   assert.match(app, /operationLog\.replace\(\{/);
   assert.match(app, /operationLog\.upsert\(operationPhaseCopy\(event, context\)\)/);
+  assert.match(app, /reportIssueButton\.addEventListener\('click', \(\) => void openIssueReport\(\)\)/);
+  assert.match(app, /async function openIssueReport\(\)[\s\S]*?api\.openProjectLink\('reportIssue'\)[\s\S]*?showProjectLinkFailure\(\)/);
+  assert.match(app, /reportIssueButton\.textContent = t\('reportIssueButton'\)/);
   assert.match(app, /visualState === 'official'/);
   assert.match(app, /installationBadge\.dataset\.state = showInstallation \? 'official' : 'unknown'/);
   assert.doesNotMatch(app, /translatedBadge|modifiedBadge|installationBadgeState/);
@@ -975,9 +982,16 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const localeBodies = uiLocaleBodies(uiText);
   for (const locale of localeBodies) {
     const recovery = locale.match(/^\s{4}verifyInstallationRecovery: '([^']+)'/m)?.[1];
+    const reportLabel = locale.match(/^\s{4}reportIssueButton: '([^']+)'/m)?.[1];
     assert.ok(recovery, 'each locale needs generic verification recovery copy');
+    assert.ok(reportLabel, 'each locale needs a localized issue-form button label');
     assert.doesNotMatch(recovery, /reinstall|重新安装|重新安裝|再インストール/i, 'a generic verification error must not prescribe reinstall');
+    assert.ok(recovery.includes(reportLabel), 'recovery copy must point to its visible, localized report button');
+    assert.doesNotMatch(recovery, /error details|错误详情|錯誤詳情|エラーの詳細/i, 'do not request details the UI does not expose');
   }
+  const issueTemplate = read('.github/ISSUE_TEMPLATE/bug_report.yml');
+  assert.match(issueTemplate, /name:\s*Bug Report/);
+  assert.match(issueTemplate, /Nothing is collected or uploaded automatically/);
   assert.match(uiText, /reinstallRequired: 'This Cavalry installation has no complete, verified original backup[^\n]*restoring English[^\n]*Reinstall Cavalry \{supportedVersion\} from the official installer, reopen the Switcher, then choose a language again\.'/);
   assert.match(uiText, /reinstallRequired: '此 Cavalry 安装缺少完整且可验证的原厂备份[^\n]*恢复英文[^\n]*重新安装 Cavalry \{supportedVersion\}[^\n]*重新打开语言切换器，再选择语言。'/);
   assert.match(uiText, /reinstallRequired: '此 Cavalry 安裝缺少完整且可驗證的原廠備份[^\n]*還原英文[^\n]*重新安裝 Cavalry \{supportedVersion\}[^\n]*重新開啟語言切換器，再選擇語言。'/);
@@ -1041,6 +1055,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'phaseVerifyInstallationCompletedTitle',
     'phaseVerifyInstallationErrorTitle',
     'verifyInstallationRecovery',
+    'reportIssueButton',
     'phaseEnsureRecoveryRunningTitle',
     'phaseEnsureRecoveryCompletedTitle',
     'phaseEnsureRecoveryErrorTitle',
@@ -1136,10 +1151,12 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   );
   assert.match(runApplyFunction, /const restoring = isRestoreAction\(nextLanguage\);/);
   assert.match(runApplyFunction, /const operationContext = \{ language, restoring, attemptId \};/);
+  assert.match(runApplyFunction, /setReportIssueVisible\(false\)/, 'a new operation must clear the previous report action');
   assert.match(app, /const id = attemptId \? `\$\{attemptId\}:\$\{phase\}` : phase;/);
   assert.match(runApplyFunction, /phase: 'verifyInstallation', state: 'running'/);
   assert.match(runApplyFunction, /api\.applyLanguage\(state\.appPath, nextLanguage, \(event\) => \{/);
   assert.match(runApplyFunction, /updateOperationPhase\(event, operationContext\)/);
+  assert.match(runApplyFunction, /result\.errorCode === 'cavalryStillRunning'[\s\S]*?return;[\s\S]*?const verificationFailureId = attemptId \? `\$\{attemptId\}:verifyInstallation` : 'verifyInstallation';\s*setReportIssueVisible\(!result\.errorCode && terminalPhaseEvent\?\.id === verificationFailureId\)/, 'typed process errors must return before the ordinary verify-only report action');
   assert.match(app, /function updateOperationPhase\(event, context\) \{\s*if \(context\.attemptId && \['verifyInstallation', 'ensureBaseline'\]\.includes\(event\.phase\) && \['running', 'completed'\]\.includes\(event\.state\)\) return;/);
   assert.match(runApplyFunction, /if \(!attemptId\) \{\s*state\.permissionRetryAttempt = 0;\s*operationLog\.start\(/);
   assert.doesNotMatch(runApplyFunction, /:resume|resumeAfterPermission/, 'permission retry must append only real backend phases');
@@ -1200,6 +1217,7 @@ test('typed reinstallRequired replaces the failed phase with an actionable offic
     'function handlePermissionButton'
   );
   const projections = [];
+  const reportIssueVisibility = [];
   const state = {
     appPath: '/Applications/Cavalry.app',
     currentLang: 'en',
@@ -1214,6 +1232,7 @@ test('typed reinstallRequired replaces the failed phase with an actionable offic
     state,
     setBusy(value) { state.busy = value; },
     setPermissionWait() {},
+    setReportIssueVisible(value) { reportIssueVisibility.push(value); },
     languageLabel: (language) => language,
     isRestoreAction: () => false,
     t: (key, params = {}) => `${key}:${params.supportedVersion || ''}`,
@@ -1252,6 +1271,7 @@ test('typed reinstallRequired replaces the failed phase with an actionable offic
   }, 'the typed error should replace the generic failed phase and include the supported host version');
   assert.equal(state.pendingAction, '', 'a blocked action must not remain pending');
   assert.equal(state.busy, false, 'the renderer must release controls after the typed failure');
+  assert.deepEqual(reportIssueVisibility, [false], 'typed errors must never reveal the generic report action');
 });
 
 test('update icon stays hidden until preview or an updater check result and renderer has no network client', () => {
