@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 InstallLayout、libproc、固定 JXA terminate 请求与 CommandRunner。
- * [OUTPUT]: 提供按 canonical executable/PID 的只读运行探针、显式重启场景下的 graceful close、transaction 内复核，并将 vanished PID 与不可检查错误显式区分。
- * [POS]: macOS 进程边界；普通 Switch/Restore 只读探测并要求用户自行保存退出，只有显式 restart 路径可请求 graceful terminate；proc_pidpath/路径解析错误 fail closed，仅 typed vanished PID 可忽略，不按应用名猜测、不强杀可见/未保存进程、不接受动态脚本。
+ * [INPUT]: 依赖 InstallLayout、libproc 的进程路径探针、固定 JXA terminate 请求与 CommandRunner。
+ * [OUTPUT]: 提供以原始 executable basename 排除无关进程、再以 canonical executable/PID 确认目标的只读运行探针、显式重启场景下的 graceful close 与 transaction 内复核。
+ * [POS]: macOS 进程边界；普通 Switch/Restore 要求用户自行保存退出，只有显式 restart 可请求 graceful terminate；无关路径不做文件系统解析，可能的目标路径不可检查才 fail closed，仅 typed vanished PID 可忽略；精确路径才是身份，不强杀可见/未保存进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -218,6 +218,9 @@ where
             ProcessPathProbe::Exited => continue,
             ProcessPathProbe::Path(path) => path,
         };
+        if raw_path.file_name() != target.file_name() {
+            continue;
+        }
         let canonical = match fs::canonicalize(&raw_path) {
             Ok(path) => path,
             Err(error) => match process_path_for(pid)? {
@@ -360,6 +363,30 @@ mod tests {
     }
 
     #[test]
+    fn native_probe_finds_only_the_selected_running_executable() {
+        let temp = tempfile::tempdir().unwrap();
+        let executable = temp.path().join("Cavalry");
+        fs::copy("/bin/sleep", &executable).unwrap();
+        let target = fs::canonicalize(&executable).unwrap();
+        let mut child = std::process::Command::new(&executable)
+            .arg("3")
+            .spawn()
+            .unwrap();
+        let pid = child.id();
+        let deadline = Instant::now() + Duration::from_secs(2);
+        while !matches!(process_path(pid), Ok(ProcessPathProbe::Path(path)) if path.file_name() == target.file_name())
+            && Instant::now() < deadline
+        {
+            thread::sleep(Duration::from_millis(10));
+        }
+        let result = matching_pids(&target);
+        let _ = child.kill();
+        let _ = child.wait();
+        assert_eq!(result.unwrap(), vec![pid]);
+        assert!(matching_pids(&target).unwrap().is_empty());
+    }
+
+    #[test]
     fn multiple_cavalry_copies_match_only_the_selected_canonical_executable() {
         let temp = tempfile::tempdir().unwrap();
         let selected = temp
@@ -412,7 +439,7 @@ mod tests {
     #[test]
     fn canonicalize_error_is_ignored_only_after_typed_exit() {
         let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
-        let missing = PathBuf::from("/definitely/missing/cavalry-process");
+        let missing = PathBuf::from("/definitely/missing/Cavalry");
         let mut probes = vec![
             ProcessPathProbe::Path(missing.clone()),
             ProcessPathProbe::Path(missing),
@@ -422,7 +449,7 @@ mod tests {
         assert!(error.contains("live process 51"), "{error}");
 
         let mut probes = vec![
-            ProcessPathProbe::Path(PathBuf::from("/definitely/missing/cavalry-process")),
+            ProcessPathProbe::Path(PathBuf::from("/definitely/missing/Cavalry")),
             ProcessPathProbe::Exited,
         ]
         .into_iter();
@@ -431,6 +458,18 @@ mod tests {
                 .unwrap()
                 .is_empty()
         );
+    }
+
+    #[test]
+    fn unrelated_live_process_with_unresolvable_path_does_not_block_cavalry() {
+        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
+        let unrelated =
+            PathBuf::from("/Library/Application Support/clash-verge-service/cores/verge-mihomo");
+        let pids = matching_pids_from(target, [42], |_| {
+            Ok(ProcessPathProbe::Path(unrelated.clone()))
+        })
+        .unwrap();
+        assert!(pids.is_empty());
     }
 
     #[test]
