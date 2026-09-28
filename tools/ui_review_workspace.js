@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/补丁新旧与结构拒绝/成功/阻塞/警告/失败 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
+ * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
  * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、320×308 且 Chrome 覆盖完整画布的无重复视觉标题 About、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
  * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与主/About 审查窗口外框，权限页不再套用会压缩原型的假窗口，动画状态机由兄弟模块独立承担。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -104,7 +104,8 @@ function workspaceHtml() {
         <button class="scenario" data-scenario="update"><span>Update 三阶段</span></button>
         <button class="scenario" data-scenario="updateFailure"><span>Update 安装失败</span></button>
         <button class="scenario" data-scenario="warning"><span>完成但需处理</span></button>
-        <button class="scenario" data-scenario="error"><span>错误立即打断</span></button>
+        <button class="scenario" data-scenario="verifyFailure"><span>普通验证失败 · 报告问题</span></button>
+        <button class="scenario" data-scenario="error"><span>错误立即打断 · Cavalry 仍在运行</span></button>
         <div class="group-label">独立 About 页面</div>
         <button class="scenario" data-scenario="aboutPage"><span>About</span></button>
         <button class="scenario" data-scenario="aboutVersionFailure"><span>About 版本读取失败</span></button>

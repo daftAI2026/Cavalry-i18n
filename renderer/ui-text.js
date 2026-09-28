@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、缺少完整官方恢复基线时的官方重装/重开/重试路径、真实任务 Event、typed 写入拒绝后的 macOS 权限 handoff 与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、仅在 typed 缺失官方基线时要求重装而普通验证错误只引导重试/提交 Issue、真实任务 Event、typed 写入拒绝后的 macOS 权限 handoff 与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -75,7 +75,8 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: 'Checking the Cavalry installation',
     phaseVerifyInstallationCompletedTitle: 'Cavalry installation verified',
     phaseVerifyInstallationErrorTitle: 'Couldn’t verify the Cavalry installation',
-    verifyInstallationRecovery: 'Reopen the Switcher and try again. If it still can’t verify the Cavalry installation integrity, reinstall Cavalry {supportedVersion} from the official installer.',
+    verifyInstallationRecovery: 'Reopen the Switcher and try again. Still failing? Select Report a problem.',
+    reportIssueButton: 'Report a problem',
     phaseEnsureRecoveryRunningTitle: 'Preparing recovery files',
     phaseEnsureRecoveryCompletedTitle: 'Recovery files ready',
     phaseEnsureRecoveryErrorTitle: 'Couldn’t prepare recovery files',
@@ -244,7 +245,8 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: '正在检查 Cavalry 安装',
     phaseVerifyInstallationCompletedTitle: '已验证 Cavalry 安装',
     phaseVerifyInstallationErrorTitle: '无法验证 Cavalry 安装',
-    verifyInstallationRecovery: '重新打开语言切换器后重试。如果仍无法验证 Cavalry 安装的完整性，请使用官方安装包重新安装 Cavalry {supportedVersion}。',
+    verifyInstallationRecovery: '重新打开切换器后重试。仍失败？点击下方“报告问题”。',
+    reportIssueButton: '报告问题',
     phaseEnsureRecoveryRunningTitle: '正在准备恢复文件',
     phaseEnsureRecoveryCompletedTitle: '恢复文件已就绪',
     phaseEnsureRecoveryErrorTitle: '无法准备恢复文件',
@@ -409,7 +411,8 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: '正在檢查 Cavalry 安裝',
     phaseVerifyInstallationCompletedTitle: '已驗證 Cavalry 安裝',
     phaseVerifyInstallationErrorTitle: '無法驗證 Cavalry 安裝',
-    verifyInstallationRecovery: '重新開啟語言切換器後重試。如果仍無法驗證 Cavalry 安裝的完整性，請使用官方安裝程式重新安裝 Cavalry {supportedVersion}。',
+    verifyInstallationRecovery: '重新開啟切換器後重試。仍失敗？點擊下方「回報問題」。',
+    reportIssueButton: '回報問題',
     phaseEnsureRecoveryRunningTitle: '正在準備還原檔案',
     phaseEnsureRecoveryCompletedTitle: '還原檔案已就緒',
     phaseEnsureRecoveryErrorTitle: '無法準備還原檔案',
@@ -574,7 +577,8 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: 'Cavalry のインストールを確認中',
     phaseVerifyInstallationCompletedTitle: 'Cavalry のインストールを確認しました',
     phaseVerifyInstallationErrorTitle: 'Cavalry のインストールを確認できません',
-    verifyInstallationRecovery: '言語スイッチャーを開き直して再試行してください。それでも Cavalry のインストールの完全性を確認できない場合は、公式インストーラーから Cavalry {supportedVersion} を再インストールしてください。',
+    verifyInstallationRecovery: 'スイッチャーを開き直して再試行。解決しなければ下の「問題を報告」へ。',
+    reportIssueButton: '問題を報告',
     phaseEnsureRecoveryRunningTitle: '復元ファイルを準備中',
     phaseEnsureRecoveryCompletedTitle: '復元ファイルの準備ができました',
     phaseEnsureRecoveryErrorTitle: '復元ファイルを準備できません',
