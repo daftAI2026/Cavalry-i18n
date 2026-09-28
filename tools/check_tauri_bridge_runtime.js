@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Select 选中更新徽章及状态刷新清理、Badge、固定 about-label close 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、普通验证失败只引导重试/报告而不要求重装、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Select 选中更新徽章及状态刷新清理、Badge、固定 about-label close 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -935,7 +935,7 @@ test('apply invokes exactly one backend transaction and never exposes a second r
   assert.equal(r.calls.some(({ command }) => command === 'restart_cavalry'), false);
 });
 
-test('installation verification failure gives a reopen-first and official-reinstall fallback', async () => {
+test('generic installation verification failure asks for retry and reporting, not reinstall', async () => {
   const r = boot({
     status: { supportedVersion: '2.7.2' },
     apply: { ok: false, error: 'private backend diagnostic', errorCode: null },
@@ -947,8 +947,8 @@ test('installation verification failure gives a reopen-first and official-reinst
 
   assert.equal(activityTitle(r), 'Couldn’t verify the Cavalry installation');
   assert.match(activityText(r), /Reopen the Switcher and try again/);
-  assert.match(activityText(r), /official installer/);
-  assert.match(activityText(r), /Cavalry 2\.7\.2/);
+  assert.match(activityText(r), /project issue/);
+  assert.doesNotMatch(activityText(r), /reinstall|official installer/i);
   assert.doesNotMatch(activityText(r), /private backend diagnostic/);
 });
 

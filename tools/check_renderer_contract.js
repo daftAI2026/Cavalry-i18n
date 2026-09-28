@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review 补丁状态收敛与结构拒绝 fake bridge/动态目录与热重载入口、typed reinstallRequired remediation 与写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、安装验证失败的恢复路径与 typed 缺失基线错误的 Activity 原位/四语文案合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败不得要求重装与 typed 缺失基线错误才要求重装的 Activity 原位/四语文案合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -973,6 +973,11 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const styles = read('renderer/styles.css');
   assert.equal((uiText.match(/^\s{4}reinstallRequired:/gm) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(uiText);
+  for (const locale of localeBodies) {
+    const recovery = locale.match(/^\s{4}verifyInstallationRecovery: '([^']+)'/m)?.[1];
+    assert.ok(recovery, 'each locale needs generic verification recovery copy');
+    assert.doesNotMatch(recovery, /reinstall|重新安装|重新安裝|再インストール/i, 'a generic verification error must not prescribe reinstall');
+  }
   assert.match(uiText, /reinstallRequired: 'This Cavalry installation has no complete, verified original backup[^\n]*restoring English[^\n]*Reinstall Cavalry \{supportedVersion\} from the official installer, reopen the Switcher, then choose a language again\.'/);
   assert.match(uiText, /reinstallRequired: '此 Cavalry 安装缺少完整且可验证的原厂备份[^\n]*恢复英文[^\n]*重新安装 Cavalry \{supportedVersion\}[^\n]*重新打开语言切换器，再选择语言。'/);
   assert.match(uiText, /reinstallRequired: '此 Cavalry 安裝缺少完整且可驗證的原廠備份[^\n]*還原英文[^\n]*重新安裝 Cavalry \{supportedVersion\}[^\n]*重新開啟語言切換器，再選擇語言。'/);

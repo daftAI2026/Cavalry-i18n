@@ -26,7 +26,7 @@ about-window.js: About 页面控制器，固定 repository/license 枚举；Wind
 window-controls.js: Windows caption 状态机，只在 `platform=windows` 展示右侧最小化/最大化或还原/关闭，消费图标注册表与 bridge 固定 main-window 操作并在 toggle/resize 后同步最大化状态、四语可访问名称和 compositor 外壳 normal/maximized 投影；系统 API 继续拥有行为，失败不污染业务任务事件视窗或 AlertDialog，macOS 路径不执行窗口 mutation。
 app.js: 唯一业务交互源；文件夹动作只在后端未发现安装时显露，Select 仅在当前语言补丁为 current 时禁用并在 updateAvailable/unknown 时显示绿色可更新徽章，非支持版本进入只读门禁；启动消费安装、版本、当前语言、patchStatus 与后端跨平台 `reconciliationRequired` 只读投影，使未提交 marker 在 macOS/Windows 都保留 Restore，Windows 专属提示仍只对应 QPA/generic 残留；Switch/Update（更新当前语言补丁）/Restore 始终先调用安全事务，macOS 单一 Restore 意图由后端按完整官方基线准入，typed `reinstallRequired` 失败在原 phase 明确给出官方重装 2.7.2、重开 Switcher、再切换语言的路径，不按发布 P 号猜兼容；权限拒绝后的恢复动作只由当前平台决定（macOS App Management / Windows UAC）；Activity 下方保留可再次打开权限设置的小按钮，设置打开与 drop 均不冒充已授权；Updater、Cavalry 打开阶段、Toast 继续保持各自语义边界。
 tauri-bridge.js: 非视觉兼容桥，在业务脚本前定义最小冻结 API；归一化 camelCase payload、稳定 warning/updater codes、四态版本、四态语言补丁状态及保留为中性 fallback 的旧 status 字段、Action/Status 与脱敏 Update DTO；窗口插件仅暴露固定 main caption 与 about-label close，App Management 入口只发送固定 permission、有限 source rect/CSS viewport 与独立 Channel，不接受任意设置 URL。
-ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；覆盖 Select、语言补丁可更新 Badge、Switch/Update（更新当前语言补丁）/Restore、Updater 与真实写入拒绝后的权限恢复；缺少完整且可验证的原厂备份时统一提示官方重装 Cavalry 2.7.2、重开 Switcher 后再切换，不展示发布 P 号或静态 runtime hash，内部兼容清理不生成文案，权限文案只陈述用户动作，不声称设置已授予权限；AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”。
+ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；覆盖 Select、语言补丁可更新 Badge、Switch/Update（更新当前语言补丁）/Restore、Updater 与真实写入拒绝后的权限恢复；仅 typed 缺少完整且可验证的原厂备份时提示官方重装 Cavalry 2.7.2，普通验证错误只引导重试与报告，不展示发布 P 号或静态 runtime hash，内部兼容清理不生成文案，权限文案只陈述用户动作，不声称设置已授予权限；AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”。
 
 依赖边界:
 
