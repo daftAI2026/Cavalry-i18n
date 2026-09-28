@@ -1,8 +1,8 @@
 /**
  * [INPUT]: 依赖受支持 macOS bundle 结构、当前可恢复 seal、packaged English、state generation root 与精确 runtime/JSON 文件。
- * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明（wrapper 字节精确、受管 Mach-O injector 以 code identity 允许重签）、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
+ * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、基于官方备份证明 managed postimage 并安全接管旧 wrapper/injector 的运行态门、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
  * [POS]: macOS recovery baseline 真相层；Team ID 只保留为 Official 展示证据，不充当翻译许可证；generation rename 只发布不可变候选，state.json provenance 是唯一 current commit bit。
- * [FAIL-CLOSED]: capture 必须满足 before == staged == after；managed Mach-O 仅允许签名区变化；任一由本工具拥有的 manifest/hash/path/mode/recovery-seal 漂移或 symlink 均拒绝。
+ * [FAIL-CLOSED]: capture 必须满足 before == staged == after；baseline-derived main executable 与 ExtensionLayer 仅允许签名材料变化，旧 wrapper/injector 不做版本身份认定但必须是安全可替换的普通 0755 文件；任一 manifest/hash/path/mode/recovery-seal 漂移或 symlink 均拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
@@ -750,6 +750,7 @@ impl VerifiedVendorBaseline {
 
     /// Verify that a managed bundle is exactly derivable from this vendor generation, allowing
     /// only code-signature material to differ on Mach-O files that Cavalry-i18n re-signs.
+    #[cfg(test)]
     pub(crate) fn verify_managed_runtime(
         &self,
         app_path: &Path,
@@ -762,15 +763,22 @@ impl VerifiedVendorBaseline {
         )
     }
 
-    /// 历史回执提供旧 wrapper/injector，避免用新版产物误判合法旧安装；injector 只允许
-    /// `detect` 已证明的签名材料变化，不能把任意字节漂移当作同一受管运行时。
+    /// Test-only exact-runtime seam retained for baseline postimage tests; production admission
+    /// intentionally verifies vendor-derived postimages and safe replacement slots instead.
+    #[cfg(test)]
     pub(crate) fn verify_managed_runtime_with_wrapper(
         &self,
         app_path: &Path,
         expected_injector: &Path,
         expected_wrapper: &[u8],
     ) -> Result<(), String> {
-        self.verify_managed_runtime_common(app_path, expected_wrapper, |canonical_app| {
+        self.verify_managed_runtime_common(app_path, |canonical_app| {
+            require_exact_managed_file(
+                &canonical_app.join(WRAPPER),
+                expected_wrapper,
+                Some(0o755),
+                "launcher wrapper",
+            )?;
             require_regular_file(expected_injector, "packaged managed injector")?;
             let expected_injector_bytes = fs::read(expected_injector).map_err(|error| {
                 format!(
@@ -802,10 +810,22 @@ impl VerifiedVendorBaseline {
         })
     }
 
-    /// Verify a legacy released injector by its immutable code identity instead of requiring the
-    /// current package to carry a second copy of the historical dylib.  The surrounding baseline
-    /// still authenticates the vendor preimage, wrapper, ExtensionLayer postimage, modes and
-    /// marker; only known released injector code is accepted.
+    /// Complete official provenance proves the vendor preimage and the non-replaceable managed
+    /// postimage; old wrapper/injector bytes are deliberately not executed or version-matched.
+    /// They are only accepted as safe replacement slots when regular, non-symlink 0755 files.
+    pub(crate) fn verify_managed_runtime_for_replacement(
+        &self,
+        app_path: &Path,
+    ) -> Result<(), String> {
+        self.verify_managed_runtime_common(app_path, |canonical_app| {
+            require_owned_runtime_slot(&canonical_app, WRAPPER, "launcher wrapper")?;
+            require_owned_runtime_slot(&canonical_app, INJECTOR, "translator injector")
+        })
+    }
+
+    /// Test-only seam for exercising the vendor postimage verifier with synthetic Mach-O bytes.
+    /// Legacy test seam for checking the preimage-derived ExtensionLayer postimage.
+    #[cfg(test)]
     pub(crate) fn verify_managed_runtime_with_released_injector_identities(
         &self,
         app_path: &Path,
@@ -816,7 +836,13 @@ impl VerifiedVendorBaseline {
         // absent and cannot supply an original mode.  The released bundle contract installs the
         // executable dylib with the same 0755 mode as the current managed runtime.
         let expected_mode = 0o755;
-        self.verify_managed_runtime_common(app_path, expected_wrapper, |canonical_app| {
+        self.verify_managed_runtime_common(app_path, |canonical_app| {
+            require_exact_managed_file(
+                &canonical_app.join(WRAPPER),
+                expected_wrapper,
+                Some(0o755),
+                "launcher wrapper",
+            )?;
             let injector = canonical_app.join(INJECTOR);
             require_regular_file(&injector, "released managed injector")?;
             let bytes = fs::read(&injector).map_err(|error| error.to_string())?;
@@ -834,14 +860,22 @@ impl VerifiedVendorBaseline {
     fn verify_managed_runtime_common(
         &self,
         app_path: &Path,
-        expected_wrapper: &[u8],
-        verify_injector: impl FnOnce(&Path) -> Result<(), String>,
+        verify_runtime: impl FnOnce(&Path) -> Result<(), String>,
     ) -> Result<(), String> {
         let canonical_app = fs::canonicalize(app_path).map_err(|error| error.to_string())?;
         if Path::new(&self.manifest.install_root) != canonical_app {
             return Err(
                 "Managed runtime verification used a different Cavalry installation.".to_string(),
             );
+        }
+        for (relative, label) in [
+            (INFO_PLIST, "Info.plist"),
+            (MAIN_EXECUTABLE, "main executable"),
+            (CODE_RESOURCES, "CodeResources"),
+            (KEYCHAIN_DYLIB, "ExtensionLayer"),
+            (MARKER, "language marker"),
+        ] {
+            require_safe_app_regular_file(&canonical_app, relative, label)?;
         }
 
         let official_info =
@@ -913,13 +947,7 @@ impl VerifiedVendorBaseline {
             "ExtensionLayer",
         )?;
 
-        require_exact_managed_file(
-            &canonical_app.join(WRAPPER),
-            expected_wrapper,
-            Some(0o755),
-            "launcher wrapper",
-        )?;
-        verify_injector(&canonical_app)?;
+        verify_runtime(&canonical_app)?;
 
         let marker = fs::read(canonical_app.join(MARKER)).map_err(|error| error.to_string())?;
         if ![b"en\n".as_slice(), b"zh-Hans\n", b"zh-Hant\n", b"ja_JP\n"]
@@ -1432,6 +1460,46 @@ fn require_regular_file(path: &Path, label: &str) -> Result<(), String> {
         ));
     }
     Ok(())
+}
+
+fn require_owned_runtime_slot(app_path: &Path, relative: &str, label: &str) -> Result<(), String> {
+    let path = require_safe_app_regular_file(app_path, relative, label)?;
+    require_mode(&path, 0o755, label)
+}
+
+fn require_safe_app_regular_file(
+    app_path: &Path,
+    relative: &str,
+    label: &str,
+) -> Result<PathBuf, String> {
+    let components = relative.split('/').collect::<Vec<_>>();
+    let mut path = app_path.to_path_buf();
+    for (index, component) in components.iter().enumerate() {
+        if component.is_empty() || *component == "." || *component == ".." {
+            return Err(format!("Invalid managed bundle path for {label}."));
+        }
+        path.push(component);
+        let metadata = fs::symlink_metadata(&path).map_err(|error| {
+            format!(
+                "Managed Cavalry {label} is missing at {}: {error}",
+                path.display()
+            )
+        })?;
+        if metadata.file_type().is_symlink() {
+            return Err(format!(
+                "Managed Cavalry {label} traverses a symlink: {}",
+                path.display()
+            ));
+        }
+        let is_leaf = index + 1 == components.len();
+        if (is_leaf && !metadata.is_file()) || (!is_leaf && !metadata.is_dir()) {
+            return Err(format!(
+                "Managed Cavalry {label} has an unsafe path component: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(path)
 }
 
 fn require_regular_directory(path: &Path, label: &str) -> Result<(), String> {
@@ -1957,6 +2025,53 @@ mod tests {
             )
             .is_err());
 
+        // A complete official baseline authenticates the ownership transition, not the old
+        // executable runtime bytes. Unknown regular slots are replaceable, but unsafe shape,
+        // mode, marker, or managed postimage drift remains a hard rejection.
+        fs::write(app.join(WRAPPER), b"unknown historical wrapper").unwrap();
+        fs::set_permissions(app.join(WRAPPER), fs::Permissions::from_mode(0o755)).unwrap();
+        fs::write(app.join(INJECTOR), b"unknown historical injector").unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
+        handle.verify_managed_runtime_for_replacement(&app).unwrap();
+
+        fs::set_permissions(app.join(WRAPPER), fs::Permissions::from_mode(0o644)).unwrap();
+        assert!(handle
+            .verify_managed_runtime_for_replacement(&app)
+            .unwrap_err()
+            .contains("launcher wrapper mode drifted"));
+        fs::set_permissions(app.join(WRAPPER), fs::Permissions::from_mode(0o755)).unwrap();
+
+        let wrapper_backup = app.join("Contents/MacOS/CavalryLauncher.backup");
+        fs::rename(app.join(WRAPPER), &wrapper_backup).unwrap();
+        assert!(handle
+            .verify_managed_runtime_for_replacement(&app)
+            .unwrap_err()
+            .contains("launcher wrapper is missing"));
+        fs::rename(&wrapper_backup, app.join(WRAPPER)).unwrap();
+
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::symlink;
+            let external = root.join("external-wrapper");
+            fs::write(&external, b"unknown historical wrapper").unwrap();
+            fs::remove_file(app.join(WRAPPER)).unwrap();
+            symlink(&external, app.join(WRAPPER)).unwrap();
+            assert!(handle
+                .verify_managed_runtime_for_replacement(&app)
+                .unwrap_err()
+                .contains("traverses a symlink"));
+            fs::remove_file(app.join(WRAPPER)).unwrap();
+            fs::write(app.join(WRAPPER), b"unknown historical wrapper").unwrap();
+            fs::set_permissions(app.join(WRAPPER), fs::Permissions::from_mode(0o755)).unwrap();
+        }
+
+        fs::write(app.join(MARKER), b"pending\n").unwrap();
+        assert!(handle
+            .verify_managed_runtime_for_replacement(&app)
+            .unwrap_err()
+            .contains("marker is not canonical"));
+        fs::write(app.join(MARKER), b"zh-Hans\n").unwrap();
+
         fs::write(app.join(INJECTOR), &packaged_injector_bytes).unwrap();
         fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
         let mut drifted = patched_extension;
@@ -1969,6 +2084,7 @@ mod tests {
             error.contains("outside its code-signature material"),
             "{error}"
         );
+        assert!(handle.verify_managed_runtime_for_replacement(&app).is_err());
     }
 
     #[test]

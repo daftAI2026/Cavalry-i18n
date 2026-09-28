@@ -41,6 +41,7 @@ Cavalry-i18n/
 | System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, fixed project links, restart commands. |
 | Keychain patch | `src-tauri/src/keychain_patch.rs` | Mach-O/fat slice parser and NOP patcher for Keychain query attributes. |
 | macOS runtime files | `src-tauri/src/mac_runtime.rs` | Launcher wrapper, Info.plist rewrite, language marker, injector copy pairs. |
+| macOS recovery | `src-tauri/src/mac_official.rs`, `src-tauri/src/commands/apply.rs`, `src-tauri/src/platform_runtime.rs` | Full official vendor baseline is the capability gate for managed upgrade/restore; old wrapper/injector are safe replacement slots, while JSON-only legacy installs require reinstall. |
 | Windows runtime files | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `windows_qpa/` | Discover arbitrary install roots, deploy the generic translator, and own the durable/atomic QPA activation and explicit restoration state machine. |
 | Windows uninstall | `src-tauri/nsis-hooks.nsh`, `src-tauri/nsis-languages/`, `src-tauri/src/uninstall_restore.rs` | Keep translation by default, offer explicit transactional English restore, and keep translation/app-data choices on their owning wizard pages; app-data deletion is Switcher-only. |
 | Windows runtime | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `injector/windows/` | Current code is the public architecture truth; internal handoffs are not build inputs. |
@@ -82,6 +83,7 @@ Cavalry-i18n/
 - State may be redirected with `CAVALRY_I18N_STATE_DIR`; tests depend on this separation.
 - `Status.version` is display-only. English snapshot invalidation uses the immutable bundle revision plus `EnglishSnapshotProvenance`; ordinary state sync must never manufacture snapshot provenance.
 - English may be captured only after every `CORE_MAP` file passes packaged-English overlay equality. Windows additionally requires `Stock`, or `Recover` with a valid manifest phase, plus the exact vendor `qwindows.dll`; a known non-English marker, valid recovery state, or generic residue then converges through the normal `en` transaction, while a clean missing marker stays markerless. Active, drifted, invalid, or unreadable evidence fails closed.
+- macOS managed upgrade/restore requires a complete, verifiable official vendor baseline bound to the selected installation and current language marker. JSON-only legacy state cannot establish runtime ownership and returns the stable reinstall-required outcome; with a valid baseline, wrapper/injector are replaced as safe slots rather than authenticated against historical release hashes.
 - Language writes bracket assets/runtime with a `pending` marker and force the final language marker last, so an interrupted transaction cannot masquerade as clean English.
 
 ### Translation surfaces

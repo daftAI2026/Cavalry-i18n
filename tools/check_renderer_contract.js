@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review 补丁状态收敛与结构拒绝 fake bridge/动态目录与热重载入口、typed 写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review 补丁状态收敛与结构拒绝 fake bridge/动态目录与热重载入口、typed reinstallRequired remediation 与写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、安装验证失败的恢复路径与 typed 缺失基线错误的 Activity 原位/四语文案合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -973,6 +973,10 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const styles = read('renderer/styles.css');
   assert.equal((uiText.match(/^\s{4}reinstallRequired:/gm) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(uiText);
+  assert.match(uiText, /reinstallRequired: 'This Cavalry installation has no complete, verified original backup[^\n]*restoring English[^\n]*Reinstall Cavalry \{supportedVersion\} from the official installer, reopen the Switcher, then choose a language again\.'/);
+  assert.match(uiText, /reinstallRequired: '此 Cavalry 安装缺少完整且可验证的原厂备份[^\n]*恢复英文[^\n]*重新安装 Cavalry \{supportedVersion\}[^\n]*重新打开语言切换器，再选择语言。'/);
+  assert.match(uiText, /reinstallRequired: '此 Cavalry 安裝缺少完整且可驗證的原廠備份[^\n]*還原英文[^\n]*重新安裝 Cavalry \{supportedVersion\}[^\n]*重新開啟語言切換器，再選擇語言。'/);
+  assert.match(uiText, /reinstallRequired: 'この Cavalry インストールには完全で検証済みの元のバックアップ[^\n]*英語への復元[^\n]*Cavalry \{supportedVersion\} を再インストール[^\n]*言語スイッチャーを開き直してから言語を選び直してください。'/);
   assert.doesNotMatch(uiText, /Managed \/ Unverified|已管理|未验证|未驗證|管理済み \/ 未検証/);
   assert.doesNotMatch(
     uiText,
@@ -1022,6 +1026,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'closeWindow',
     'readyToApplyTitle',
     'reinstallCavalryTitle',
+    'reinstallRequired',
     'closeCavalryTitle',
     'preparingApplyTitle',
     'restoringTitle',
@@ -1172,6 +1177,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.doesNotMatch(app, /state\.reconciliationRequired/, 'residue detection must not become renderer mutation state');
   assert.doesNotMatch(app, /result\.warning(?!Codes)/, 'app.js must never render backend warning prose');
   assert.doesNotMatch(app, /result\.error\b/, 'app.js must never render backend error prose');
+  assert.match(runApplyFunction, /result\.errorCode === 'reinstallRequired'[\s\S]*?title: t\('reinstallCavalryTitle'\)[\s\S]*?description: t\('reinstallRequired', \{ supportedVersion: state\.supportedVersion \}\)/);
   assert.match(bridge, /WARNING_CODE_MANIFEST/);
   assert.match(bridge, /warning:\s*null/);
   assert.match(bridge, /warningCodes:\s*Object\.freeze/);
@@ -1179,6 +1185,68 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.doesNotMatch(bridge, /reconcileEnglish/);
   assert.doesNotMatch(styles, /--text-muted/);
   assert.doesNotMatch(styles, /reconcile-button/);
+});
+
+test('typed reinstallRequired replaces the failed phase with an actionable official reinstall route', async () => {
+  const app = read('renderer/app.js');
+  const runApplyFunction = sourceFunction(
+    app,
+    "async function runApply(nextLanguage, { attemptId = '' } = {}) {",
+    'function handlePermissionButton'
+  );
+  const projections = [];
+  const state = {
+    appPath: '/Applications/Cavalry.app',
+    currentLang: 'en',
+    pendingAction: '',
+    busy: false,
+    platform: 'macos',
+    stateDurabilityPending: false,
+    permissionRetryAttempt: 0,
+    supportedVersion: '2.7.2',
+  };
+  const context = {
+    state,
+    setBusy(value) { state.busy = value; },
+    setPermissionWait() {},
+    languageLabel: (language) => language,
+    isRestoreAction: () => false,
+    t: (key, params = {}) => `${key}:${params.supportedVersion || ''}`,
+    operationPhaseCopy: ({ phase, state: phaseState }) => ({
+      id: phase,
+      title: 'generic phase title',
+      description: '',
+      state: phaseState,
+    }),
+    updateOperationPhase: (event) => projections.push({ kind: 'phase', event }),
+    operationLog: {
+      start() {},
+      upsert: (event) => projections.push({ kind: 'upsert', event }),
+      finishRunning: (state) => projections.push({ kind: 'finish', state }),
+    },
+    api: {
+      async applyLanguage(_appPath, _language, onEvent) {
+        onEvent({ phase: 'ensureBaseline', state: 'running' });
+        onEvent({ phase: 'ensureBaseline', state: 'error' });
+        return { ok: false, permissionRequired: false, errorCode: 'reinstallRequired' };
+      },
+    },
+    bootstrap: async () => {},
+    appendPostCommitWarnings: () => {},
+  };
+
+  await vm.runInNewContext(`${runApplyFunction}\nrunApply('zh-Hans')`, context);
+
+  const failure = projections.find(({ kind, event }) => kind === 'upsert' && event.state === 'error');
+  assert.ok(failure, 'a failed backend operation must remain visible in Activity');
+  assert.deepEqual(JSON.parse(JSON.stringify(failure.event)), {
+    id: 'ensureBaseline',
+    title: 'reinstallCavalryTitle:',
+    description: 'reinstallRequired:2.7.2',
+    state: 'error',
+  }, 'the typed error should replace the generic failed phase and include the supported host version');
+  assert.equal(state.pendingAction, '', 'a blocked action must not remain pending');
+  assert.equal(state.busy, false, 'the renderer must release controls after the typed failure');
 });
 
 test('update icon stays hidden until preview or an updater check result and renderer has no network client', () => {
