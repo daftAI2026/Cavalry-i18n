@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 InstallLayout、libproc 的进程名/路径探针、固定 JXA terminate 请求与 CommandRunner。
- * [OUTPUT]: 提供先按所选 executable 名称缩小候选、名称未知时回退路径探针、再按 canonical executable/PID 确认的只读运行探针、显式重启场景下的 graceful close 与 transaction 内复核。
- * [POS]: macOS 进程边界；普通 Switch/Restore 要求用户自行保存退出，只有显式 restart 可请求 graceful terminate；已知非目标名称不读路径，未知名称只补读原始路径且先比 basename，目标路径不可检查 fail closed，仅 typed vanished PID 可忽略；精确路径才是身份，不强杀可见/未保存进程。
+ * [INPUT]: 依赖 InstallLayout、libproc 的进程路径探针、固定 JXA terminate 请求与 CommandRunner。
+ * [OUTPUT]: 提供以原始 executable basename 排除无关进程、再以 canonical executable/PID 确认目标的只读运行探针、显式重启场景下的 graceful close 与 transaction 内复核。
+ * [POS]: macOS 进程边界；普通 Switch/Restore 要求用户自行保存退出，只有显式 restart 可请求 graceful terminate；无关路径不做文件系统解析，可能的目标路径不可检查才 fail closed，仅 typed vanished PID 可忽略；精确路径才是身份，不强杀可见/未保存进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -61,7 +61,6 @@ extern "C" {
         buffer_size: c_int,
     ) -> c_int;
     fn proc_pidpath(pid: c_int, buffer: *mut c_void, buffer_size: u32) -> c_int;
-    fn proc_name(pid: c_int, buffer: *mut c_void, buffer_size: u32) -> c_int;
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -201,31 +200,7 @@ fn termination_command(pid: u32, target: &Path) -> crate::privilege::RecordedCom
 }
 
 fn matching_pids(target: &Path) -> Result<Vec<u32>, String> {
-    matching_pids_with(target, all_pids()?, process_name, process_path)
-}
-
-fn matching_pids_with<I, N, F>(
-    target: &Path,
-    pids: I,
-    mut process_name_for: N,
-    process_path_for: F,
-) -> Result<Vec<u32>, String>
-where
-    I: IntoIterator<Item = u32>,
-    N: FnMut(u32) -> Option<OsString>,
-    F: FnMut(u32) -> Result<ProcessPathProbe, String>,
-{
-    let target_name = target.file_name().ok_or_else(|| {
-        format!(
-            "Selected Cavalry executable has no file name: {}",
-            target.display()
-        )
-    })?;
-    let candidates = pids.into_iter().filter(|pid| match process_name_for(*pid) {
-        Some(name) => name == target_name,
-        None => true, // 名称未知不是非目标；仅此时回退现有路径探针。
-    });
-    matching_pids_from(target, candidates, process_path_for)
+    matching_pids_from(target, all_pids()?, process_path)
 }
 
 fn matching_pids_from<I, F>(
@@ -266,23 +241,6 @@ where
     output.sort_unstable();
     output.dedup();
     Ok(output)
-}
-
-fn process_name(pid: u32) -> Option<OsString> {
-    let native_pid = c_int::try_from(pid).ok()?;
-    let mut buffer = [0_u8; PROC_PIDPATHINFO_MAXSIZE];
-    let length = unsafe {
-        proc_name(
-            native_pid,
-            buffer.as_mut_ptr().cast::<c_void>(),
-            buffer.len() as u32,
-        )
-    };
-    if length <= 0 {
-        return None;
-    }
-    let value = CStr::from_bytes_until_nul(&buffer).ok()?;
-    Some(OsString::from_vec(value.to_bytes().to_vec()))
 }
 
 fn all_pids() -> Result<Vec<u32>, String> {
@@ -416,7 +374,9 @@ mod tests {
             .unwrap();
         let pid = child.id();
         let deadline = Instant::now() + Duration::from_secs(2);
-        while process_name(pid).is_none() && Instant::now() < deadline {
+        while !matches!(process_path(pid), Ok(ProcessPathProbe::Path(path)) if path.file_name() == target.file_name())
+            && Instant::now() < deadline
+        {
             thread::sleep(Duration::from_millis(10));
         }
         let result = matching_pids(&target);
@@ -424,64 +384,6 @@ mod tests {
         let _ = child.wait();
         assert_eq!(result.unwrap(), vec![pid]);
         assert!(matching_pids(&target).unwrap().is_empty());
-    }
-
-    #[test]
-    fn unreadable_name_still_checks_the_running_target_executable() {
-        let temp = tempfile::tempdir().unwrap();
-        let executable = temp.path().join("Cavalry");
-        fs::copy("/bin/sleep", &executable).unwrap();
-        let target = fs::canonicalize(&executable).unwrap();
-        let mut child = std::process::Command::new(&executable)
-            .arg("3")
-            .spawn()
-            .unwrap();
-        let pid = child.id();
-        let result = matching_pids_with(&target, [pid], |_| None, process_path);
-        let _ = child.kill();
-        let _ = child.wait();
-        assert_eq!(result.unwrap(), vec![pid]);
-    }
-
-    #[test]
-    fn known_unrelated_name_never_reads_its_path() {
-        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
-        let matching = matching_pids_with(
-            target,
-            [41],
-            |_| Some(OsString::from("verge-mihomo")),
-            |_| panic!("unrelated process path must not be inspected"),
-        )
-        .unwrap();
-        assert!(matching.is_empty());
-    }
-
-    #[test]
-    fn unreadable_name_with_unrelated_raw_path_never_resolves_that_path() {
-        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
-        let unrelated =
-            PathBuf::from("/Library/Application Support/clash-verge-service/cores/verge-mihomo");
-        let matching = matching_pids_with(
-            target,
-            [42],
-            |_| None,
-            |_| Ok(ProcessPathProbe::Path(unrelated.clone())),
-        )
-        .unwrap();
-        assert!(matching.is_empty());
-    }
-
-    #[test]
-    fn unreadable_name_and_unreadable_live_path_fails_closed() {
-        let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
-        let error = matching_pids_with(
-            target,
-            [43],
-            |_| None,
-            |_| Err("proc_pidpath denied live process 43".to_string()),
-        )
-        .unwrap_err();
-        assert!(error.contains("denied live process 43"), "{error}");
     }
 
     #[test]
@@ -563,7 +465,7 @@ mod tests {
         let target = Path::new("/Applications/Cavalry.app/Contents/MacOS/Cavalry");
         let unrelated =
             PathBuf::from("/Library/Application Support/clash-verge-service/cores/verge-mihomo");
-        let pids = matching_pids_from(target, [45979], |_| {
+        let pids = matching_pids_from(target, [42], |_| {
             Ok(ProcessPathProbe::Path(unrelated.clone()))
         })
         .unwrap();
