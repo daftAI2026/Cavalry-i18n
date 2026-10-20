@@ -1,4 +1,4 @@
-# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、统一latest.json的tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境
+# [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、统一latest.json的tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境；injector检查固定macos-15并记录同一label
 # [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环与已授权2.8三平台Release闭环
 # [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag复用三平台production构建与签名回读闭包
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -555,7 +555,7 @@ jobs:
   macos_injector_check:
     needs: [release_tag_preflight, change_scope]
     if: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && needs.change_scope.outputs.macos_injector == 'true' }}
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout repository
@@ -580,7 +580,7 @@ jobs:
 
       - name: Record GitHub runner image identity
         run: |
-          node tools/verify_runner_image.js --mode record --runner-label macos-14
+          node tools/verify_runner_image.js --mode record --runner-label macos-15
 
       - name: Install app dependencies
         run: npm ci

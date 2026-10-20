@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖 tools/ci_action_pins.json、dependency_vulnerability_gate.json、两套 hash-locked Python requirements 与 .github/workflows/build.yml
  * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 显式消费精确 pinned Rust channel，并记录 runner ImageOS/ImageVersion 供构建追踪
- * [POS]: tools 的 GitHub Actions 供应链 pin 守门器（P2.5 / P2.6 / P2.8）
+ * [POS]: tools 的 GitHub Actions 供应链 pin 守门器（P2.5 / P2.6 / P2.8）；injector 检查固定 macos-15。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -280,7 +280,7 @@ function main() {
   if (/runs-on:\s*[^#\n]*-latest\b/i.test(workflow)) {
     fail('GitHub runner labels must be explicit fixed OS labels, never *-latest.');
   }
-  for (const label of ['ubuntu-24.04', 'windows-2022', 'macos-14']) {
+  for (const label of ['ubuntu-24.04', 'windows-2022', 'macos-15']) {
     if (!workflow.includes(`runs-on: ${label}`)) fail(`build.yml missing fixed runner label ${label}.`);
   }
   if (!runnerGate.includes('ImageOS') || !runnerGate.includes('ImageVersion')) {

@@ -122,7 +122,7 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；Windows catalog guard生成器精确归属Windows门，近似未知路径仍fail-closed；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；覆盖Windows catalog guard单文件/混合变更/近似未知路径边界；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify； 2.8.0 ARM/Intel与Windows native生产入口合同；核共同production及Windows资源overlay，拒过期未实现声明；保留统一latest.json、p12历史资产、三平台发布guard及既有配置/provenance合同。
+check_tauri_build_sop.js: NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify； 2.8.0 ARM/Intel与Windows native生产入口合同；核共同production及Windows资源overlay，拒过期未实现声明；保留统一latest.json、p12历史资产、三平台发布guard及既有配置/provenance合同。injector检查与镜像记录均固定macos-15。
 check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
 packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
 packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。
@@ -150,7 +150,8 @@ release_publish.js: profile-aware GitHub Release发布器；2.7 p12仅只读回�
 release_publish.test.js: fake-gh离线合同；验证p12只读七项回读、阻断p13、真实2.8.0 profile的单manifest/provenance与七项公开资产闭环；不替代生产tag授权。
 create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内按所选profile复核 ReleaseAssetProvenance v5、release commit、真实平台签名声明、SBOM/toolchain、单feed九项分发身份及manifest语义；这些构建证据不作为用户下载附件。
 create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；必需路径包含2.7/2.8.0 release profiles及2.8.0 endpoint overlay；verifier独立生成同commit的`git archive`，拒绝link/special/traversal/duplicate/secret并精确比对路径、bytes、type与mode，marker不能替代tree校验。
-verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist、Node/Python/aqt/Rust 精确 pin，并拒绝 cargo-audit 绕过 channel qualifier 触发项目组件调和。
+verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist、Node/Python/aqt/Rust 精确 pin，并拒绝 cargo-audit 绕过 channel qualifier 触发项目组件调和。固定 runner 集合要求 macos-15。
+verify_ci_action_pins.test.js: 离线夹具验证精确 action、工具链与 runner pin；退役 macOS 镜像回归必须失败。
 record_toolchain_evidence.js / create_toolchain_evidence_bundle.js: 前者在 source-contract/macOS 真实 producer 上 fail-closed 捕获无 secret 的版本与 runner 证据；后者要求 source-contracts、macOS aarch64/x64 三 scope 与 release commit/target 精确一致，聚合为由公开 provenance 绑定的 `toolchain-evidence.json`；Windows producer evidence 由 `record_windows_toolchain_evidence.js` 单独上传，待 #16 纳入 release 聚合。
 extract_release_changelog.js: 保留英文分类语义并投影中文标题、要求逐条中文且拒绝伪列表的 Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
 check_runtime_ui_coverage.js: runtime UI 覆盖率守门脚本，读取真实菜单 inventory 并按阈值阻塞未翻译文本。
