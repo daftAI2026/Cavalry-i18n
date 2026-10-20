@@ -2,7 +2,7 @@
 /**
  * [INPUT]: verify_ci_action_pins.js 与临时复制的 workflow/policy/requirements/toolchain inputs
  * [OUTPUT]: 证明 baseline 通过，同时拒绝 unknown/wrong-SHA action、floating Rust setup、toolchain manifest/file 漂移与绕过精确 channel 的裸 cargo-audit 安装
- * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试
+ * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试；固定 runner 回归拒绝退役镜像。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -38,6 +38,19 @@ function fixture() {
   return temp;
 }
 function run(cwd) { return spawnSync(process.execPath, [verifier], { cwd, encoding: 'utf8' }); }
+
+test('injector runner must retain the supported macOS 15 pin', () => {
+  const temp = fixture();
+  try {
+    const workflowPath = path.join(temp, '.github/workflows/build.yml');
+    const workflow = fs.readFileSync(workflowPath, 'utf8');
+    assert.match(workflow, /runs-on: macos-15\b/);
+    fs.writeFileSync(workflowPath, workflow.replace('runs-on: macos-15', 'runs-on: macos-14'));
+    const result = run(temp);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /missing fixed runner label macos-15/);
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
 
 test('action gate is an exact action-name and SHA allowlist, not a generic 40-char check', () => {
   const temp = fixture();

@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP精确版本文案/workflow、发布provenance、Actions pins与source artifact清单
  * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
- * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决
+ * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决；injector检查与镜像记录固定macos-15。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -1883,7 +1883,8 @@ test('PR and main CI compile and link the universal macOS injector without a ven
     job[1],
     /if:\s*\$\{\{ \(github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'\) && needs\.change_scope\.outputs\.macos_injector == 'true' \}\}/
   );
-  assert.match(job[1], /runs-on:\s*macos-14/);
+  assert.match(job[1], /runs-on:\s*macos-15\b/);
+  assert.match(job[1], /verify_runner_image\.js --mode record --runner-label macos-15\b/);
   assert.match(
     job[1],
     /python -m venv[\s\S]*pip install[^\n]*--require-hashes[^\n]*--only-binary=:all:[^\n]*-r requirements-ci\.txt/

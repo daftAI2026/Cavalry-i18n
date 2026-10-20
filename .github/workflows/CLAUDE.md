@@ -5,6 +5,8 @@
 build.yml: Windows PR/main先行政提取官方2.8 MSI和Qt6.9.2，再经唯一wrapper生成native DLL/三语包、运行共享Rust合同、production NSIS构建及安装更新卸载；tag只向同wrapper追加updater。主CI/CD工作流；手动默认`none`，显式`macos-2.8-preflight`才跳过依赖漏洞门、等待同SHA build源码门成功后在固定macos-26 ARM与macos-26-intel矩阵构建2.8 ad-hoc App/DMG；漏洞门失败仍阻断打包，不运行Windows、不签updater、不创建Release；ci_gate只聚合PR/main。2.7所有tag拒绝重打包；公开2.8 tag按统一latest.json endpoint选profile，经main ancestry与三平台production构建、updater签名、private-draft精确回读后发布。macOS矩阵target只传一次；production输入helper从固定字节的官方Cavalry 2.8与Qt6.9.2头包生成同架构dylib；独立Rust测试仅以`TAURI_CONFIG`清空`bundle.resources`，不改生产构建覆盖。
 
 依赖边界:
+`macos_injector_check` 固定使用 `macos-15` ARM64。镜像身份记录使用同一标签；供应链与 SOP 合同共同校验。生产打包保留 `macos-26` 与 `macos-26-intel`。
+
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。显式手动2.8预验跳过漏洞扫描，但依赖同SHA源码build成功；failed扫描或源码失败均不得进入macOS打包。`ci_gate`只聚合PR/main必需检查；手动macOS预验跳过Windows与聚合门。Updater密钥只供tag生产流程使用；2.8预验没有no-tag签名smoke。平台身份签名未来独立接入。
 
 法则: 脚本唯一·产物可追踪·release 不漂移·tag fail-closed
