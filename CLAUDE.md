@@ -163,4 +163,6 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 
 本机与CI固定Node 24.22.1、npm 12.2.1。
 每个CI Node setup后显式安装并核验npm。
-工具链迁移保留main的1.1.2版本与现有依赖。
+工具链迁移保留main的1.1.2版本。
+Tauri CLI/API 2.10.1与Rust 2.10.3同minor。
+Node合同在原生编译前拒绝单边升级。
