@@ -50,7 +50,7 @@ jobs:
       - name: Set up pinned Node.js for change classification
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
 
       - name: Classify required CI evidence
         id: scope
@@ -108,7 +108,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/cavalry-') || (github.event_name == 'workflow_dispatch' && inputs.package_scope == 'macos-2.8-preflight')
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
 
       - name: Select release profile by tag
         id: release_profile
@@ -161,7 +161,7 @@ jobs:
       - name: Set up pinned Node.js for npm audit
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
           cache: npm
 
       - name: Set up pinned Rust for cargo audit
@@ -277,7 +277,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
           cache: npm
 
       - name: Set up Python
@@ -448,7 +448,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
           cache: npm
 
       - name: Set up Python
@@ -564,7 +564,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
           cache: npm
 
       - name: Set up Python
@@ -695,7 +695,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
           cache: npm
 
       - name: Set up Python
@@ -924,7 +924,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24.20.0
+          node-version: 24.22.1
 
       - name: Record GitHub runner image identity
         run: node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04

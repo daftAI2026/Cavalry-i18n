@@ -278,6 +278,7 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 
 2026-08-27: `test_temp_dir.js` 为合同测试注册本进程创建的有限 TEMP fixture；`check_app_contracts.js` 与 `check_tauri_build_sop.js` 在顶层 `after` 中仅清理直接位于 `os.tmpdir`、固定前缀且无 symlink/reparse 的目录，不扫描或删除历史/陌生路径。
 2026-08-27: CI、action pin 与漏洞门共同升级到 Node.js 24.20.0 / npm 11.19.0；精确版本只存在于共享 policy/pin 及其 strict contract 中，开发文档统一声明 Node 24 LTS 下限。
+2026-10-22: 安全发布将同一精确钉升到 Node.js 24.22.1 / npm 11.19.1。历史验收记录不改写。
 2026-08-31: UI Review 收敛匿名 macOS 权限 handoff 原型；复用真实 `permissionMac` renderer iframe 作为源，独立模拟系统设置目标，运行时捕获/递归克隆真实权限动作与目标 row，固定 duration/response 0.72、1.0 临界阻尼公式、initialAlpha/minimumLaunchScale 与距离比例 lift，保留正反向状态机、静态 accessory takeover 和 Reduce Motion snap/crossfade；禁止固定 arc 滑杆、通用阻尼分支、手绘 proxy 内容与新增外部具体身份信息。
 2026-09-01: 发布资产合同撤销未具备凭据的 Developer ID/notarization 强制前提；seal v6 与 provenance v4 改为显式 `macos: ad-hoc`，生成器要求调用方明确传入签名模式，验证器与合同测试同步拒绝把 Tauri updater Ed25519 冒充 Apple 平台信任。
 2026-09-01: macOS DMG 挂载卷标由共享 resolver 固定为 `Cavalry Switcher <SemVer> <arch>`；本地与 CI 的既有盖章步骤同时写入，真实挂载 gate 精确回读，发布资产文件名仍独立表达 Cavalry 兼容目标与 patch tag。

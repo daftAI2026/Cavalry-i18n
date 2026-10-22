@@ -311,7 +311,7 @@ Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出
 
 该 gate 会真实安装、同版本更新并卸载 **Cavalry Language Switcher 自身**，但不会启动或写入真实 Cavalry；三文件哨兵只是一份独立的临时字节合同，不代表任意用户 Cavalry 安装根都已经实测。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。静态 hooks 无 Cavalry/QPA 写入入口与这次真实 install → 同版本 `/UPDATE` → uninstall 哨兵不变证据共同守住安装器边界，但不能替代真实 Cavalry GUI、Program Files/UAC、任意安装路径或跨版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
 
-Windows开发机使用Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带x64 MSVC v143的Visual Studio 2022+及固定CMake 4.4.3。Qt 6.6.3 `msvc2019_64`仅属于2.7.2历史injector链路；当前2.8.0构建使用Qt 6.9.2 `msvc2022_64`，见§8.1。CI与漏洞证据精确固定Node.js 24.20.0 / npm 11.19.0；本地开发机允许同一Node 24 LTS主线的新补丁版。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
+Windows开发机使用Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带x64 MSVC v143的Visual Studio 2022+及固定CMake 4.4.3。Qt 6.6.3 `msvc2019_64`仅属于2.7.2历史injector链路；当前2.8.0构建使用Qt 6.9.2 `msvc2022_64`，见§8.1。CI与漏洞证据精确固定Node.js 24.22.1 / npm 11.19.1；本地开发机允许同一Node 24 LTS主线的新补丁版。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
 ## 6. DMG 增强修饰（卷标与卷宗图标）
 
