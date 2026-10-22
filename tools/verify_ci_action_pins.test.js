@@ -2,7 +2,7 @@
 /**
  * [INPUT]: verify_ci_action_pins.js 与临时复制的 workflow/policy/requirements/toolchain inputs
  * [OUTPUT]: 证明 baseline 通过，同时拒绝 unknown/wrong-SHA action、floating Rust setup、toolchain manifest/file 漂移与绕过精确 channel 的裸 cargo-audit 安装
- * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试；固定 runner 回归拒绝退役镜像。
+ * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试；固定 runner 回归拒绝退役镜像，npm 回归拒绝缺失、错序和条件漂移。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const YAML = require('yaml');
 
 const root = path.resolve(__dirname, '..');
 const verifier = path.join(root, 'tools/verify_ci_action_pins.js');
@@ -38,6 +39,53 @@ function fixture() {
   return temp;
 }
 function run(cwd) { return spawnSync(process.execPath, [verifier], { cwd, encoding: 'utf8' }); }
+
+test('every Node setup installs and verifies pinned npm before later steps', () => {
+  const mutations = [
+    (steps, index) => steps.splice(index + 1, 1),
+    (steps, index) => { steps[index + 1].run = steps[index + 1].run.replace('npm@', 'npm@0.'); },
+    (steps, index) => { steps[index + 1].run = steps[index + 1].run.split('\n')[0]; },
+    (steps, index) => { steps[index + 1].if = '${{ false }}'; },
+    (steps, index) => { steps[index + 1]['continue-on-error'] = true; },
+    (steps, index) => { steps[index + 1].shell = 'pwsh'; },
+    (steps, index) => steps.splice(index + 2, 0, steps.splice(index + 1, 1)[0]),
+  ];
+  for (const mutate of mutations) {
+    const temp = fixture();
+    try {
+      const workflowPath = path.join(temp, '.github/workflows/build.yml');
+      const workflow = YAML.parse(fs.readFileSync(workflowPath, 'utf8'));
+      const pins = JSON.parse(fs.readFileSync(path.join(temp, 'tools/ci_action_pins.json'), 'utf8'));
+      for (const job of Object.values(workflow.jobs)) {
+        for (let index = 0; index < (job.steps || []).length; index += 1) {
+          const step = job.steps[index];
+          if (!step.uses?.startsWith('actions/setup-node@')) continue;
+          const install = {
+            name: 'Install pinned npm',
+            ...(step.if === undefined ? {} : { if: step.if }),
+            shell: 'bash',
+            run: `npm install --global npm@${pins.node.npmVersion} --registry=https://registry.npmjs.org\ntest "$(npm --version)" = "${pins.node.npmVersion}"`,
+          };
+          if (job.steps[index + 1]?.name === install.name) job.steps[index + 1] = install;
+          else job.steps.splice(index + 1, 0, install);
+          index += 1;
+        }
+      }
+      fs.writeFileSync(workflowPath, YAML.stringify(workflow, { lineWidth: 0 }));
+      const baseline = run(temp);
+      assert.equal(baseline.status, 0, baseline.stderr || baseline.stdout);
+      // ---- 仅破坏 Windows：其他 job 的正确安装不能抵扣 ----
+      const steps = workflow.jobs.windows_check.steps;
+      const index = steps.findIndex((step) => step.uses?.startsWith('actions/setup-node@'));
+      assert.ok(index >= 0);
+      mutate(steps, index);
+      fs.writeFileSync(workflowPath, YAML.stringify(workflow, { lineWidth: 0 }));
+      const result = run(temp);
+      assert.notEqual(result.status, 0, 'broken npm setup must fail closed');
+      assert.match(result.stderr, /windows_check.*must immediately install and verify npm/);
+    } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+  }
+});
 
 test('injector runner must retain the supported macOS 15 pin', () => {
   const temp = fixture();

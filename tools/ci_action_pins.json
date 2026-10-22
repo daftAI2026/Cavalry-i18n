@@ -40,7 +40,7 @@
   },
   "node": {
     "version": "24.22.1",
-    "npmVersion": "11.19.1"
+    "npmVersion": "12.2.1"
   },
   "aqtinstall": {
     "inputFile": "requirements-ci.in",

@@ -32,6 +32,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 </directory>
 
 <config>
+.node-version - 本机Node 24.22.1；packageManager固定npm 12.2.1
 src-tauri/tauri.native-windows-2.8.conf.json - Windows默认生产wrapper的runtime资源映射；与native-production共同装三语包和同版generic/QPA，不带旧translator或Qt运行时
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
 CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8.0迁移唯一44项主账，44完成/0待办；§66.193记录2.8.0 p1正式发行及七资产/统一feed回读；Windows D-6/G-5按§66.189收口；§66.191记录2.8.0首发授权、1.1.0及生产tag启用；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已合入PR54，2.8.0 p1已按§66.193公开发行。私档不作为构建输入。
@@ -157,3 +158,9 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 2026-10-19 p2待机更正：正常启动对齐p12的四语idlePrompt，不常驻共享profile说明。仅保留资源故障与待恢复提示，不新增确认框；旧p2流水线在公开前已取消。
 
 2026-10-20：cavalry-2.8.0-p2（app1.1.1）已公开；此前p2待机记录仅描述公开前的候选状态。
+
+## Node 工具链
+
+本机与CI固定Node 24.22.1、npm 12.2.1。
+每个CI Node setup后显式安装并核验npm。
+工具链迁移保留main的1.1.2版本与现有依赖。
