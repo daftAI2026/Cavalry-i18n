@@ -50,8 +50,8 @@ release.config.json - 冻结2.7.2 p12读取与合同profile；共享latest.json 
 release-2.8.config.json - 当前2.8.0统一latest.json生产profile；固定cavalry-2.8.0-pN、三平台资产与tag-pinned archive URL，发布仍受三平台闭包约束
 SECURITY.md - 支持渠道、私密漏洞上报、平台签名边界与 supply-chain 控制说明
 rust-toolchain.toml - CI/本地 Rust channel 固定入口，禁止 tag 构建漂移到浮动 stable
-requirements-ci.in / requirements-ci.txt - Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
-requirements-audit.in / requirements-audit.txt - `pip-audit==2.10.1` 自身的独立顶层声明与 universal hash-locked 工具闭包，避免漏洞扫描器通过未锁定安装进入 CI
+requirements-ci.in / requirements-ci.txt - certifi 2026.10.19排除受损emSign信任链；Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
+requirements-audit.in / requirements-audit.txt - certifi与Qt构建锁同版；`pip-audit==2.10.1` 自身的独立顶层声明与 universal hash-locked 工具闭包，避免漏洞扫描器通过未锁定安装进入 CI
 src-tauri/Cargo.toml - Rust crate、Tauri v2 与后端依赖声明；dev调试行表由test继承，release默认不变
 src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
 src-tauri/tauri.conf.json - Tauri 共享运行配置，固定本地 CSP/updater 信任根、`main`/`about` capability 与 400×504 无滚动 macOS Overlay 主窗口边界；30px单行footer位于434px内容轨道下方，内部404px控件布局不变；创建时由 Tauri 定位原生交通灯而非应用层 resize 回调
