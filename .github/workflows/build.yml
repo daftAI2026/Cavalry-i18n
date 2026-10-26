@@ -1,8 +1,10 @@
 # [INPUT]: 依赖受控workflow_dispatch选择器、2.8 ARM/Intel生产输入、漏洞审计例外、统一latest.json的tag-only updater、Windows2.8官方输入/native生产包装器与GitHub环境；Node 24.22.1后显式安装并核验npm 12.2.1；injector检查固定macos-15并记录同一label
-# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、PR/main聚合门、Windows闭环与已授权2.8三平台Release闭环
-# [POS]: 唯一CI/CD编排器；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag复用三平台production构建与签名回读闭包
+# [OUTPUT]: 对外提供风险分流、同SHA源码门后的2.8 macOS双架构预验、隔离资源的Rust测试、定时依赖巡检、PR/main聚合门、Windows闭环与已授权2.8三平台Release闭环
+# [POS]: 唯一CI/CD编排器；定时巡检跳过build与ci_gate；手动2.8预验仅跳过漏洞审计，等待同SHA源码门后打包；公开tag复用三平台production构建与签名回读闭包
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
+# 非定时留空，沿用 GitHub 的提交或 PR 默认标题。
+run-name: ${{ github.event_name == 'schedule' && 'Dependency Security Review' || '' }}
 
 on:
   schedule:
@@ -280,7 +282,7 @@ jobs:
 
   build:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
-    if: ${{ always() }}
+    if: ${{ always() && github.event_name != 'schedule' }}
     runs-on: ubuntu-24.04
     env:
       RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
@@ -652,7 +654,7 @@ jobs:
 
   ci_gate:
     needs: [change_scope, release_tag_preflight, dependency_vulnerability_gate, build, windows_check, macos_injector_check]
-    if: ${{ always() && github.event_name != 'workflow_dispatch' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}
+    if: ${{ always() && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}
     runs-on: ubuntu-24.04
 
     steps:

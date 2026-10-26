@@ -20,7 +20,7 @@ Windows固定工具帮助的Alt组合仅在字体准入时对应共享Option/Alt
 <directory>
 .agents/ - 项目技能入口；翻译与macOS显示分别路由；显示按影响合批补验，显式隔离Switcher状态，发布前清测试副本并回交安装选择；脚本自测留tools，不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions与Issue模板；手动macos-2.8-preflight在现有ARM/Intel矩阵打包，不发布；2.7 p12拒绝重打包，2.8.0公开tag走三平台发布闭包 (YAML)
+.github/ - GitHub Actions与Issue模板；定时依赖巡检不启动build或ci_gate；手动macos-2.8-preflight在现有ARM/Intel矩阵打包，不发布；2.7 p12拒绝重打包，2.8.0公开tag走三平台发布闭包 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 公开项目必须的翻译规范、可重复维护 SOP 与 README 图片资产；研究、事件簿、实跑记录和历史方案不进入公开仓 (Markdown, JSON, PNG)
 injector/ - macOS与Windows运行时补充（2子目录：native、windows）。默认2.7.2路径锁Qt6.6.3，保留显示翻译、输入保护、Quick Add与精确字体适配。native/承载2.8.0 arm64字体与窄显示候选；新增同库Fast精确caller Unicode选项，显式Qt6.9.2公开头仅构建期、运行只复用同App QtCore；编译/纯合同与最终静态门已过，三语单个可见Twist查询与同owner清空通过，新字体矩阵及首帧仍另验；主标题fmt接线与384根帮助组件已合并静态验证，e4候选已见正常日文欢迎页，默认标题三语已实屏，帮助新候选三语401可达根实屏与全图复核已闭，111nested当前根loader N/A；FPS精确直绘owner同候选三语字形/播放已证，日文冒号已按源与原图视觉通过，首帧另账；Guide动态正文仅在已证Qt setter caller投影；Easing仅在已证addAction caller投影20个显示标签，枚举身份不变；两者复用locale且不进绘制热路径；复用原厂getter与单一字体核心；按成功制品复原动态可执行路径，旧81项固定表覆盖Transform/Edit Shape与质量；当前追加Mesh四键三语12项，共93项，旧81项逐字节保全；644daf完整候选三语六态与Mesh四行稳定实屏已验，首帧与测量另账；源码另追加40组固定ToolHelp/语与4组固定前缀组合至225槽，旧213保全；8b42新制品三语六态/Pivot稳定已验，正常Hans更新已部署为签后0cdeeb；私有三语测量36槽限定实证返回位透传，完整工具上下文/首帧另账；旧2aef首次繁体partial保留，整个界面首帧与生命周期待验；显式native/debug已嵌入完整候选并沿原事务部署，正常繁日载入已证，简体正常入口与首帧另验；不接默认2.7发布链。Windows generic与QPA保留原厂窗口委托和安装根验证。生成翻译表只由tools源投影，不手写。模型身份、用户输入及未知owner保持原值。完整职责与ABI边界见injector/CLAUDE.md。
@@ -50,7 +50,7 @@ release.config.json - 冻结2.7.2 p12读取与合同profile；共享latest.json 
 release-2.8.config.json - 当前2.8.0统一latest.json生产profile；固定cavalry-2.8.0-pN、三平台资产与tag-pinned archive URL，发布仍受三平台闭包约束
 SECURITY.md - 支持渠道、私密漏洞上报、平台签名边界与 supply-chain 控制说明
 rust-toolchain.toml - CI/本地 Rust channel 固定入口，禁止 tag 构建漂移到浮动 stable
-requirements-ci.in / requirements-ci.txt - certifi 2026.10.19排除受损emSign信任链；Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
+requirements-ci.in / requirements-ci.txt - certifi 2026.10.19排除受损emSign信任链，Brotli双绑定锁定安全补丁；Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
 requirements-audit.in / requirements-audit.txt - certifi与Qt构建锁同版；`pip-audit==2.10.1` 自身的独立顶层声明与 universal hash-locked 工具闭包，避免漏洞扫描器通过未锁定安装进入 CI
 src-tauri/Cargo.toml - Rust crate、Tauri v2 与后端依赖声明；dev调试行表由test继承，release默认不变
 src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构

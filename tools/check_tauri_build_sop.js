@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP精确版本文案/workflow、发布provenance、Actions pins与source artifact清单
- * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
+ * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置、定时巡检隔离与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
  * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决；injector检查与镜像记录固定macos-15。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1620,7 +1620,7 @@ test('CI selects evidence by changed-path risk without skipping required workflo
     /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*\$\{\{ needs\.change_scope\.outputs\.vulnerability == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| inputs\.package_scope != 'macos-2\.8-preflight'\) \}\}/
   );
   assert.match(buildJob[1], /needs:\s*\[release_tag_preflight, change_scope, dependency_vulnerability_gate\]/);
-  assert.match(buildJob[1], /if:\s*\$\{\{ always\(\) \}\}/);
+  assert.match(buildJob[1], /if:\s*\$\{\{ always\(\) && github\.event_name != 'schedule' \}\}/);
   assert.match(buildJob[1], /Fail if CI scope or required upstream gates did not settle/);
   assert.match(
     buildJob[1],
@@ -1643,19 +1643,50 @@ test('CI selects evidence by changed-path risk without skipping required workflo
     aggregateJob[1],
     /needs:\s*\[change_scope, release_tag_preflight, dependency_vulnerability_gate, build, windows_check, macos_injector_check\]/
   );
-  assert.match(aggregateJob[1], /if:\s*\$\{\{ always\(\) && github\.event_name != 'workflow_dispatch' && \(github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'\) \}\}/);
+  assert.match(aggregateJob[1], /if:\s*\$\{\{ always\(\) && github\.event_name != 'schedule' && github\.event_name != 'workflow_dispatch' && \(github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'\) \}\}/);
   const ciGateCondition = require('yaml').parse(workflow).jobs.ci_gate.if;
-  assert.equal(ciGateCondition, "${{ always() && github.event_name != 'workflow_dispatch' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}");
+  assert.equal(ciGateCondition, "${{ always() && github.event_name != 'schedule' && github.event_name != 'workflow_dispatch' && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}");
+  const config = require('yaml').parse(workflow);
+  const jobs = config.jobs;
   const aggregateCases = [
-    { event: 'workflow_dispatch', ref: 'refs/heads/main', expected: false },
-    { event: 'workflow_dispatch', ref: 'refs/heads/feature', expected: false },
-    { event: 'pull_request', ref: 'refs/pull/4/merge', expected: true },
-    { event: 'push', ref: 'refs/heads/main', expected: true },
-    { event: 'push', ref: 'refs/heads/feature', expected: false },
+    { event: 'schedule', ref: 'refs/heads/main', build: false, aggregate: false },
+    { event: 'workflow_dispatch', ref: 'refs/heads/main', build: true, aggregate: false },
+    { event: 'workflow_dispatch', ref: 'refs/heads/feature', build: true, aggregate: false },
+    { event: 'pull_request', ref: 'refs/pull/4/merge', build: true, aggregate: true },
+    { event: 'push', ref: 'refs/heads/main', build: true, aggregate: true },
+    { event: 'push', ref: 'refs/heads/feature', build: true, aggregate: false },
+    { event: 'push', ref: 'refs/tags/cavalry-2.8.0-p4', build: true, aggregate: false },
   ];
-  for (const { event, ref, expected } of aggregateCases) {
-    const shouldRun = event !== 'workflow_dispatch' && (event === 'pull_request' || ref === 'refs/heads/main');
-    assert.equal(shouldRun, expected, `${event} on ${ref} ci_gate routing`);
+  // ---- 直接执行 YAML 条件，覆盖审计成功与失败，不复制条件实现 ----
+  for (const { event, ref, build, aggregate } of aggregateCases) {
+    for (const auditResult of ['success', 'failure']) {
+      const selected = event === 'schedule' ? 'false' : 'true';
+      const context = {
+        github: { event_name: event, ref },
+        inputs: { package_scope: 'none' },
+        needs: {
+          change_scope: { result: 'success', outputs: { source: selected, vulnerability: 'true', windows: selected, macos_injector: selected } },
+          release_tag_preflight: { result: 'success' },
+          dependency_vulnerability_gate: { result: auditResult },
+          build: { result: build ? 'success' : 'skipped' },
+        },
+        always: () => true,
+        startsWith: (value, prefix) => value.startsWith(prefix),
+      };
+      const evaluate = (condition) => require('node:vm').runInNewContext(condition.startsWith('${{') ? condition.slice(3, -2) : condition, context, { timeout: 100 });
+      assert.equal(evaluate(jobs.build.if), build, `${event}/${auditResult} build routing`);
+      assert.equal(evaluate(ciGateCondition), aggregate, `${event}/${auditResult} ci_gate routing`);
+      assert.equal(evaluate(config['run-name']), event === 'schedule' ? 'Dependency Security Review' : '');
+      if (event === 'schedule') {
+        assert.equal(evaluate(jobs.dependency_vulnerability_gate.if), true, 'schedule must retain the real audit result');
+        for (const name of ['windows_check', 'macos_injector_check', 'package_macos', 'release']) {
+          assert.equal(evaluate(jobs[name].if), false, `schedule must skip ${name}`);
+        }
+      } else {
+        const guard = jobs.build.steps.find(({ name }) => name === 'Fail if CI scope or required upstream gates did not settle');
+        assert.equal(evaluate(guard.if), auditResult === 'failure', `${event} must preserve upstream failure propagation`);
+      }
+    }
   }
   assert.equal(require('./classify_ci_changes.js').scopeForEvent({ eventName: 'workflow_dispatch', ref: 'refs/heads/main' }).windows, true);
   assert.match(windowsJob[1], /event_name != 'workflow_dispatch'/, 'manual preflight skips Windows while ci_gate also stays out');
