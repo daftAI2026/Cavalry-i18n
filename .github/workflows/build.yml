@@ -1211,3 +1211,15 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           node tools/release_publish.js \
+            --profile "$RELEASE_PROFILE_CONFIG" \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --dist dist \
+            --notes release-notes.md \
+            --title "$RELEASE_TITLE"
+
+      - name: Add positive Release reactions
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY" --profile "$RELEASE_PROFILE_CONFIG"
