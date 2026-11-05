@@ -282,7 +282,7 @@ jobs:
 
   build:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
-    if: ${{ always() && github.event_name != 'schedule' }}
+    if: ${{ !cancelled() && github.event_name != 'schedule' }}
     runs-on: ubuntu-24.04
     env:
       RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}
@@ -460,7 +460,7 @@ jobs:
 
   windows_check:
     needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
-    if: ${{ always() && github.event_name != 'workflow_dispatch' && needs.change_scope.result == 'success' && needs.release_tag_preflight.result == 'success' && needs.change_scope.outputs.windows == 'true' && (needs.dependency_vulnerability_gate.result == 'success' || needs.dependency_vulnerability_gate.result == 'skipped') }}
+    if: ${{ !cancelled() && github.event_name != 'workflow_dispatch' && needs.change_scope.result == 'success' && needs.release_tag_preflight.result == 'success' && needs.change_scope.outputs.windows == 'true' && (needs.dependency_vulnerability_gate.result == 'success' || needs.dependency_vulnerability_gate.result == 'skipped') }}
     runs-on: windows-2022
     env:
       RELEASE_PROFILE_CONFIG: ${{ needs.release_tag_preflight.outputs.release_profile_config }}

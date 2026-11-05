@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖2.8 ARM/Intel生产profile、Qt6.9.2与同源码native runtime、Tauri macOS/release overlays、production语言包、package/CHANGELOG、跨平台工具、CI变更分类器、Windows NSIS provenance与真实资源配置夹具、macOS资源readback、SOP精确版本文案/workflow、发布provenance、Actions pins与source artifact清单
- * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置、定时巡检隔离与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
+ * [OUTPUT]: 校验双架构入口、packaged profile、手动预验唯一漏洞例外、源码前置、重任务取消、定时巡检隔离与CI聚合边界；保留三平台生产构建闭包、统一latest.json、p12历史下载、Windows NSIS与release provenance合同
  * [POS]: tools 的 Tauri打包守门；macOS预验与公开三平台发行分别裁决；injector检查与镜像记录固定macos-15。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1620,7 +1620,7 @@ test('CI selects evidence by changed-path risk without skipping required workflo
     /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*\$\{\{ needs\.change_scope\.outputs\.vulnerability == 'true' && \(github\.event_name != 'workflow_dispatch' \|\| inputs\.package_scope != 'macos-2\.8-preflight'\) \}\}/
   );
   assert.match(buildJob[1], /needs:\s*\[release_tag_preflight, change_scope, dependency_vulnerability_gate\]/);
-  assert.match(buildJob[1], /if:\s*\$\{\{ always\(\) && github\.event_name != 'schedule' \}\}/);
+  assert.match(buildJob[1], /if:\s*\$\{\{ !cancelled\(\) && github\.event_name != 'schedule' \}\}/);
   assert.match(buildJob[1], /Fail if CI scope or required upstream gates did not settle/);
   assert.match(
     buildJob[1],
@@ -1671,6 +1671,7 @@ test('CI selects evidence by changed-path risk without skipping required workflo
           build: { result: build ? 'success' : 'skipped' },
         },
         always: () => true,
+        cancelled: () => false,
         startsWith: (value, prefix) => value.startsWith(prefix),
       };
       const evaluate = (condition) => require('node:vm').runInNewContext(condition.startsWith('${{') ? condition.slice(3, -2) : condition, context, { timeout: 100 });
@@ -1686,6 +1687,10 @@ test('CI selects evidence by changed-path risk without skipping required workflo
         const guard = jobs.build.steps.find(({ name }) => name === 'Fail if CI scope or required upstream gates did not settle');
         assert.equal(evaluate(guard.if), auditResult === 'failure', `${event} must preserve upstream failure propagation`);
       }
+      context.cancelled = () => true;
+      assert.equal(evaluate(jobs.build.if), false, `${event} cancellation must stop source work`);
+      assert.equal(evaluate(jobs.windows_check.if), false, `${event} cancellation must stop Windows work`);
+      assert.equal(evaluate(ciGateCondition), aggregate, `${event} aggregate still reports selected evidence`);
     }
   }
   assert.equal(require('./classify_ci_changes.js').scopeForEvent({ eventName: 'workflow_dispatch', ref: 'refs/heads/main' }).windows, true);
