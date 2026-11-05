@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 11384)
-Total output lines: 150
-
 # tools/
 > L2 | 父级: ../CLAUDE.md
 
@@ -91,7 +88,24 @@ check_macos_timeline_font.test.js: Node 驱动 vendor-free 原生字体策略回
 macos_timeline_font_fixture.cpp: C++ mock 字体覆盖差异和重复调用回归；不冒充私有 ABI 或实机字形证明。
 check_macos_quick_add_category.test.js: 同时比对完整 injector fixture 与生产构建的适配器编译输入，防止链接遗漏； 锁定 Mac 类别 getter 的双架构机器码、编译器 QString 返回 ABI、exact owner 与共享映像门，不冒充实机。
 quick_add_placeholder_fixture.cpp / check_quick_add_placeholder.sh: Qt vendor-free 空结果显示合同，锁定三语、exact Classic owner、viewport、重复 Paint 幂等与原厂英文重写恢复；不替代平台 ABI 或实机。
-classic_rank_contract_fixture.cpp: Qt 6…1384 tokens truncated… `ab`/`ba`/`aa` 顺序匹配、16 项多语言同 locale 原文/挂接后升降序与自动排序矩阵、source-only 比较器/非嵌套 layout 探针及持久选择身份、延后 itemWidget、动态插入删除排序/reset、幂等及标准 Qt DisplayRole MIME 结果，不冒充 vendor command/custom MIME 真人证据；macOS 已由本地 SDK 验证，Windows 必须由同一 fixture 的 CTest 执行且失败即阻断，待 native CI/live 取得 vendor 证据；搜索框 guard 来自窄 shared context。
+classic_rank_contract_fixture.cpp: Qt 6.6.3 合成评分器与既有 Classic 搜索共同挂接，验证三语完整/前缀标题排序、UTF-8 长度与三语界面英文回退、分数归还、碰撞、独立 detach 与 1000 次生命周期；不冒充原厂 ABI 或实机证据。
+check_classic_rank_contract.sh: macOS 隔离编译运行共享评分 fixture，固定 Qt 6.6.3 与 QT_NO_KEYWORDS，可选 ASan/UBSan，不启动 Cavalry。
+post_release_reactions.js: 已公开 Release 的六种正向反馈与分页回读；默认使用 2.7 profile，显式 profile 可为已公开的2.8.0 Release补 reactions；GitHub 按账号幂等，拒绝 draft/prerelease，不触碰资产。
+post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种 reaction、重复调用、默认/显式 profile tag 约束、公开状态前置条件与回读失败。
+check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验证原厂显示别名、paint/sizeHint 一致投影及源分类/创建身份保真，覆盖短字符串与大块堆存储边界。
+
+check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks、链接 Classic 评分 ABI 适配器，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。
+check_macos_selection_values.mm: Qt 原生选择值 fixture，直调 macOS 生产翻译入口并验证三语普通 QLineEdit、只读切换、Combo/编辑器/自定义弹出列表；实际值、信号与 Paint 不污染业务值，placeholder 仍翻译；只读链接显式 vendor Frameworks，不启动或修改真实 Cavalry。
+check_selection_value_contract.test.js: 按实际runtime核对Mac输入策略与Windows native字体源码指纹； 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖与 QLineEdit placeholder-only/实际名称查询值原文边界（含只读、parentless/重挂接），与原生 fixture 分层验收。
+check_macos_quick_add_inputs.sh: 本地 macOS Quick Add 搜索输入合同 runner；只读链接 Qt 6.6.3/vendor Frameworks，链接 Classic 评分 ABI 适配器，绿色运行生产搜索 guard，红测仅在临时生产源码副本恢复 QLineEdit 实际值 `setText` 污染后预期失败。
+check_macos_quick_add_inputs.mm: 覆盖预填充 parentless 补全输入及 owner 建立前的回调； Qt 原生 Quick Add 搜索输入 fixture；以 moc 生成精确 `QuickAddWindow`/`cavalry::FastQuickAddWindow`、`CompleterLineEdit`/`SearchBar`/`Widget` 父系，直调生产显示、callback 与 Paint 路径并验证三语完整/部分/大小写/CJK/清空 query 与 placeholder 分层，不启动或修改真实 Cavalry。
+check_quick_add_search.cpp: Qt 6.6.3 vendor-free FastQuickAdd model/view 合同；以可控 owner/model fixture 证明精确 FastQuickAddModel 下三语 role 257 alias 投影与内侧 Unicode code-point subsequence filter 不污染 role 0/256 与其他角色，并保留 vendor role 0/257 fuzzy subsequence 命中（含 Behaviour Mixer），覆盖视频词条 Text/Shape/Box/Circle、任意新条目、多词别名、大小写/标点/组合字符/clear、分类多实例、动态插入删除、源替换、幂等挂接、原始搜索框接线、拒绝任意 Qt 列表及 view/filter 双向析构、旧 filter 复用与 QObject 生命周期，不冒充真实 Cavalry UI 证据；搜索上下文 guard 来自窄 `injector/cavalry_i18n_quick_add_context.h`。
+check_quick_add_search.sh: 本地 Quick Add 搜索合同 runner；从 `CAVALRY_QT_PREFIX` 或仓库 `qt_sdk/6.6.3/macos` 选择 SDK，先以 `qmake -query QT_VERSION` 验证 6.6.3，再在临时目录运行 moc/clang++ fixture，不读取或修改真实 Cavalry.app；编译闭包包含共享 Quick Add context。 共享 Fast 搜索合同与 Windows 产品统一使用 QT_NO_KEYWORDS，防止本地默认 Qt 宏掩盖编译兼容性问题。
+check_quick_add_display.cpp: 双平台 vendor-free Quick Add 显示副本合同，Windows CTest 使用 QT_NO_KEYWORDS 并单独编译尺寸/对齐负例；以 exact `FastQuickAddModel`/`FastQuickAddDelegate` 复现已读证 Qt 6.6.3 `FastQuickAddItem` 128/8 布局，验证 vendor/version/type/size/alignment/title fail-open、仅绘制副本标题/类别投影、未知 model/role/index 透传、paint/sizeHint shadow、编辑/help/commit 原 index、model replacement 首绘、英文回退、幂等 wrapper 与 delegate 生命周期。
+check_quick_add_display.sh: 本地 Quick Add 显示 ABI 合同 runner；从 `CAVALRY_QT_PREFIX` 或仓库 Qt 6.6.3 macOS SDK 选择 qmake/moc，在隔离临时目录编译并运行 fake fixture 及 size/alignment 负例，不加载、读取或修改真实 Cavalry.app。
+generate_quick_add_descriptions.js: 从四语 `nodeStrings.json` 的 nodeInfo 与插件 layerInfo 按稳定相对路径/字段/类型生成独立 Quick Add 描述反向索引，保留英文原文输入与多值碰撞，不写入通用翻译 fallback。
+generate_quick_add_descriptions.test.js: Quick Add 描述生成器合同，验证 English 与三语 JSON 同构、确定性输出、转义和缺失/额外键 fail-closed。
+check_classic_quick_add_search.cpp: Qt 6.6.3 vendor-free Classic QuickAddWindow/ListWidget 合同；证明 U+FFFE role0 source 与 query-dependent 标题/英文说明 token 投影、exact search-box guard、独立 itemWidget 标题与说明显示层、多语言 Text/Shape/Box 与 Circle 负例、native filter/no-results、ASCII cleanup 与 `ab`/`ba`/`aa` 顺序匹配、16 项多语言同 locale 原文/挂接后升降序与自动排序矩阵、source-only 比较器/非嵌套 layout 探针及持久选择身份、延后 itemWidget、动态插入删除排序/reset、幂等及标准 Qt DisplayRole MIME 结果，不冒充 vendor command/custom MIME 真人证据；macOS 已由本地 SDK 验证，Windows 必须由同一 fixture 的 CTest 执行且失败即阻断，待 native CI/live 取得 vendor 证据；搜索框 guard 来自窄 shared context。
 check_classic_quick_add_search.sh: 本地 Classic Quick Add 搜索合同 runner；从 `CAVALRY_QT_PREFIX` 或仓库 `qt_sdk/6.6.3/macos` 选择 SDK，先以 `qmake -query QT_VERSION` 验证 6.6.3，再在隔离临时目录运行 moc/clang++ fixture 及 原生 source-only 同 locale 排序矩阵，不读取或修改真实 Cavalry.app；编译闭包包含共享 Quick Add context。
 test_temp_dir.js: 合同测试 fixture 的临时目录所有权边界；仅创建并清理本进程在 os.tmpdir 直接子级、固定前缀且无 symlink/reparse 的注册目录
 windows-acceptance/: Windows x64 Cavalry 2.7.2 release acceptance contract/producer; Rust live tests emit the TEMP machine record only after the runtime source DLL bytes match the final NSIS inputs, the interactive reviewer only confirms existing screenshots and derives review/final records, and the producer verifies final NSIS/provenance, generic/QPA DLL identities, live inventory, exact PID/HWND matrix, tag/source/session bindings before deriving a portable release summary.
