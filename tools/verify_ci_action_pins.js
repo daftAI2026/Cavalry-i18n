@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/ci_action_pins.json、dependency_vulnerability_gate.json、两套 hash-locked Python requirements 与 .github/workflows/build.yml
- * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、同job紧邻且同条件的npm安装与核验、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 显式消费精确 pinned Rust channel，并记录 runner ImageOS/ImageVersion 供构建追踪
+ * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、同job紧邻且同条件的npm安装与核验、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 消费版本与SHA-256锁定的官方预编译包，并记录 runner ImageOS/ImageVersion 供构建追踪
  * [POS]: tools 的 GitHub Actions 供应链 pin 守门器（P2.5 / P2.6 / P2.8）；injector 检查固定 macos-15。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -207,8 +207,8 @@ function main() {
   const rustSetupSteps = workflowSteps.filter((step) =>
     typeof step.uses === 'string' && step.uses.toLowerCase().startsWith('dtolnay/rust-toolchain@')
   );
-  if (rustSetupSteps.length < 3) {
-    fail(`Expected at least three pinned Rust setup steps, found ${rustSetupSteps.length}.`);
+  if (rustSetupSteps.length < 2) {
+    fail(`Expected at least two pinned Rust build setup steps, found ${rustSetupSteps.length}.`);
   }
   for (const [index, step] of rustSetupSteps.entries()) {
     const declared = step.with && typeof step.with === 'object' && !Array.isArray(step.with)
@@ -269,13 +269,30 @@ function main() {
       !/^[a-f0-9]{40}$/.test(vulnerabilityPolicy.cargoAudit?.rustsecAdvisoryDb?.commit || '')) {
     fail('Dependency vulnerability policy must pin Node/npm and an immutable RustSec advisory DB commit.');
   }
-  const pinnedRustAssignment = 'rust_toolchain="$(node -p "require(\'./tools/ci_action_pins.json\').rust.channel")"';
-  const pinnedCargoAuditInstall = 'cargo +"$rust_toolchain" install cargo-audit --version';
-  if (!workflow.includes(pinnedRustAssignment) || !workflow.includes(pinnedCargoAuditInstall)) {
-    fail('cargo-audit must be installed with the exact pinned Rust toolchain from tools/ci_action_pins.json.');
+  const binary = vulnerabilityPolicy.cargoAudit?.binary;
+  const auditVersion = vulnerabilityPolicy.cargoAudit?.version;
+  if (binary?.target !== 'x86_64-unknown-linux-gnu' ||
+      binary.url !== `https://github.com/rustsec/rustsec/releases/download/cargo-audit/v${auditVersion}/cargo-audit-x86_64-unknown-linux-gnu-v${auditVersion}.tgz` ||
+      !/^[a-f0-9]{64}$/.test(binary.sha256 || '')) {
+    fail('cargo-audit binary must have an exact official version, target, and SHA-256 pin.');
   }
-  if (/^\s*cargo\s+install\s+cargo-audit\b/m.test(workflow)) {
-    fail('cargo-audit must not use bare cargo install because rust-toolchain.toml component reconciliation is not part of the audit bootstrap.');
+  const pinnedCargoAuditInstall = 'sha256sum --check --strict';
+  const auditStep = workflowValue.jobs.dependency_vulnerability_gate.steps.find(step =>
+    typeof step.run === 'string' && step.run.includes('cargo_audit_version='));
+  const auditRun = auditStep?.run || '';
+  for (const required of [
+    '.cargoAudit.binary.url',
+    '.cargoAudit.binary.sha256',
+    'curl --fail --location --retry 3 "$cargo_audit_url"',
+    pinnedCargoAuditInstall,
+    'tar -xzf "$cargo_tool_root/archive.tgz"',
+    'test "$("$cargo_tool_root/bin/cargo-audit" --version)" = "cargo-audit $cargo_audit_version"',
+  ]) {
+    if (!auditRun.includes(required)) fail(`cargo-audit binary bootstrap missing verification: ${required}`);
+  }
+  if (auditRun.indexOf(pinnedCargoAuditInstall) > auditRun.indexOf('tar -xzf') ||
+      /cargo(?:\s+\S+)?\s+install\s+cargo-audit\b/.test(workflow)) {
+    fail('cargo-audit must verify the prebuilt archive before extraction and must not compile from source.');
   }
   for (const required of [
     'dependency_vulnerability_gate:',
@@ -309,3 +326,4 @@ try {
   console.error(`[verify-ci-action-pins] ${error.message}`);
   process.exit(1);
 }
+

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 classify_ci_changes.js 的纯路径分类接口
- * [OUTPUT]: 验证Windows catalog guard独占Windows门及近似未知路径仍fail-closed；证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [INPUT]: 依赖 classify_ci_changes.js 的路径分类接口与临时 Git 仓库
+ * [OUTPUT]: 验证源码改名为文档仍走完整证据门；验证Windows catalog guard独占Windows门及近似未知路径仍fail-closed；证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,6 +9,10 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { execFileSync } = require('node:child_process');
 const { classifyPaths, scopeForEvent } = require('./classify_ci_changes.js');
 
 function projection(scope) {
@@ -21,6 +25,37 @@ function projection(scope) {
     reason: scope.reason,
   };
 }
+
+test('renaming executable source into documentation still requires source evidence', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-scope-rename-'));
+  const git = (...args) => execFileSync('git', args, { cwd: directory, encoding: 'utf8' }).trim();
+  const classifier = path.resolve(__dirname, 'classify_ci_changes.js');
+  try {
+    git('init', '-q');
+    git('config', 'user.name', 'CI scope test');
+    git('config', 'user.email', 'ci-scope@example.invalid');
+    git('config', 'diff.renames', 'true');
+    fs.writeFileSync(path.join(directory, 'future-platform.js'), 'console.log("source");\n');
+    git('add', '.');
+    git('commit', '-qm', 'source');
+    const base = git('rev-parse', 'HEAD');
+    git('mv', 'future-platform.js', 'README.md');
+    git('commit', '-qm', 'rename');
+    const head = git('rev-parse', 'HEAD');
+    for (const event of ['push', 'pull_request']) {
+      const output = path.join(directory, `outputs-${event}`);
+      const scope = JSON.parse(execFileSync(process.execPath, [classifier,
+        '--event', event, '--ref', 'refs/heads/main', '--base', base, '--head', head,
+        '--github-output', output], { cwd: directory, encoding: 'utf8' }));
+      assert.equal(scope.documentationOnly, false);
+      assert.equal(scope.source, true);
+      assert.equal(scope.windows, true);
+      assert.equal(scope.macosInjector, true);
+    }
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
 
 test('public documentation uses only the lightweight documentation contract', () => {
   assert.deepEqual(
@@ -225,3 +260,4 @@ test('offline acceptance forms use source contracts without native runners', () 
     assert.equal(unknown.macosInjector,true,file);
   }
 });
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 Git 变更范围、GitHub event/ref/base/head 与仓库路径职责边界
+ * [INPUT]: 依赖禁用重命名折叠的 Git 变更范围、GitHub event/ref/base/head 与仓库路径职责边界
  * [OUTPUT]: 对外提供 documentation/source/vulnerability/windows/macos-injector 五类 CI 风险投影及 GitHub Actions outputs
  * [POS]: tools 的 CI 调度分类器，离线验收表工具只走合同门，未知新增驱动不豁免；项目技能 Markdown 只走文档门；共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 搜索与评分/Quick Add 描述策略必须经过双平台门，Windows catalog guard仅进入Windows门，macOS-only 原生源码只进入 macOS 门；tag、手动运行、未知路径和不可解析 diff 均 fail-closed
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -153,7 +153,7 @@ function changedPathsForEvent({ eventName, baseSha, headSha }) {
   try {
     const output = execFileSync(
       'git',
-      ['diff', '--name-only', '--diff-filter=ACDMRTUXB', '-z', range],
+      ['diff', '--no-renames', '--name-only', '--diff-filter=ACDMRTUXB', '-z', range],
       { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }
     );
     return output.split('\0').filter(Boolean);
@@ -225,3 +225,4 @@ module.exports = {
   outputEntries,
   scopeForEvent,
 };
+
