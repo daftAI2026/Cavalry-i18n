@@ -291,7 +291,7 @@ function main() {
     if (!auditRun.includes(required)) fail(`cargo-audit binary bootstrap missing verification: ${required}`);
   }
   if (auditRun.indexOf(pinnedCargoAuditInstall) > auditRun.indexOf('tar -xzf') ||
-      /cargo(?:\\s+\\S+)?\\s+install\\s+cargo-audit\\b/.test(workflow)) {
+      /cargo(?:\s+\S+)?\s+install\s+cargo-audit\b/.test(workflow)) {
     fail('cargo-audit must verify the prebuilt archive before extraction and must not compile from source.');
   }
   for (const required of [

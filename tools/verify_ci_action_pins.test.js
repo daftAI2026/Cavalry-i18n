@@ -164,6 +164,7 @@ test('cargo-audit prebuilt archive fails closed without checksum and version che
     ['.cargoAudit.binary.sha256', '.cargoAudit.untrustedSha256'],
     ['test "$("$cargo_tool_root/bin/cargo-audit" --version)" = "cargo-audit $cargo_audit_version"', 'true'],
     ['tar -xzf "$cargo_tool_root/archive.tgz"', 'cargo install cargo-audit'],
+    ['git init "$advisory_db"', 'cargo install cargo-audit\n          git init "$advisory_db"'],
   ]) {
     const temp = fixture();
     try {
