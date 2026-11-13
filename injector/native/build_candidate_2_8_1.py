@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build 2.8.1 with its ABI inputs while retaining the 2.8.0 build unchanged.
 [INPUT]: Shared native sources, explicit 2.8.1 ABI profile and vendor Frameworks.
-[OUTPUT]: Isolated source tree, normal candidate build/tests and source receipt.
+[OUTPUT]: Isolated 281 ABI inputs, including fmt11 pointer-only C strings, and build receipt.
 [POS]: 2.8.1-only build entry; does not install, launch or modify Cavalry.
 [PROTOCOL]: Update this header and CLAUDE.md when changing the contract.
 """
@@ -37,6 +37,12 @@ def prepare_tree(root: Path, destination: Path) -> dict:
     text = title.read_text()
     if text.count('appFrameworkPath("libfmt.10.dylib"') != 1:
         raise RuntimeError("shared title adapter no longer has its expected library input")
+    old_suffix = 'values[2].cstring.unused != 0 || suffix == nullptr'
+    if text.count(old_suffix) != 1:
+        raise RuntimeError("shared title adapter no longer has its expected 2.8.0 suffix input")
+    # 280 writes both words (stp x8, xzr); 281 only writes the C-string pointer
+    # (str x21). fmt11 does not define the second union word for a C string.
+    text = text.replace(old_suffix, 'suffix == nullptr')
     title.write_text(text.replace('appFrameworkPath("libfmt.10.dylib"',
                                   'appFrameworkPath("libfmt.11.dylib"'))
     viewport = native / "viewport_font_adapter.inc"
