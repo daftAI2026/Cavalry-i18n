@@ -3,7 +3,7 @@
 
 本目录只保存显式 `CAVALRY_NATIVE_TARGET_281` 使用的Cavalry 2.8.1 arm64 ABI合同。14个既有合同头默认仍使用2.8.0完整源；定义目标宏后才由对应源头包含本目录版本。
 
-`dependency_node_font_abi_contract.h` 是281 arm64新增合同；2.8.0没有Dependency Graph NodeView字体准入。
+`dependency_node_font_abi_contract.h` 是281 arm64新增合同；Name/Type相对位置为0/1，可选ComplexRoundRectView前项使两者后移一项；Composer不准入，2.8.0没有该字体准入。
 `title_format_abi_contract.h` 只包含281 arm64 fmt11合同；x86_64沿用默认2.8.0编译路径。
 `timeline_system_fallback_contract.h` 锁定281 SkFont::setSize窗口，首指令字节为`01 e4 00 6f`。
 

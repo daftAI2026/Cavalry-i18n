@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """[INPUT]: Official Cavalry 2.8.1 arm64 ExtensionLayer and this slice's ABI contract.
-[OUTPUT]: Read-only UUID, digest, symbol, layout-offset and ARM64 instruction-window check.
+[OUTPUT]: Read-only vendor windows and profile checks; header indices describe the final live layout.
 [POS]: Dependency Graph NodeView header text owner proof; never launches or edits Cavalry.
 [PROTOCOL]: Update with the ABI contract, then check CLAUDE.md.
 """
@@ -34,6 +34,7 @@ SYMBOL_CONSTANTS = {
     "kTextViewConstructorTargetInvokeSymbol": 0x553D80,
     "kTextViewSetTextTargetInvokeSymbol": 0x560FE8,
     "kNodeViewVtableSymbol": 0xFECFB8,
+    "kHeaderDecorationVtableSymbol": 0xFED000,
     "kTextViewVtableSymbol": 0xFEC9D0,
     "kTextViewConstructorTargetVtableSymbol": 0xFECA18,
     "kTextViewSetTextTargetVtableSymbol": 0xFED4A0,
@@ -42,6 +43,7 @@ SYMBOL_CONSTANTS = {
 OFFSET_CONSTANTS = {
     "kNodeViewConstructorOffset": 0x558DA0,
     "kNodeViewVtableOffset": 0xFECFB8,
+    "kHeaderDecorationVtableOffset": 0xFED000,
     "kTextViewConstructorOffset": 0x553908,
     "kTextViewVtableOffset": 0xFEC9D0,
     "kTextViewConstructorTargetVtableOffset": 0xFECA18,
@@ -56,8 +58,8 @@ OFFSET_CONSTANTS = {
     "kNodeViewChildrenBeginOffset": 0x260,
     "kNodeViewChildrenEndOffset": 0x268,
     "kNodeViewChildrenCapacityOffset": 0x270,
-    "kNodeViewNameHeaderChildIndex": 1,
-    "kNodeViewTypeHeaderChildIndex": 2,
+    "kNodeViewNameHeaderChildIndex": 0,
+    "kNodeViewTypeHeaderChildIndex": 1,
     "kDrawableParentPointerOffset": 0x2A8,
     "kTextViewTextFunctionOffset": 0x480,
     "kTextViewTextTargetPointerOffset": 0x498,
@@ -87,6 +89,7 @@ OFFSET_CONSTANTS = {
 }
 
 BYTE_WINDOWS = {
+    0x559078: "280800b4",  # Empty layout entry skips the optional leading decoration.
     0x4F8E4: "945641f9",  # Drawable::getGlobalTransformMatrix: load parent at +0x2a8
     0x4778C8: "fd7b1ca9",  # Drawable::paint saves fp/lr
     0x4778CC: "fd030791",  # Drawable::paint establishes frame

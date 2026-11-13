@@ -45,7 +45,7 @@ PROFILE_SNAPSHOTS = {
     "title_format_abi_contract.h": "d252e610a826e68af538e55da14c756ead5d3e1264f1702688fac142d5c229fc",
     "viewport_owner_snapshot.h": "660b47463017fa4bddae681f0d5cef3ff3cef7b35378c693b0e2fa8e0a8c8726",
     "welcome_log_it_abi_contract.h": "b0dade3534658210c933e8fd886b9eaecba922abfcb2c58d183144af7be088cc",
-    "dependency_node_font_abi_contract.h": "35d2625192439fdc247fd0b9580f2958992ca13b762b6a8d346276ad639eaa7f",
+    "dependency_node_font_abi_contract.h": "72d05fac9494848779a4401c47d9db5e96f7b0ea7790874ce6ba8cacc03d9203",
 }
 
 

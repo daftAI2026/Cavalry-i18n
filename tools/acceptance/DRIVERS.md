@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖历史驱动索引、当前候选和平台验收计划。
-[OUTPUT]: 提供驱动复用边界、生命周期入口与采集顺序。
+[OUTPUT]: 提供驱动边界、生命周期、采集顺序与原生Graph拖放接线。
 [POS]: 验收驱动路线图；不声明所有历史脚本已自动串接。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -114,6 +114,10 @@ macOS与Windows的`action`、`capture`命令数组故意为空；未绑定时`ru
 重命名、Save和重开走Cavalry标准界面；截图按exact PID/窗口单图采集，再离线审图和记录。
 
 macOS可复用外部F2的`inventory`与`readFixtureRow`协议，但本模块不捆绑runner、host二进制或私有会话路径。
+SceneTree的自定义`cavalry::nodelist`由`SceneTreeWidget::mimeData`按当前`selectedItems()`生成；传入item列表只控制Qt基类的标准MIME。
+逐行加载Graph时，先用正常Qt选择动作选中该行，再调用原厂producer，核对实际节点ID后向`DGWindow`投递拖放事件。
+`QAbstractItemModel::mimeData`和DisplayRole不能替代这条链；名称全文仍由F2回读。
+`DGView`的原生绘制子窗口可能使`visibleRegion()`为空。按实际可见控件的`rect()`映射窗口坐标，并用exact PID截图确认落点；事件接收者仍是`DGWindow`。
 Windows目前只有共享fixture与case定义，尚无Windows动作驱动；Windows实跑前必须绑定并验证其自身host、窗口采集及生命周期入口。
 未绑定的菜单动作、读回或清理保留为待办，不把macOS驱动映射成Windows PASS。
 

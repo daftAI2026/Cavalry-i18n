@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 纯 Dependency NodeView ABI 合同、adapter frame reader与合成只读栈槽。
- * [OUTPUT]: 验证 owner policy及Measure从elide frame、Draw从Drawable frame取this。
+ * [OUTPUT]: 验证两种header布局、取this帧和捕获的UTF8省略损坏样本。
  * [POS]: 不加载 Cavalry、Qt 或 Skia 的离线 adapter合同 smoke source。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,7 @@
 #include <atomic>
 #include <cstring>
 #include <limits>
+#include <string>
 
 namespace {
 enum class Caller : std::uint8_t { Measure, Draw };
@@ -38,7 +39,7 @@ struct FakeWord {
     std::uintptr_t value = 0;
 };
 
-std::array<FakeWord, 16> gFakeWords{};
+std::array<FakeWord, 32> gFakeWords{};
 std::size_t gFakeWordCount = 0;
 bool gReadWrongPaintReceiverSlot = false;
 
@@ -60,14 +61,20 @@ bool readSelf(const void *source, std::size_t size, void *destination) noexcept
 {
     const auto address = reinterpret_cast<std::uintptr_t>(source);
     if (address == 0x2ff0) gReadWrongPaintReceiverSlot = true;
-    if (size != sizeof(std::uintptr_t) || destination == nullptr) return false;
-    for (std::size_t index = 0; index < gFakeWordCount; ++index) {
-        if (gFakeWords[index].address == address) {
-            std::memcpy(destination, &gFakeWords[index].value, sizeof(std::uintptr_t));
-            return true;
+    if (size == 0 || size % sizeof(std::uintptr_t) != 0 || destination == nullptr) return false;
+    for (std::size_t offset = 0; offset < size; offset += sizeof(std::uintptr_t)) {
+        bool found = false;
+        for (std::size_t index = 0; index < gFakeWordCount; ++index) {
+            if (gFakeWords[index].address == address + offset) {
+                std::memcpy(static_cast<unsigned char *>(destination) + offset,
+                            &gFakeWords[index].value, sizeof(std::uintptr_t));
+                found = true;
+                break;
+            }
         }
+        if (!found) return false;
     }
-    return false;
+    return true;
 }
 
 bool addOffset(const void *base, std::uintptr_t offset, const void **output) noexcept
@@ -106,9 +113,9 @@ static_assert(isDrawReturnOffset(0x477e18));
 static_assert(isDrawReturnOffset(0x477e58));
 static_assert(!isDrawReturnOffset(0x477e1c));
 
-static_assert(dependency_node_font::policy::headerSlotForIndex(1) == HeaderSlot::NiceName);
-static_assert(dependency_node_font::policy::headerSlotForIndex(2) == HeaderSlot::NodeType);
-static_assert(dependency_node_font::policy::headerSlotForIndex(0) == HeaderSlot::None);
+static_assert(dependency_node_font::policy::headerSlotForIndex(0) == HeaderSlot::NiceName);
+static_assert(dependency_node_font::policy::headerSlotForIndex(1) == HeaderSlot::NodeType);
+static_assert(dependency_node_font::policy::headerSlotForIndex(2) == HeaderSlot::None);
 static_assert(dependency_node_font::policy::headerSlotForIndex(3) == HeaderSlot::None);
 
 static_assert(dependency_node_font::policy::sourceTargetForAddressPoint(
@@ -132,6 +139,39 @@ static_assert(dependency_node_font::policy::completeOwnerProof(kCompleteProof));
 static_assert(!dependency_node_font::policy::completeOwnerProof(kNoHeaderProof));
 
 #include "dependency_node_font_adapter.inc"
+
+bool finalNodeViewChildrenUseBothHeaderSlots(bool decorated)
+{
+    namespace abi = dependency_node_font::contract;
+    constexpr std::uintptr_t parent = 0x10000, children = 0x20000;
+    constexpr std::array<std::uintptr_t, 4> views{0x30000, 0x40000, 0x50000, 0x60000};
+    const std::size_t count = decorated ? 4 : 3;
+    const std::size_t firstHeader = decorated ? 1 : 0;
+    resetFakeMemory();
+    if (!addFakeWord(parent, kSyntheticImageBase + abi::kNodeViewVtableAddressPointOffset) ||
+        !addFakeWord(parent + abi::kNodeViewChildrenVectorOffset, children) ||
+        !addFakeWord(parent + abi::kNodeViewChildrenVectorOffset + 8, children + count * 8) ||
+        !addFakeWord(parent + abi::kNodeViewChildrenVectorOffset + 16, children + count * 8)) return false;
+    for (std::size_t index = 0; index < count; ++index) {
+        const auto vtable = decorated && index == 0
+            ? abi::kHeaderDecorationAddressPointOffset : abi::kTextViewVtableAddressPointOffset;
+        if (!addFakeWord(children + index * 8, views[index]) ||
+            !addFakeWord(views[index], kSyntheticImageBase + vtable) ||
+            !addFakeWord(views[index] + abi::kDrawableParentPointerOffset, parent)) return false;
+    }
+    // Both vendor branches end in Name, Type, Composer. The optional decoration
+    // shifts only the two headers; a TextView-shaped composer remains excluded.
+    for (std::size_t index = 0; index < count; ++index) {
+        const auto expected = index == firstHeader ? HeaderSlot::NiceName
+            : index == firstHeader + 1 ? HeaderSlot::NodeType : HeaderSlot::None;
+        OwnerProof proof{};
+        HeaderSlot slot = HeaderSlot::None;
+        const bool accepted = dependency_node_font_adapter::proveNodeViewHeaderTextView(
+            reinterpret_cast<const void *>(views[index]), kSyntheticImageBase, &proof, &slot);
+        if (accepted != (expected != HeaderSlot::None) || slot != expected) return false;
+    }
+    return true;
+}
 
 bool measureReadsElideFrameReceiver() noexcept
 {
@@ -174,6 +214,35 @@ bool drawReadsDrawableFrameReceiver(std::uintptr_t drawReturnOffset) noexcept
     return accepted && proof.exactSkiaCaller && proof.exactLinaCallChain &&
         textView == reinterpret_cast<const void *>(kTextViewAddress);
 }
+bool elisionPreservesCompleteCharactersAndUnrelatedSpans()
+{
+    namespace policy = dependency_node_font::policy;
+    std::string source;
+    for (int i = 0; i < 8; ++i) source += "長い名前简繁日本語";
+    const std::string original = source;
+    const std::string broken = source.substr(0, 215) + "...";
+    const auto prefix = policy::repairedElisionPrefix(
+        reinterpret_cast<const unsigned char *>(source.data()), source.size(),
+        broken.data(), broken.size(), 0);
+    if (prefix != 213 || source != original || broken.size() != 218) return false;
+    const std::string repaired = source.substr(0, prefix) + "...";
+    std::size_t offset = 0;
+    while (offset < repaired.size()) {
+        std::int32_t scalar = 0;
+        if (!cavalry_i18n::mac_timeline::nextCodepoint(
+                reinterpret_cast<const unsigned char *>(repaired.data()), repaired.size(), offset, scalar))
+            return false;
+    }
+    for (const auto &span : {source, source.substr(0, 213) + "...",
+                             std::string("other..."), std::string("...")}) {
+        if (policy::repairedElisionPrefix(
+                reinterpret_cast<const unsigned char *>(source.data()), source.size(),
+                span.data(), span.size(), 0) != policy::kUnchangedTextSpan) return false;
+    }
+    return policy::repairedElisionPrefix(
+        reinterpret_cast<const unsigned char *>(source.data()), source.size(),
+        broken.data(), broken.size(), 1) == policy::kUnchangedTextSpan;
+}
 }  // namespace
 
 int main()
@@ -189,5 +258,8 @@ int main()
     if (!measureReadsElideFrameReceiver()) return 1;
     if (!drawReadsDrawableFrameReceiver(0x477e18)) return 3;
     if (!drawReadsDrawableFrameReceiver(0x477e58)) return 4;
+    if (!finalNodeViewChildrenUseBothHeaderSlots(false)) return 5;
+    if (!finalNodeViewChildrenUseBothHeaderSlots(true)) return 6;
+    if (!elisionPreservesCompleteCharactersAndUnrelatedSpans()) return 7;
     return 0;
 }

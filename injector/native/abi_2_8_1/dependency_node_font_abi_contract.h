@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖官方 Cavalry 2.8.1 arm64 ExtensionLayer 的 NodeView、Lina TextView 与 Skia 调用窗。
- * [OUTPUT]: 锁定两个 NodeView header TextView、完整源闭包及 Skia measure/draw 返回点。
+ * [OUTPUT]: 锁定Name/Type相对0/1、可选装饰前项、完整源闭包与Skia返回点。
  * [POS]: Dependency Graph 节点文字的窄 ABI 合同；不授权 GraphEditor 空态或其它 Lina 文字。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -43,11 +43,15 @@ inline constexpr char kTextViewSetTextTargetInvokeSymbol[] =
     "__ZNSt3__110__function6__funcIZN4lina8TextView7setTextERKNS_12basic_stringIcNS_11char_traitsIcEENS_9allocatorIcEEEEEUlvE_FS9_vEEclEv";
 inline constexpr char kTextViewVtableSymbol[] = "__ZTVN4lina8TextViewE";
 inline constexpr char kNodeViewVtableSymbol[] = "__ZTVN7cavalry8NodeViewE";
+inline constexpr char kHeaderDecorationVtableSymbol[] = "__ZTVN4lina20ComplexRoundRectViewE";
 
 // Mach-O link addresses are also the image-relative offsets consumed by imageAddress().
 inline constexpr std::uintptr_t kNodeViewConstructorOffset = 0x558da0;
 inline constexpr std::uintptr_t kNodeViewVtableOffset = 0x0fecfb8;
 inline constexpr std::uintptr_t kNodeViewVtableAddressPointOffset = kNodeViewVtableOffset + 0x10;
+inline constexpr std::uintptr_t kHeaderDecorationVtableOffset = 0xfed000;
+inline constexpr std::uintptr_t kHeaderDecorationAddressPointOffset =
+    kHeaderDecorationVtableOffset + 0x10;
 inline constexpr std::uintptr_t kTextViewConstructorOffset = 0x553908;
 inline constexpr std::uintptr_t kTextViewVtableOffset = 0x0fec9d0;
 inline constexpr std::uintptr_t kTextViewVtableAddressPointOffset = kTextViewVtableOffset + 0x10;
@@ -82,8 +86,9 @@ inline constexpr std::uintptr_t kNodeViewChildrenVectorOffset = 0x260;
 inline constexpr std::uintptr_t kNodeViewChildrenBeginOffset = 0x260;
 inline constexpr std::uintptr_t kNodeViewChildrenEndOffset = 0x268;
 inline constexpr std::uintptr_t kNodeViewChildrenCapacityOffset = 0x270;
-inline constexpr std::size_t kNodeViewNameHeaderChildIndex = 1;
-inline constexpr std::size_t kNodeViewTypeHeaderChildIndex = 2;
+// Header-relative positions. NodeView conditionally prepends a ComplexRoundRectView.
+inline constexpr std::size_t kNodeViewNameHeaderChildIndex = 0;
+inline constexpr std::size_t kNodeViewTypeHeaderChildIndex = 1;
 inline constexpr std::uintptr_t kDrawableParentPointerOffset = 0x2a8;
 
 // The std::function object begins at TextView+0x480; its heap target pointer is at +0x498.

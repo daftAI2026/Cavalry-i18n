@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 typed Skia dispatcher帧、2.8.1 NodeView合同、readSelf与既有Viewport字符串解码。
- * [OUTPUT]: 仅为两个 NodeView header TextView 的完整源串调用 shared dispatchVerifiedText。
- * [POS]: 原 measure/draw span 与参数由 original 闭包原样转发；其它 Lina owner 直接透传。
+ * [INPUT]: 依赖281 NodeView帧、可选装饰前项合同与既有Viewport字符串解码。
+ * [OUTPUT]: 两header共用完整源串字体回退；只修复原厂省略串的UTF8断点，不改模型。
+ * [POS]: 仅完整header owner可修省略显示span；其它Lina owner仍原参单次透传。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 namespace dependency_node_font_adapter {
@@ -66,9 +66,19 @@ bool proveNodeViewHeaderTextView(const void *textView,
     if (!readDirectChildren(reinterpret_cast<const void *>(parent), &children)) return false;
     proof->directChildVector = true;
 
+    std::uintptr_t leadingChild = 0, leadingVtable = 0;
+    if (!readSelf(reinterpret_cast<const void *>(children.begin), sizeof(leadingChild), &leadingChild) ||
+        !readSelf(reinterpret_cast<const void *>(leadingChild), sizeof(leadingVtable), &leadingVtable))
+        return false;
+    std::size_t headerStart = 0;
+    if (leadingVtable == extensionBase + abi::kHeaderDecorationAddressPointOffset) headerStart = 1;
+    else if (leadingVtable != extensionBase + abi::kTextViewVtableAddressPointOffset) return false;
+    if ((children.end - children.begin) / sizeof(void *) < headerStart + 2) return false;
+
     policy::HeaderSlot matchedSlot = policy::HeaderSlot::None;
-    for (std::size_t index = abi::kNodeViewNameHeaderChildIndex;
-         index <= abi::kNodeViewTypeHeaderChildIndex; ++index) {
+    for (std::size_t relative = abi::kNodeViewNameHeaderChildIndex;
+         relative <= abi::kNodeViewTypeHeaderChildIndex; ++relative) {
+        const std::size_t index = headerStart + relative;
         const std::uintptr_t slotOffset = index * sizeof(void *);
         if (children.begin > std::numeric_limits<std::uintptr_t>::max() - slotOffset) return false;
         std::uintptr_t child = 0;
@@ -76,7 +86,7 @@ bool proveNodeViewHeaderTextView(const void *textView,
                       sizeof(child), &child)) return false;
         if (child == reinterpret_cast<std::uintptr_t>(textView)) {
             if (matchedSlot != policy::HeaderSlot::None) return false;
-            matchedSlot = policy::headerSlotForIndex(index);
+            matchedSlot = policy::headerSlotForIndex(relative);
         }
     }
 
@@ -196,34 +206,45 @@ bool textViewForExactSkiaCaller(Caller caller, std::uintptr_t callerPc,
 }
 
 template <typename Original, typename Report>
-auto dispatchDependencyNodeFont(const void *originalFont, int encoding,
+auto dispatchDependencyNodeFont(const void *originalFont, const void *text,
+                                std::size_t length, int encoding,
                                 Caller caller, std::uintptr_t callerPc,
                                 std::uintptr_t dispatcherFrame,
                                 Original original, Report report) noexcept
-    -> decltype(original(originalFont))
+    -> decltype(original(originalFont, text, length))
 {
     if (gInsideRuntime || !gAdmitted.load(std::memory_order_acquire) ||
-        gExtensionImage.header == nullptr) return original(originalFont);
+        gExtensionImage.header == nullptr) return original(originalFont, text, length);
 
     const auto extensionBase = reinterpret_cast<std::uintptr_t>(
         imageAddress(gExtensionImage, 0));
-    if (extensionBase == 0) return original(originalFont);
+    if (extensionBase == 0) return original(originalFont, text, length);
 
     policy::OwnerProof proof{};
     const void *textView = nullptr;
     if (!textViewForExactSkiaCaller(caller, callerPc, dispatcherFrame, extensionBase,
-                                    &textView, &proof)) return original(originalFont);
+                                    &textView, &proof)) return original(originalFont, text, length);
 
     policy::HeaderSlot headerSlot = policy::HeaderSlot::None;
     if (!proveNodeViewHeaderTextView(textView, extensionBase, &proof, &headerSlot))
-        return original(originalFont);
+        return original(originalFont, text, length);
 
     TextSnapshot fullSource{};
     if (!snapshotTextViewSource(textView, extensionBase, &fullSource, &proof) ||
-        !policy::completeOwnerProof(proof)) return original(originalFont);
+        !policy::completeOwnerProof(proof)) return original(originalFont, text, length);
 
+    const std::size_t prefix = policy::repairedElisionPrefix(
+        fullSource.bytes.data(), fullSource.size, text, length, encoding);
     RuntimeScope runtimeScope;
     return dispatchVerifiedText(originalFont, fullSource, encoding, caller,
-                                original, report);
+        [&](const void *font) {
+            // Shared fallback consumes the complete source before its one synchronous
+            // original callback. Reuse only this owned snapshot for the display span.
+            if (prefix != policy::kUnchangedTextSpan && prefix + 3 <= fullSource.bytes.size()) {
+                std::memcpy(fullSource.bytes.data() + prefix, "...", 3);
+                return original(font, fullSource.bytes.data(), prefix + 3);
+            }
+            return original(font, text, length);
+        }, report);
 }
 }  // namespace dependency_node_font_adapter

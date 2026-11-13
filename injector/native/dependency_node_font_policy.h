@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Dependency Graph NodeView 的两个直系 header 索引与 2.8.1 source target ABI。
- * [OUTPUT]: 以纯值合同判定调用帧、NodeView owner、header 槽和完整源闭包是否齐全。
+ * [INPUT]: 依赖NodeView header合同、完整源串、实际省略片段与既有严格UTF8解码器。
+ * [OUTPUT]: 判定header owner，并仅为切断UTF8字符的原厂省略片段提供完整字符边界。
  * [POS]: 仅描述已证 NodeView header 的准入条件；未知 Lina owner 一律不准入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,10 +9,33 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <cstring>
 
 #include "dependency_node_font_abi_contract.h"
+#include "../cavalry_i18n_macos_timeline_font_policy.h"
 
 namespace dependency_node_font::policy {
+inline constexpr std::size_t kUnchangedTextSpan = std::numeric_limits<std::size_t>::max();
+
+inline std::size_t repairedElisionPrefix(const unsigned char *source, std::size_t sourceSize,
+                                        const void *text, std::size_t length, int encoding) noexcept
+{
+    if (!source || !text || encoding != 0 || length <= 3) return kUnchangedTextSpan;
+    const auto *span = static_cast<const unsigned char *>(text);
+    const std::size_t prefix = length - 3;
+    if (prefix >= sourceSize || std::memcmp(span + prefix, "...", 3) != 0 ||
+        std::memcmp(span, source, prefix) != 0 || (source[prefix] & 0xc0) != 0x80)
+        return kUnchangedTextSpan;
+    std::size_t offset = 0, boundary = 0;
+    while (offset < sourceSize) {
+        std::int32_t scalar = 0;
+        if (!cavalry_i18n::mac_timeline::nextCodepoint(source, sourceSize, offset, scalar))
+            return kUnchangedTextSpan;
+        if (offset <= prefix) boundary = offset;
+    }
+    return boundary;
+}
+
 enum class HeaderSlot : std::uint8_t {
     None,
     NiceName,
