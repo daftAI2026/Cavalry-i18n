@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖只读2.8 Frameworks、Qt 6.9.2头、批准源及Demo/Welcome ABI。
+# [INPUT]: 依赖只读2.8.1 Frameworks、Qt 6.9.2头、批准源及Demo/Welcome ABI。
 # [OUTPUT]: 失败时报告ABI实值与工具链；通过后编译并核vendor-free、Demo源、ABI及dyld合同。
 # [POS]: 显式候选入口；不连接默认npm build，不签名、安装或启动App。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
 if [[ "$#" -ne 1 ]]; then
-  echo "usage: CAVALRY_QT_PREFIX=<Qt-6.9.2-prefix> $0 <readonly-Cavalry-2.8-Contents/Frameworks>" >&2
+  echo "usage: CAVALRY_QT_PREFIX=<Qt-6.9.2-prefix> $0 <readonly-Cavalry-2.8.1-Contents/Frameworks>" >&2
   exit 2
 fi
 
@@ -48,15 +48,15 @@ for image in libCore.dylib libExtensionLayer.dylib libskia.dylib libApi.dylib; d
     exit 1
   fi
 done
-SPDLOG="$FRAMEWORKS_DIR/libspdlog.1.13.dylib"
+SPDLOG="$FRAMEWORKS_DIR/libspdlog.1.15.dylib"
 EXTENSION="$FRAMEWORKS_DIR/libExtensionLayer.dylib"
 if [[ ! -f "$SPDLOG" ]]; then
   echo "缺少Welcome生产者ABI输入: $SPDLOG" >&2
   exit 1
 fi
-EXPECTED_EXTENSION_UUID="448DD50E-75F4-3F2D-A46B-2C9F00DF9408"
-EXPECTED_CORE_UUID="55C6FCB7-E0DA-3AC1-8C45-055CC6ECEAD9"
-EXPECTED_SPDLOG_UUID="F9429837-12E6-3A4A-8436-97E5257E75EA"
+EXPECTED_EXTENSION_UUID="AF1367BD-2D7E-3EC0-A111-935E4881C655"
+EXPECTED_CORE_UUID="FEFE5F95-740D-374F-9413-2AF1173AD9E0"
+EXPECTED_SPDLOG_UUID="43FC7DAB-6695-3EF6-B50B-B8189E170B09"
 LOG_IT_SYMBOL="__ZN6spdlog6logger7log_it_ERKNS_7details7log_msgEbb"
 TEXT_FROM_FILE_SYMBOL="__ZN7cavalry12textFromFileERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE"
 EXTENSION_UUID="$(xcrun dwarfdump --uuid "$EXTENSION" | awk '$3 == "(arm64)" {print $2; exit}')"
@@ -81,10 +81,10 @@ report_abi_gate_diagnostics() {
   printf '  extension.uuid expected=%s actual=%q\n' "$EXPECTED_EXTENSION_UUID" "$EXTENSION_UUID" >&2
   printf '  core.uuid expected=%s actual=%q\n' "$EXPECTED_CORE_UUID" "$CORE_UUID" >&2
   printf '  spdlog.uuid expected=%s actual=%q\n' "$EXPECTED_SPDLOG_UUID" "$SPDLOG_UUID" >&2
-  printf '  spdlog.log_it.offset expected=000000000000992c actual=%q\n' "$LOG_IT_OFFSET" >&2
-  printf '  extension.log_it.import expected=%s actual=%q\n' 'contains (from libspdlog.1.13)' "${EXTENSION_IMPORT:-<empty>}" >&2
-  printf '  extension.log_it.fixup expected=%q actual=%q\n' "libspdlog.1.13/$LOG_IT_SYMBOL" "${EXTENSION_FIXUP:-<empty>}" >&2
-  printf '  core.text_from_file.offset expected=000000000049c7d0 actual=%q\n' "$TEXT_FROM_FILE_OFFSET" >&2
+  printf '  spdlog.log_it.offset expected=0000000000006f10 actual=%q\n' "$LOG_IT_OFFSET" >&2
+  printf '  extension.log_it.import expected=%s actual=%q\n' 'contains (from libspdlog.1.15)' "${EXTENSION_IMPORT:-<empty>}" >&2
+  printf '  extension.log_it.fixup expected=%q actual=%q\n' "libspdlog.1.15/$LOG_IT_SYMBOL" "${EXTENSION_FIXUP:-<empty>}" >&2
+  printf '  core.text_from_file.offset expected=00000000004b175c actual=%q\n' "$TEXT_FROM_FILE_OFFSET" >&2
   printf '  extension.text_from_file.import expected=%s actual=%q\n' 'contains (from libCore)' "${TEXT_FROM_FILE_IMPORT:-<empty>}" >&2
   printf '  extension.text_from_file.fixup expected=%q actual=%q\n' "libCore/$TEXT_FROM_FILE_SYMBOL" "${TEXT_FROM_FILE_FIXUP:-<empty>}" >&2
 
@@ -113,10 +113,10 @@ report_abi_gate_diagnostics() {
 if [[ "$EXTENSION_UUID" != "$EXPECTED_EXTENSION_UUID" ||
       "$CORE_UUID" != "$EXPECTED_CORE_UUID" ||
       "$SPDLOG_UUID" != "$EXPECTED_SPDLOG_UUID" ||
-      "$LOG_IT_OFFSET" != "000000000000992c" ||
-      "$EXTENSION_IMPORT" != *"(from libspdlog.1.13)"* ||
-      "$EXTENSION_FIXUP" != *"libspdlog.1.13/$LOG_IT_SYMBOL"* ||
-      "$TEXT_FROM_FILE_OFFSET" != "000000000049c7d0" ||
+      "$LOG_IT_OFFSET" != "0000000000006f10" ||
+      "$EXTENSION_IMPORT" != *"(from libspdlog.1.15)"* ||
+      "$EXTENSION_FIXUP" != *"libspdlog.1.15/$LOG_IT_SYMBOL"* ||
+      "$TEXT_FROM_FILE_OFFSET" != "00000000004b175c" ||
       "$TEXT_FROM_FILE_IMPORT" != *"(from libCore)"* ||
       "$TEXT_FROM_FILE_FIXUP" != *"libCore/$TEXT_FROM_FILE_SYMBOL"* ]]; then
   echo "拒绝：Demo/Welcome Core、Extension、导出或two-level导入合同偏离。" >&2
@@ -137,8 +137,8 @@ if [[ ! -f "$FRAMEWORKS_DIR/platforms/libqcocoa.dylib" ]]; then
   echo "隐藏布局fixture需要所选bundle的Cocoa QPA插件。" >&2
   exit 1
 fi
-if [[ ! -f "$FRAMEWORKS_DIR/libfmt.10.dylib" ]]; then
-  echo "缺少标题格式化ABI输入: $FRAMEWORKS_DIR/libfmt.10.dylib" >&2
+if [[ ! -f "$FRAMEWORKS_DIR/libfmt.11.dylib" ]]; then
+  echo "缺少标题格式化ABI输入: $FRAMEWORKS_DIR/libfmt.11.dylib" >&2
   exit 1
 fi
 if [[ ! -f "$FRAMEWORKS_DIR/libCavalryUI.dylib" ]]; then
@@ -152,7 +152,7 @@ OUT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/cavalry-native-candidate.XXXXXX")"
 DYLIB="$OUT_DIR/libCavalryNativeFontCandidate.dylib"
 TEST_BIN="$OUT_DIR/native_font_contract_test"
 FAST_TEST_BIN="$OUT_DIR/fast_search_unicode_contract_test"
-ABI_PROBE="$OUT_DIR/title-format-fmt10-abi.s"
+ABI_PROBE="$OUT_DIR/title-format-fmt11-abi.s"
 HELP_TABLE="$OUT_DIR/help-description-table.inc"
 HELP_TEST_BIN="$OUT_DIR/help_description_contract_test"
 HELP_ABI_TEST_BIN="$OUT_DIR/help_description_veneer_contract_test"
@@ -173,6 +173,7 @@ echo "INPUT_FRAMEWORKS: $FRAMEWORKS_DIR"
 echo "QT_PUBLIC_HEADERS: $QT_HEADERS"
 node "$REPO_ROOT/tools/build_native_help_description_table.js" \
   --metadata-dir "$(cd "$FRAMEWORKS_DIR/../assets/MetaData" && pwd -P)" \
+  --cavalry-version 2.8.1 \
   --out "$HELP_TABLE" >"$OUT_DIR/help-description-table-command.log"
 node "$REPO_ROOT/tools/build_native_easing_display_table.js" \
   --out "$EASING_TABLE" >"$OUT_DIR/easing-display-table-command.log"
@@ -209,9 +210,9 @@ node "$REPO_ROOT/tools/generate_demo_reader_tables.js" \
     "$NATIVE_DIR/getpath_font_veneer.S" \
     -L "$FRAMEWORKS_DIR" -lskia "$FRAMEWORKS_DIR/libApi.dylib" \
     "$FRAMEWORKS_DIR/libCore.dylib" \
-    "$FRAMEWORKS_DIR/libfmt.10.dylib" \
+    "$FRAMEWORKS_DIR/libfmt.11.dylib" \
     "$FRAMEWORKS_DIR/libCavalryUI.dylib" \
-    -lspdlog.1.13 \
+    -lspdlog.1.15 \
     -F "$FRAMEWORKS_DIR" -framework QtCore -framework QtGui -framework QtWidgets \
     -framework CoreText -framework Foundation \
     -o "$DYLIB"
@@ -234,6 +235,11 @@ xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   "$NATIVE_DIR/candidate_contract_test.cpp" -o "$TEST_BIN"
 "$TEST_BIN"
 echo "PASS: compiled and ran native getter/unknown-owner contract test"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -I "$NATIVE_DIR" "$NATIVE_DIR/dependency_node_font_contract_test.cpp" \
+  -o "$OUT_DIR/dependency_node_font_contract_test"
+"$OUT_DIR/dependency_node_font_contract_test"
+echo "PASS: Dependency NodeView exact Measure/fill/stroke receiver frame contract"
 xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -I "$NATIVE_DIR" "$NATIVE_DIR/guide_body_contract_test.cpp" \
   -o "$GUIDE_BODY_TEST_BIN"
@@ -333,6 +339,8 @@ python3 "$NATIVE_DIR/check_help_description_contract.py" \
   "$REPO_ROOT" "$OUT_DIR" "$FRAMEWORKS_DIR" "$DYLIB"
 python3 "$NATIVE_DIR/check_help_popup_layout_contract.py" \
   "$REPO_ROOT" "$OUT_DIR" "$FRAMEWORKS_DIR" "$DYLIB"
+python3 "$NATIVE_DIR/check_dependency_node_font_contract.py" \
+  --app "$(cd "$FRAMEWORKS_DIR/../.." && pwd -P)"
 printf 'PASS: arm64 combined candidate build; not loaded, installed, or consumed by product\n' \
   >"$OUT_DIR/candidate-build-summary.txt"
 echo "ARTIFACT: $DYLIB"

@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+tauri.native-2.8.1-candidate.conf.json: 独立2.8.1 ARM候选资源覆盖；仅选native-language-packs-2.8.1，不改正式2.8.0包与更新入口。
 Cargo.toml: Rust crate 与 Tauri v2 依赖声明；dev只保留调试行表，test继承dev，release默认不变；`tauri`/`tauri-build` 保持精确版本线；macOS 交通灯交给 Tauri 原生窗口配置而不引入直接 AppKit 控件依赖，固定 `cc` build dependency 编译独立 AppKit handoff owner；`sha2` 同时服务 build-time 发布资源 trust anchor、流式安装 revision 与 hash-locked manifest，Windows API crate 仅启用 QPA durable/atomic 文件事务所需 feature。
 Cargo.lock: Rust依赖锁；rustls固定0.23.46，维持519项闭包，不增加依赖。
 build.rs: 固化BuildMode/native manifest；Mac校验dylib；Windows native绑定2.8编译profile与窄runtime SHA，legacy四语provenance独立。

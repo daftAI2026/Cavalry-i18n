@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖arm64或x86字体ABI合同、独立locale门及分架构owner校验。
- * [OUTPUT]: 提供唯一gLocale、双合同字体准入门及精确caller文字投影。
+ * [OUTPUT]: 提供唯一gLocale、双合同字体准入门及精确caller文字投影；NodeView两header复用完整源字体选择。
  * [POS]: x86字体门要求locale与ABI合同同时通过；ARM准入逻辑不变。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -57,6 +57,10 @@ namespace native_candidate_arch = native_candidate_architecture;
 #include "title_format_abi_contract.h"
 #include "help_description_abi_contract.h"
 #include "demo_reader_abi_contract.h"
+#if defined(__aarch64__)
+#include "dependency_node_font_abi_contract.h"
+#include "dependency_node_font_policy.h"
+#endif
 
 using DemoTextFromFileResult = native_demo_reader::contract::TextFromFileResult;
 namespace native_demo_reader { extern std::atomic<bool> gContractReady; }
@@ -77,7 +81,11 @@ extern "C" std::string nativeTitleVformatInterpose(
 extern "C" std::string titleFormatVformatTarget(
     native_title_format_abi::FormatStringView format,
     native_title_format_abi::FormatArguments arguments)
+#if defined(__x86_64__)
     __asm__("__ZN3fmt3v107vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_20basic_format_contextINS0_8appenderEcEEEE");
+#else
+    __asm__("__ZN3fmt3v117vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_7contextEEE");
+#endif
 #pragma clang diagnostic pop
 extern "C" void nativeHelpDocumentationInterpose(
     void *owner, const std::string &key,
@@ -340,8 +348,14 @@ bool verifyContract() noexcept
                      native_locale_contract::kActiveLocaleCallBytes) ||
         !matchesCode(extension, native_locale_contract::kActiveLocaleStubOffset,
                      native_locale_contract::kActiveLocaleStubBytes) ||
+        !matchesCode(core, e4_contract::kMakePathFromTextEntryOffset,
+                     e4_contract::kMakePathFromTextEntryBytes) ||
+        !matchesCode(core, e4_contract::kCoreGetPathImportStubOffset,
+                     e4_contract::kCoreGetPathImportStubBytes) ||
         !matchesCode(core, e4_contract::kCoreGetPathCallOffset,
                      e4_contract::kCoreGetPathCallBytes) ||
+        !matchesCode(extension, e4_contract::kMakePathFromTextImportStubOffset,
+                     e4_contract::kMakePathFromTextImportStubBytes) ||
         !matchesCode(extension, e4_contract::kExtensionGetPathCallOffset,
                      e4_contract::kExtensionGetPathCallBytes) ||
         !matchesCode(extension, e4_contract::kSetupGetPathCallOffset,
@@ -350,8 +364,22 @@ bool verifyContract() noexcept
                      e4_contract::kViewportGetPathCallBytes) ||
         !matchesCode(extension, e4_contract::kViewportFpsGetPathCallOffset,
                      e4_contract::kViewportFpsGetPathCallBytes) ||
+        !matchesCode(extension, e4_contract::kGraphEditorEmptyStateCallWindowOffset,
+                     e4_contract::kGraphEditorEmptyStateCallWindowBytes) ||
         findMachOSymbol(api, native_locale_contract::kActiveLocaleSymbol) !=
             imageAddress(api, native_locale_contract::kActiveLocaleEntryOffset) ||
+        findMachOSymbol(extension, native_locale_contract::kRegisterNodesSetupSymbol) !=
+            imageAddress(extension, native_locale_contract::kRegisterNodesSetupOffset) ||
+        findMachOSymbol(core, e4_contract::kMakePathFromTextSymbol) !=
+            imageAddress(core, e4_contract::kMakePathFromTextEntryOffset) ||
+        !symbolAt(extension, e4_contract::kSetupToolHelpSymbol,
+                  e4_contract::kSetupToolHelpOffset) ||
+        !symbolAt(extension, e4_contract::kGetOrCreateTextPathSymbol,
+                  e4_contract::kGetOrCreateTextPathOffset) ||
+        !symbolAt(extension, e4_contract::kViewportRenderFrameSymbol,
+                  e4_contract::kViewportRenderFrameOffset) ||
+        !symbolAt(extension, e4_contract::kGraphEditorRenderFrameSymbol,
+                  e4_contract::kGraphEditorRenderFrameOffset) ||
         !matchesCode(extension, observer_contract::kMeasureWindowOffset,
                      observer_contract::kMeasureWindow) ||
         !matchesCode(extension, observer_contract::kDrawWindowOffset,
@@ -593,6 +621,9 @@ FontSlot *findOrCreateSlot(const FontKey &key, CTFontRef resolvedFont,
 }
 
 #include "shared_verified_text_fallback.inc"
+#if defined(__aarch64__)
+#include "dependency_node_font_adapter.inc"
+#endif
 #include "viewport_font_adapter.inc"
 #include "timeline_font_adapter.inc"
 #include "getpath_font_adapter.inc"
@@ -733,32 +764,7 @@ extern "C" __attribute__((noinline)) std::string nativeActiveLocaleInterpose(Api
     return result;
 }
 
-extern "C" float timelineMeasureDispatch(
-    const void *font, const void *text, std::size_t length, int encoding,
-    const void *bounds, const void *paint, const void *closure,
-    std::uintptr_t callerPc) noexcept
-{
-    const MeasureOriginal original = requireMeasureOriginal();
-    if (viewport_owner::measureCaller(callerPc - reinterpret_cast<std::uintptr_t>(imageAddress(gExtensionImage,0))))
-        return dispatchViewportFont(font,text,length,encoding,callerPc,reinterpret_cast<std::uintptr_t>(__builtin_frame_address(0)),true,Caller::Measure,
-            [&](const void *displayFont) { return original(displayFont,text,length,encoding,bounds,paint); });
-    return dispatchFont(font, text, length, encoding, closure, callerPc, Caller::Measure,
-        [&](const void *displayFont) {
-            return original(displayFont, text, length, encoding, bounds, paint);
-        });
-}
-
-extern "C" void timelineDrawDispatch(
-    const void *canvas, const void *text, std::size_t length, int encoding,
-    float x, float y, const void *font, const void *paint,
-    const void *closure, std::uintptr_t callerPc) noexcept
-{
-    const DrawOriginal original = requireDrawOriginal();
-    dispatchFont(font, text, length, encoding, closure, callerPc, Caller::Draw,
-        [&](const void *displayFont) {
-            original(canvas, text, length, encoding, x, y, displayFont, paint);
-        });
-}
+#include "skia_text_dispatch.inc"
 
 extern "C" viewport_blob::BlobResultAbi viewport_blob::viewportBlobDispatch(
     const void *text,std::size_t length,const void *font,int encoding,

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖Cavalry 2.8 arm64 Guide caller与Qt 6.9.2 QTextEdit导出。
+ * [INPUT]: 依赖Cavalry 2.8.1 arm64 Guide caller与Qt 6.9.2 QTextEdit导出。
  * [OUTPUT]: 锁定唯一source caller、尾跳callee、映像UUID与setter符号。
  * [POS]: Guide正文适配的构造期ABI门；不声明跨版本兼容。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -12,23 +12,23 @@
 
 namespace native_guide_body::contract {
 inline constexpr char kExtensionUuid[] =
-    "448DD50E-75F4-3F2D-A46B-2C9F00DF9408";
+    "AF1367BD-2D7E-3EC0-A111-935E4881C655";
 inline constexpr char kQtWidgetsUuid[] =
     "01652E29-047E-3528-9DC2-1BD084292E50";
 inline constexpr char kQtVersion[] = "6.9.2";
 inline constexpr char kSetTextSymbol[] = "__ZN9QTextEdit7setTextERK7QString";
 
-inline constexpr std::uintptr_t kCallerOffset = 0x004b9e44;
-inline constexpr std::uintptr_t kReturnOffset = 0x004b9e48;
-inline constexpr std::uintptr_t kBodyOverrideOffset = 0x004bcb30;
-inline constexpr std::uintptr_t kSetTextImportStubOffset = 0x00dc1f70;
+inline constexpr std::uintptr_t kCallerOffset = 0x004a94ec;
+inline constexpr std::uintptr_t kReturnOffset = 0x004a94f0;
+inline constexpr std::uintptr_t kBodyOverrideOffset = 0x004ac288;
+inline constexpr std::uintptr_t kSetTextImportStubOffset = 0x00d24688;
 inline constexpr std::uintptr_t kSetTextOffset = 0x00214464;
 
 inline constexpr std::array<std::uint8_t, 4> kCallerBranchBytes = {
-    0x3b, 0x0b, 0x00, 0x94,
+    0x67, 0x0b, 0x00, 0x94,
 };
 inline constexpr std::array<std::uint8_t, 8> kBodyOverrideBytes = {
-    0x00, 0x58, 0x40, 0xf9, 0x0f, 0x15, 0x24, 0x14,
+    0x00, 0x58, 0x40, 0xf9, 0xff, 0xe0, 0x21, 0x14,
 };
 inline constexpr std::array<std::uint8_t, 4> kBodyOverrideBranchBytes = {
     kBodyOverrideBytes[4], kBodyOverrideBytes[5],

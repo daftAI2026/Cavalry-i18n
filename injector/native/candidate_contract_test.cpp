@@ -30,15 +30,15 @@
 #if defined(NATIVE_TITLE_FORMAT_ABI_PROBE_ONLY)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wreturn-type-c-linkage"
-extern "C" std::string fmt10VformatAbiProbeTarget(
+extern "C" std::string fmt11VformatAbiProbeTarget(
     native_title_format_abi::FormatStringView,
     native_title_format_abi::FormatArguments)
-    __asm__("__ZN3fmt3v107vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_20basic_format_contextINS0_8appenderEcEEEE");
+    __asm__("__ZN3fmt3v117vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_7contextEEE");
 extern "C" __attribute__((noinline)) std::string titleFormatAbiProbe(
     native_title_format_abi::FormatStringView format,
     native_title_format_abi::FormatArguments arguments)
 {
-    return fmt10VformatAbiProbeTarget(format, arguments);
+    return fmt11VformatAbiProbeTarget(format, arguments);
 }
 #pragma clang diagnostic pop
 #else

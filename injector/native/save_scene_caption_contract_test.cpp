@@ -31,7 +31,7 @@ static_assert(std::is_same_v<decltype(&QFileDialog::getSaveFileName),
 #if defined(__x86_64__)
 static_assert(native_save_scene_caption::contract::kCallOffset == 0x7bb931U);
 #else
-static_assert(native_save_scene_caption::contract::kCallOffset == 0x6e4b88U);
+static_assert(native_save_scene_caption::contract::kCallOffset == 0x6c1760U);
 #endif
 
 struct CallRecord {

@@ -46,5 +46,5 @@ bool exactSkiaOriginalBindings() noexcept
            address(gOriginalDraw.load(std::memory_order_acquire)) ==
                imageAddress(gSkiaImage, observer_contract::kDrawSymbolOffset) &&
            address(gOriginalBlob.load(std::memory_order_acquire)) ==
-               imageAddress(gSkiaImage, 0x1b40d8);
+               imageAddress(gSkiaImage, observer_contract::kTextBlobSymbolOffset);
 }

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 Cavalry 2.8 arm64 Extension/UI 导入与 callee 的静态二进制证据。
+ * [INPUT]: 依赖 Cavalry 2.8.1 arm64 Extension/UI 导入与 callee 的静态二进制证据。
  * [OUTPUT]: 锁定main/def两caller、同一导入callee与文档对象布局。
  * [POS]: 仅证明当前SHA的arm64 ABI；后三成员语义未知，不声明跨版本合同。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -14,44 +14,42 @@
 
 namespace native_help_description::contract {
 inline constexpr char kExtensionSha256[] =
-    "55c165bfa3f780f73e35a0b4e7cbd30929fe54de46c41424c74a239e2f9f4d15";
-inline constexpr char kExtensionUuid[] = "448DD50E-75F4-3F2D-A46B-2C9F00DF9408";
+    "497ece2fa123a339c086e7925cc3ecb51898cf1ec1a283007f06631936b15050";
+inline constexpr char kExtensionUuid[] = "AF1367BD-2D7E-3EC0-A111-935E4881C655";
 inline constexpr char kCavalryUiSha256[] =
-    "185a297e776ab050a0842aa10a6f2e8f52c092577f5aa6b903d3e11762782947";
-inline constexpr char kCavalryUiUuid[] = "D579B833-98FF-3E13-B79E-624C9D9AA776";
+    "4d8e7139760af268230c084f269d9fe5c069fa46c7b579e6dee212984bf00c1d";
+inline constexpr char kCavalryUiUuid[] = "98BBF79D-6439-3287-9A65-8FF8B64B06BB";
 
 inline constexpr char kEntrySymbol[] =
     "__ZN8TextEdit27addScriptDocumentationEntryERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEERKN7cavalry19ScriptDocumentationE";
 inline constexpr char kDefCallerSymbol[] =
     "__ZN9acrJSMath18formatForCompleterERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE";
-inline constexpr std::uintptr_t kExtensionCallerOffset = 0x00b2b3ac;
-inline constexpr std::uintptr_t kExtensionReturnOffset = 0x00b2b3b0;
-inline constexpr std::uintptr_t kDefCallerConditionOffset = 0x006cc1a8;
-inline constexpr std::uintptr_t kDefCallerOffset = 0x006cc24c;
-inline constexpr std::uintptr_t kDefReturnOffset = 0x006cc250;
-inline constexpr std::uintptr_t kExtensionStubOffset = 0x00dc1874;
-inline constexpr std::uintptr_t kExtensionImportSlotOffset = 0x01056170;
-inline constexpr std::uintptr_t kCavalryUiEntryOffset = 0x0009253c;
-inline constexpr std::uint32_t kImportIndex = 0x0c2e;
-inline constexpr std::uint32_t kIndirectSymbolIndex = 88275;
+inline constexpr std::uintptr_t kExtensionCallerOffset = 0x00ac6ee0;
+inline constexpr std::uintptr_t kExtensionReturnOffset = 0x00ac6ee4;
+inline constexpr std::uintptr_t kDefCallerConditionOffset = 0x006a8fc0;
+inline constexpr std::uintptr_t kDefCallerOffset = 0x006a90d8;
+inline constexpr std::uintptr_t kDefReturnOffset = 0x006a90dc;
+inline constexpr std::uintptr_t kExtensionStubOffset = 0x00d23f98;
+inline constexpr std::uintptr_t kExtensionImportSlotOffset = 0x01026a20;
+inline constexpr std::uintptr_t kCavalryUiEntryOffset = 0x00091518;
 inline constexpr bool kRequiresTwoLevelNamespace = true;
 
 inline constexpr std::array<std::uint8_t, 4> kCallerBranchBytes = {
-    0x32, 0x59, 0x0a, 0x94,
+    0x2e, 0x74, 0x09, 0x94,
 };
 inline constexpr std::array<std::uint8_t, 4> kDefCallerConditionBytes = {
-    0x48, 0x11, 0x00, 0xb4,
+    0x80, 0x00, 0x00, 0x34,
 };
 inline constexpr std::array<std::uint8_t, 4> kDefCallerBranchBytes = {
-    0x8a, 0xd5, 0x1b, 0x94,
+    0xb0, 0xeb, 0x19, 0x94,
 };
 inline constexpr std::array<std::uint8_t, 12> kImportStubBytes = {
-    0xb0, 0x14, 0x00, 0xb0, 0x10, 0xba, 0x40, 0xf9,
+    0x10, 0x18, 0x00, 0xf0, 0x10, 0x12, 0x45, 0xf9,
     0x00, 0x02, 0x1f, 0xd6,
 };
 inline constexpr std::array<std::uint8_t, 16> kCalleeEntryBytes = {
-    0xff, 0x03, 0x01, 0xd1, 0xf6, 0x57, 0x01, 0xa9,
-    0xf4, 0x4f, 0x02, 0xa9, 0xfd, 0x7b, 0x03, 0xa9,
+    0xff, 0x83, 0x01, 0xd1, 0xf8, 0x5f, 0x02, 0xa9,
+    0xf6, 0x57, 0x03, 0xa9, 0xf4, 0x4f, 0x04, 0xa9,
 };
 static_assert(kExtensionReturnOffset != kDefReturnOffset,
     "main and def callers must remain separate dispatch identities");

@@ -86,7 +86,7 @@ int main()
     void *logger = reinterpret_cast<void *>(std::uintptr_t{0x1234});
 
     reset();
-    nativeWelcomeLogItExpectedReturnPc.store(0x6a4e20, std::memory_order_release);
+    nativeWelcomeLogItExpectedReturnPc.store(0x18f118, std::memory_order_release);
     welcomeProbeUnknown(logger, unreadableMessage, true, false);
     expect(gDispatcherCalls == 0, "unknown LR bypasses dispatcher");
     expect(gOriginalCalls == 1, "unknown LR tail-jumps original exactly once");

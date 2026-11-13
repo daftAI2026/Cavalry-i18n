@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖官方2.8 Core/Extension架构切片与Preset回调反汇编。
+ * [INPUT]: 依赖官方2.8.1 Core/Extension arm64切片与Preset回调反汇编；x86保留2.8合同。
  * [OUTPUT]: 锁定textFromFile optional返回槽、导出、导入和唯一菜单caller。
  * [POS]: Demo读取ABI合同；不修改原厂返回类型或未准入调用。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -77,39 +77,38 @@ static_assert(static_cast<std::int64_t>(kPresetTextFromFileReturnOffset) +
               x86SignedRel32(x86ReadU32(kPresetCallWindowBytes, 9U)) ==
               static_cast<std::int64_t>(kTextFromFileStubOffset));
 #else
-inline constexpr char kCoreUuid[] = "55C6FCB7-E0DA-3AC1-8C45-055CC6ECEAD9";
-inline constexpr char kExtensionUuid[] = "448DD50E-75F4-3F2D-A46B-2C9F00DF9408";
+inline constexpr char kCoreUuid[] = "FEFE5F95-740D-374F-9413-2AF1173AD9E0";
+inline constexpr char kExtensionUuid[] = "AF1367BD-2D7E-3EC0-A111-935E4881C655";
 inline constexpr char kCoreSha256[] =
-    "8df2a434b5a6b73da691f7c8d0bba6fbb4c244dc0b388ea466ba8220c5ebeafb";
+    "9be57aae3a950c36ee7983f7231031114bbd438822bb7e06ffc6a9da17a8e955";
 inline constexpr char kExtensionSha256[] =
-    "55c165bfa3f780f73e35a0b4e7cbd30929fe54de46c41424c74a239e2f9f4d15";
+    "497ece2fa123a339c086e7925cc3ecb51898cf1ec1a283007f06631936b15050";
 inline constexpr char kTextFromFileSymbol[] =
     "__ZN7cavalry12textFromFileERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEE";
-inline constexpr std::uintptr_t kTextFromFileExportOffset = 0x0049c7d0;
-inline constexpr std::uintptr_t kCoreEntryWindowOffset = 0x0049c7d0;
+inline constexpr std::uintptr_t kTextFromFileExportOffset = 0x004b175c;
+inline constexpr std::uintptr_t kCoreEntryWindowOffset = 0x004b175c;
 inline constexpr std::array<std::uint8_t, 40> kCoreEntryWindowBytes = {
-    0xfc, 0x6f, 0xba, 0xa9, 0xfa, 0x67, 0x01, 0xa9,
-    0xf8, 0x5f, 0x02, 0xa9, 0xf6, 0x57, 0x03, 0xa9,
-    0xf4, 0x4f, 0x04, 0xa9, 0xfd, 0x7b, 0x05, 0xa9,
-    0xfd, 0x43, 0x01, 0x91, 0xff, 0xc3, 0x09, 0xd1,
-    0xf6, 0x03, 0x00, 0xaa, 0xf5, 0x03, 0x08, 0xaa,
+    0xf6, 0x57, 0xbd, 0xa9, 0xf4, 0x4f, 0x01, 0xa9,
+    0xfd, 0x7b, 0x02, 0xa9, 0xfd, 0x83, 0x00, 0x91,
+    0xff, 0xc3, 0x09, 0xd1, 0xf4, 0x03, 0x00, 0xaa,
+    0xf3, 0x03, 0x08, 0xaa, 0xc8, 0x4a, 0x00, 0xf0,
+    0x08, 0xbd, 0x46, 0xf9, 0x08, 0x01, 0x40, 0xf9,
 };
 inline constexpr std::uintptr_t kOptionalEngagedOffset = 0x18;
 inline constexpr std::size_t kOptionalResultBytes = 0x20;
 
-inline constexpr std::uintptr_t kPresetCallbackEntryOffset = 0x006fdf58;
-inline constexpr std::uintptr_t kPresetCallWindowOffset = 0x006fdfd0;
-inline constexpr std::uintptr_t kPresetTextFromFileCallOffset = 0x006fdfd8;
-inline constexpr std::uintptr_t kPresetTextFromFileReturnOffset = 0x006fdfdc;
-inline constexpr std::uintptr_t kPresetRunGuiScriptCallOffset = 0x006fe020;
-inline constexpr std::uintptr_t kPresetRunGuiScriptReturnOffset = 0x006fe024;
-inline constexpr std::uintptr_t kTextFromFileImportIndex = 0x09c8;
-inline constexpr std::uintptr_t kTextFromFileGotOffset = 0x01054e40;
-inline constexpr std::uintptr_t kTextFromFileStubOffset = 0x00dbfd98;
+inline constexpr std::uintptr_t kPresetCallbackEntryOffset = 0x006d9a38;
+inline constexpr std::uintptr_t kPresetCallWindowOffset = 0x006d9aa8;
+inline constexpr std::uintptr_t kPresetTextFromFileCallOffset = 0x006d9ab0;
+inline constexpr std::uintptr_t kPresetTextFromFileReturnOffset = 0x006d9ab4;
+inline constexpr std::uintptr_t kPresetRunGuiScriptCallOffset = 0x006d9b04;
+inline constexpr std::uintptr_t kPresetRunGuiScriptReturnOffset = 0x006d9b08;
+inline constexpr std::uintptr_t kTextFromFileGotOffset = 0x010278a8;
+inline constexpr std::uintptr_t kTextFromFileStubOffset = 0x00d22474;
 inline constexpr std::array<std::uint8_t, 20> kPresetCallWindowBytes = {
-    0x80, 0x62, 0x00, 0x91, 0xe8, 0x23, 0x00, 0x91,
-    0x70, 0x07, 0x1b, 0x94, 0xe8, 0x83, 0x40, 0x39,
-    0x48, 0x07, 0x00, 0x34,
+    0xe8, 0x63, 0x00, 0x91, 0x60, 0x62, 0x00, 0x91,
+    0x71, 0x22, 0x19, 0x94, 0xe8, 0xc3, 0x40, 0x39,
+    0x1f, 0x05, 0x00, 0x71,
 };
 
 constexpr std::uint32_t instructionAt(

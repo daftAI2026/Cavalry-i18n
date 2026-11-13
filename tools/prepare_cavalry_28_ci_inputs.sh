@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖经字节锁验证的官方2.8.0 DMG、Qt6.9.2头包和目标架构runner。
+# [INPUT]: 依赖字节锁定的官方2.8.0 DMG、Qt6.9.2头包、固定2.8.0 runtime源提交和目标runner。
 # [OUTPUT]: 在runner隔离目录生成production资源与同架构候选，成功后才导出产品路径。
 # [POS]: 仅由显式2.8 macOS矩阵调用；不签名更新器、不发布，也不触碰旧p12资产。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -8,6 +8,7 @@ set -euo pipefail
 readonly DMG_URL='https://cavalry.studio/downloads/latest/Cavalry.dmg'
 readonly DMG_BYTES='256757556'
 readonly DMG_SHA256='f7b732f57a411c577c9dc72180bd06609076d6e1b07a0c195851c12f0a57efe9'
+readonly RUNTIME_SOURCE_COMMIT='ad7d501b04133650ac9d26953fa60ee3f57eedec'
 readonly QT_ARCHIVE_URL='https://download.qt.io/online/qtsdkrepository/mac_x64/desktop/qt6_692/qt6_692/qt.qt6.692.clang_64/6.9.2-0-202508181146qtbase-MacOS-MacOS_15-Clang-MacOS-MacOS_15-X86_64-ARM64.7z'
 readonly QT_ARCHIVE_BYTES='34027496'
 readonly QT_ARCHIVE_SHA256='d2a2a80de2e049dab5521318cc359ce2a02d1f3bc5235804de158b7342201e11'
@@ -82,11 +83,23 @@ actual_qt_sha256="$(shasum -a 256 "$qt_archive" | awk '{print $1}')"
 
 echo "[native-2.8-ci-inputs] Building the approved $candidate_arch candidate from the verified bundle frameworks."
 export CAVALRY_QT_PREFIX="$qt_prefix"
+readonly runtime_source="$run_dir/runtime-2.8.0-source"
+readonly locked_node_modules="$(pwd -P)/node_modules"
+if ! git cat-file -e "$RUNTIME_SOURCE_COMMIT^{commit}" 2>/dev/null; then
+  git fetch --no-tags --depth=1 origin "$RUNTIME_SOURCE_COMMIT"
+fi
+mkdir "$runtime_source"
+# Keep the validated 2.8.0 runtime source intact while current native work targets 2.8.1.
+# This is a build input pin; current production language resources were generated above.
+git archive --format=tar "$RUNTIME_SOURCE_COMMIT" CLAUDE.md injector languages tools |
+  tar -xf - -C "$runtime_source"
 if [[ "$candidate_arch" == 'arm64' ]]; then
-  TMPDIR="$run_dir" bash "$candidate_builder" "$frameworks" 2>&1 | tee "$candidate_log"
+  (cd "$runtime_source"; NODE_PATH="$locked_node_modules" TMPDIR="$run_dir" \
+    bash "$candidate_builder" "$frameworks") 2>&1 | tee "$candidate_log"
 else
   readonly candidate_output="$run_dir/native-candidate-output"
-  bash "$candidate_builder" "$frameworks" "$candidate_output" 2>&1 | tee "$candidate_log"
+  (cd "$runtime_source"; NODE_PATH="$locked_node_modules" \
+    bash "$candidate_builder" "$frameworks" "$candidate_output") 2>&1 | tee "$candidate_log"
 fi
 candidate="$(sed -n 's/^ARTIFACT: //p' "$candidate_log" | tail -n 1)"
 [[ -n "$candidate" && -f "$candidate" && ! -L "$candidate" ]] || fail 'candidate builder did not return one regular dylib artifact'
@@ -101,6 +114,7 @@ printf 'CAVALRY_I18N_NATIVE_INJECTOR_FILE=%s\n' "$candidate" >> "$GITHUB_ENV"
   echo "- DMG bytes/SHA-256: $DMG_BYTES / $actual_dmg_sha256"
   echo "- Qt 6.9.2 bytes/SHA-256: $QT_ARCHIVE_BYTES / $actual_qt_sha256"
   echo "- Candidate $candidate_arch dylib bytes/SHA-256: $candidate_bytes / $candidate_sha256"
+  echo "- Frozen 2.8.0 runtime source commit: $RUNTIME_SOURCE_COMMIT"
   echo '- Source URL: mutable official latest alias; any byte/version drift fails without changing pins.'
   echo '- Scope: production resources and one architecture-bound macOS candidate; publication still requires the all-platform production build and signed updater closure.'
 } >> "$GITHUB_STEP_SUMMARY"

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖编译期资源manifest、共享catalog冻结目标与平台宿主facade；Windows资源按实际盘符根验证reparse。
- * [OUTPUT]: 按preview/production-2.8模式验证资源kind和完整度；target基线仍锁补充373。
+ * [OUTPUT]: 按preview/production-2.8与2.8.1候选模式验证资源；各自编译固定目标，补充373不变。
  * [POS]: commands的资源边界；不写App、profile或状态。
  * manifest自报digest不作审批；preview与production分别绑定kind；production拒绝不完整pack；target摘要供baseline source复用。
  * status逐字绑定manifest，只核三份regular文件和长度，不读payload。
@@ -18,11 +18,17 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(not(cavalry_native_281))]
 const TARGET_BYTES: &[u8] = include_bytes!("../../../tools/cavalry_native_target.json");
+#[cfg(cavalry_native_281)]
+const TARGET_BYTES: &[u8] = include_bytes!("../../../tools/cavalry_native_target_2_8_1.json");
 const COMPILED_MANIFEST: &[u8] =
     include_bytes!(concat!(env!("OUT_DIR"), "/native_resource_manifest.json"));
 const COMPILED_BUILD_MODE: &str = include_str!(concat!(env!("OUT_DIR"), "/native_build_mode.txt"));
+#[cfg(not(cavalry_native_281))]
 pub(crate) const NATIVE_VERSION: &str = "2.8.0";
+#[cfg(cavalry_native_281)]
+pub(crate) const NATIVE_VERSION: &str = "2.8.1";
 pub(crate) const PLUGIN_CAPTION_SUPPLEMENT_KEYS: usize = 1;
 pub(crate) const BACKGROUND_RENDERING_GAP_KEYS: usize = 1;
 const LANGUAGES: [&str; 3] = ["zh-Hans", "zh-Hant", "ja_JP"];
@@ -103,6 +109,7 @@ fn resource_profile(mode: &str) -> Option<(&'static str, bool)> {
     match mode.trim() {
         "debug-preview" | "release-candidate" => Some(("development-preview", false)),
         "production-2.8" => Some(("production-2.8", true)),
+        "development-2.8.1" => Some(("development-preview", true)),
         _ => None,
     }
 }
@@ -116,7 +123,7 @@ pub(crate) fn preview_enabled() -> bool {
     !COMPILED_MANIFEST.is_empty()
         && matches!(
             COMPILED_BUILD_MODE.trim(),
-            "debug-preview" | "release-candidate"
+            "debug-preview" | "release-candidate" | "development-2.8.1"
         )
 }
 
@@ -147,12 +154,21 @@ fn target() -> Result<Target, String> {
         || target.cavalry_version != NATIVE_VERSION
         || target.bundle_id != "com.scenegroup.cavalry"
         || target.executable != "Contents/MacOS/Cavalry"
-        || target.native_keys != 10473
+        || target.native_keys
+            != if cfg!(cavalry_native_281) {
+                10468
+            } else {
+                10473
+            }
         || target.supplemental_keys != 373
         || target.source_files.len() != 1
         || target.source_files[0].path != "Definitions/nodeDefinitions.json"
         || target.source_files[0].sha256
-            != "96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f"
+            != if cfg!(cavalry_native_281) {
+                "d3acdbcc8da60354d57674cc3ae0025409f06e66758646114f808a43c29321af"
+            } else {
+                "96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f"
+            }
         || target.vendor_japanese_keys != 390
         || target.catalogs.len() != 17
         || paths
@@ -343,14 +359,19 @@ fn validate_pack(bytes: &[u8], locale: &str, keys: usize) -> Result<(), String> 
     Ok(())
 }
 fn resource_root(repo: &Path, resources: &Path) -> Result<PathBuf, String> {
+    let directory = if cfg!(cavalry_native_281) {
+        "native-language-packs-2.8.1"
+    } else {
+        "native-language-packs"
+    };
     let candidates = resource_candidates(
         repo,
         resources,
         &[
-            PathBuf::from("native-language-packs"),
-            PathBuf::from("target/native-language-packs"),
+            PathBuf::from(directory),
+            PathBuf::from("target").join(directory),
         ],
-        Path::new("src-tauri/target/native-language-packs"),
+        &Path::new("src-tauri/target").join(directory),
     );
     candidates
         .into_iter()

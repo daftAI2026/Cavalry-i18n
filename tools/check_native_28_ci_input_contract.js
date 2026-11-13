@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖build.yml、Mac双架构与Windows官方输入准备器、native构建包装器及BuildMode合同。
- * [OUTPUT]: 验证2.8输入、生产配置、Rust测试隔离、CI分派与已授权2.8三平台发布闭包。
+ * [OUTPUT]: 验证2.8输入、固定280 runtime源、生产配置、Rust隔离、CI分派与三平台发布闭包。
  * [POS]: 原生生产CI离线合同；mock下载边界，不运行产品或GitHub Actions。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -149,7 +149,7 @@ assert.match(failureArtifact, /if: failure\(\) && github\.event_name == 'workflo
 assert.match(failureArtifact, /name: failed-native-candidate-\$\{\{ matrix\.label \}\}/);
 assert.match(failureArtifact, /path: \$\{\{ runner\.temp \}\}\/cavalry-2\.8-\$\{\{ matrix\.expected_arch \}\}-inputs\/\*\*\/libCavalryNativeFontCandidate\*\.dylib/);
 assert.match(failureArtifact, /retention-days: 1/);
-assert.match(inputPreparer, /TMPDIR="\$run_dir" bash "\$candidate_builder"/);
+assert.match(inputPreparer, /TMPDIR="\$run_dir"\s*(?:\\\s*)?bash "\$candidate_builder"/);
 
 // One target owner per build invocation: aliases bind local architectures; the matrix binds CI once.
 const genericTauriBuild = packageJson.scripts['tauri:build'];
@@ -325,6 +325,15 @@ function scenario(options = {}) {
   `);
   writeExecutable(path.join(bin, 'PlistBuddy'), `printf '%s\\n' '${options.appVersion || '2.8.0'}'`);
   writeExecutable(path.join(bin, 'npm'), `printf '%s\\n' "$*" >> "$MOCK_LOG_ROOT/npm.args"`);
+  writeExecutable(path.join(bin, 'git'), `
+  printf '%s\\n' "$*" >> "$MOCK_LOG_ROOT/git.args"
+  case "$1" in
+    cat-file) exit ${options.missingRuntimeRevision ? '1' : '0'} ;;
+    fetch) exit ${options.runtimeFetchFails ? '37' : '0'} ;;
+    archive) /usr/bin/tar -cf - -T /dev/null ;;
+    *) exit 29 ;;
+  esac
+  `);
   writeExecutable(path.join(temp, 'python'), `
   [ "$1" = 'tools/prepare_native_qt_headers.py' ] || exit 21
   shift
@@ -466,6 +475,8 @@ for (const arch of ['arm64', 'x86_64']) {
   assert.match(run.content('npm.args'), /build:native-resources .*--assets-root .*Cavalry\.app\/Contents\/assets .*--profile production-2\.8/);
   assert.match(run.content('qt-preparer.args'), /qtbase-6\.9\.2\.7z .*qt-6\.9\.2-headers/);
   assert.match(run.content('candidate-frameworks.txt'), /Cavalry\.app\/Contents\/Frameworks/);
+  assert.match(run.content('git.args'), /archive --format=tar ad7d501b04133650ac9d26953fa60ee3f57eedec CLAUDE\.md injector languages tools/);
+  assert.doesNotMatch(run.content('git.args'), /^fetch /m);
   const candidatePath = path.join(
     run.runnerTemp,
     arch === 'arm64'
@@ -479,11 +490,22 @@ for (const arch of ['arm64', 'x86_64']) {
   );
   assert.match(run.envOutput, new RegExp(`^CAVALRY_I18N_NATIVE_INJECTOR_FILE=.*${arch === 'arm64' ? 'mock-native-arm64\\.dylib' : 'libCavalryNativeFontCandidate\\.x86_64\\.dylib'}$`, 'm'));
   assert.match(run.summary, /official latest alias/);
+  assert.match(run.summary, /Frozen 2\.8\.0 runtime source commit: ad7d501b04133650ac9d26953fa60ee3f57eedec/);
   assert.match(run.summary, /all-platform production build and signed updater closure/);
   assert.ok(!run.summary.includes('mock-native-'), 'summary must not expose transient candidate path');
   if (arch === 'x86_64') assert.match(run.content('candidate-output.txt'), /native-candidate-output/);
   run.cleanup();
 }
+
+const missingRevision = scenario({ missingRuntimeRevision: true });
+assert.equal(missingRevision.result.status, 0, missingRevision.result.stderr);
+assert.match(missingRevision.content('git.args'), /^fetch --no-tags --depth=1 origin ad7d501b04133650ac9d26953fa60ee3f57eedec$/m);
+missingRevision.cleanup();
+const failedRuntimeFetch = scenario({ missingRuntimeRevision: true, runtimeFetchFails: true });
+assert.notEqual(failedRuntimeFetch.result.status, 0);
+assert.equal(failedRuntimeFetch.exists('candidate-frameworks.txt'), false);
+assert.equal(failedRuntimeFetch.envOutput, '');
+failedRuntimeFetch.cleanup();
 
 console.log('PASS: unsupported profile, target, or host architecture rejects before network access.');
 console.log('PASS: DMG and Qt size/SHA drift and version drift fail before unsafe producer stages.');

@@ -124,6 +124,7 @@ npm run build:tauri
 该入口打包2.8.0 arm64生产profile，不代表公开release。
 它使用官方Cavalry 2.8.0 assets、Qt `6.9.2`与同源码已验的arm64 native runtime绝对路径。
 不要调用旧Qt `6.6.3` `build:injector`。
+CI的2.8.0生产runtime源码固定为提交`ad7d501b04133650ac9d26953fa60ee3f57eedec`，通过Git archive导出到runner隔离目录，再复用已安装的锁定Node依赖。当前2.8.1候选源码不用于旧生产ABI；源提交随制品摘要记录。
 
 显式从官方2.8.0 app生成完整production语言包：
 
@@ -145,7 +146,20 @@ Intel包位于 `src-tauri/target/x86_64-apple-darwin/release/bundle/`。
 两个本地alias的packaged gate都固定 `production-2.8` 与预期架构。
 ad-hoc签名不构成公证或公开发行。
 
-#### 4.1.0.1 macOS Intel x86_64 production package
+#### 4.1.0.1 2.8.1 Apple Silicon candidate
+
+2.8.1 候选沿用当前完整 native 功能，使用独立 target、资源目录和 App identifier。此入口不更新公开 release，也不改变 2.8.0 生产入口。
+
+```bash
+CAVALRY_QT_PREFIX="<Qt 6.9.2 headers prefix>" bash injector/native/build_candidate.sh "<官方 Cavalry 2.8.1.app>/Contents/Frameworks"
+npm run build:native-resources -- --assets-root "<官方 Cavalry 2.8.1.app>/Contents/assets" --profile development-2.8.1
+export CAVALRY_I18N_NATIVE_INJECTOR_FILE="<上一步通过完整检查的 libCavalryNativeFontCandidate.dylib 绝对路径>"
+npm run build:tauri:native:candidate:281
+```
+
+候选不使用旧 preview/candidate 环境变量。构建必须提供真实 arm64 runtime，不能仅传配置文件。测试启动另设 `CAVALRY_I18N_STATE_DIR`，实际状态在其 `native-2.8-preview` 子目录；测试选择只指向自有 Cavalry 副本。完整编译通过仍须验证本轮实屏与 Apply/Restore。
+
+#### 4.1.0.2 macOS Intel x86_64 production package
 
 此入口复用4.1.0的2.8.0 profile、Qt `6.9.2`、语言包与三个Tauri配置。
 调用前将 `CAVALRY_I18N_NATIVE_INJECTOR_FILE` 指向同源码已验的x86_64 runtime。

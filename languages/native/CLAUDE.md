@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+metadata_2_8_1_delta.js: 官方2.8.1帮助说明增量；AGY按baoyu-translate出稿、主代理审定六源18译值，删除encrypt两旧键，原506条说明复用；函数签名与401根排版由当前官方metadata投影。
 schema_attribute_gap_a.js: 构建期缺源A183 caption/549槽，固定Core标签与schema身份；全域独审及14槽有限修订经root批准，只补显示字典、不证明原厂实际消费。
 schema_attribute_gap_b.js: 构建期当前B183 caption/549槽；保留原182键与World Scale摘要，另加隐藏Background Rendering caption；不增加UI或行为声明。
 forge_attribute_supplement.js: 构建期八个Forge schema回退标签的24槽源绑定审批；五项同owner旧译/三项独立语境核对，源在producer与nodeDefinitions/Core锁闭合，非官方catalog、不改模型、不代验实际消费。

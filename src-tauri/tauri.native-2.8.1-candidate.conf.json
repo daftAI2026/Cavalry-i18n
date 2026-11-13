@@ -1,0 +1,14 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Cavalry Language Switcher 2.8.1 Candidate",
+  "identifier": "com.daftai.cavalry-i18n.native281-candidate",
+  "build": {
+    "beforeDevCommand": null,
+    "beforeBuildCommand": null
+  },
+  "bundle": {
+    "resources": [
+      "target/native-language-packs-2.8.1"
+    ]
+  }
+}

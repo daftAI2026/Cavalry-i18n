@@ -60,6 +60,7 @@
     "build:native-resources": "node tools/native_resource_bundle.js",
     "tauri:dev:native": "CAVALRY_I18N_ENABLE_NATIVE_PREVIEW=1 tauri dev --config src-tauri/tauri.native-preview.conf.json",
     "build:tauri:native:candidate": "CAVALRY_I18N_ENABLE_NATIVE_PREVIEW=1 CAVALRY_I18N_NATIVE_RELEASE_CANDIDATE=1 tauri build --target aarch64-apple-darwin --config src-tauri/tauri.native-preview.conf.json",
+    "build:tauri:native:candidate:281": "CAVALRY_I18N_NATIVE_BUILD_PROFILE=development-2.8.1 tauri build --debug --bundles app --config src-tauri/tauri.macos.conf.json --config src-tauri/tauri.native-2.8.1-candidate.conf.json",
     "build:tauri:native:production": "npm run tauri:build -- --target aarch64-apple-darwin",
     "build:tauri:native:production:x86_64": "npm run tauri:build -- --target x86_64-apple-darwin",
     "check:native-2.8-ci-inputs": "node tools/check_native_28_ci_input_contract.js && python3 injector/native/native_source_manifest_x86_64_contract_test.py && python3 tools/prepare_native_qt_headers.test.py && python3 injector/native/native_uuid_slice_selector_contract_test.py && python3 injector/native/macho_bindings_test.py && python3 injector/native/check_help_popup_layout_contract_test.py",

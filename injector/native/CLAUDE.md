@@ -1,14 +1,14 @@
 # injector/native/
 > L2 | 父级: ../CLAUDE.md
 
-# 本目录保存 Cavalry 2.8 macOS arm64与x86_64字体、FPS、Graph、标题、帮助、Guide、Fast、Easing、Mesh、Welcome与Demo候选组件。
+# 本目录保存 Cavalry 2.8.1 arm64字体、FPS、Graph、标题及已迁移native候选，以及独立维护的2.8 x86_64合同。
 GetPath每语lane由27→31→75项；旧225项表不变，Graph空态使用独立单文本三语表。
 本目录候选均不进入2.7发布链。
 帮助说明、帮助布局、Guide正文与Fast C1适配已加入单一候选源。
 main与def两条已证caller各读独立source-bound表。
 未知caller由对应架构veneer透明尾跳原导入；x86偏移只取官方x86切片。
 字体适配只消费同bundle四个已验映像。
-标题另依赖fmt10，帮助依赖CavalryUI，布局依赖同bundle Qt 6.9.2。
+标题按架构依赖fmt 11.2.0（arm64 2.8.1）或fmt10（x86_64 2.8）；帮助依赖CavalryUI，布局依赖同bundle Qt 6.9.2。
 Guide正文只接精确Keep going caller/source；ABI门在构造时核对QtWidgets与Extension。
 Easing只投影精确20个预设显示标签；回调捕获的枚举身份保持原值。
 Demo reader只投影精确Preset读取caller、官方文件路径、源SHA和文字位置；其它调用原样返回optional。
@@ -16,7 +16,8 @@ Demo reader只投影精确Preset读取caller、官方文件路径、源SHA和文
 三语各100菜单已核AX；完整首帧与正式发行另验。
 
 成员清单
-native_font_candidate.mm: 定位同bundle Frameworks；接通Graph空态、Demo、字体、标题、帮助、Guide、Easing与Welcome，并装配双保存caption。
+native_font_candidate.mm: 定位同bundle Frameworks；接通Graph空态、Dependency Graph NodeView、Demo、字体、标题、帮助、Guide、Easing与Welcome，并装配双保存caption。
+skia_text_dispatch.inc: 拆出文件级Skia Measure/Draw owner路由；保留Dependency NodeView与Viewport分支及原函数透传。
 candidate_contract_test.cpp: 验证FPS/Graph直连帧、Graph三语精确门、旧owner透传与75项lane。
 guide_body_abi_contract.h: 锁定唯一Guide正文caller、尾跳callee、双映像UUID与Qt setter符号。
 guide_body_policy.h: 仅把精确Keep going source映射到三语固定短文案；英文与未知输入透传。
@@ -36,7 +37,7 @@ macho_bindings_test.py: 离线验证LLVM列解析、错库、缺slot、flat反�
 check_help_popup_layout_contract_test.py: 验证arm Popup checker接受arm alias并拒绝x86/generic alias。
 native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证两构建器按dwarfdump第三字段选UUID；不调用vendor。
 check_candidate_contract.py: 核GetPath/FPS来源、ABI与候选LLVM two-level绑定；一次汇总所有必需槽错误。
-build_candidate.sh: 核Core/Extension/spdlog ABI；拒绝时打印实值与工具链身份；通过后生成Demo表、编译arm64候选并运行ABI合同。
+build_candidate.sh: 核Core/Extension/spdlog与fmt11 ABI；显式按2.8.1 MetaData生成表，拒绝时打印实值与工具链身份；通过后编译arm64候选并运行ABI合同。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
 demo_reader_policy.h: 跨平台纯策略只替换审批位置的JS字面量，optional单次转发不依赖Mach-O ABI；未知locale与源结果保持不变。
 demo_reader_source_identity.h: 验证实际原厂脚本SHA，macOS用CommonCrypto、Windows复用宿主Qt摘要；不读路径或语言状态。
@@ -80,7 +81,8 @@ help_popup_layout_contract_test.cpp: 用同bundleQt离线测401项上限、QLabe
 help_popup_layout_sequence_test.inc: 三语核长短参数/返回切换、fresh行几何及隐藏行恢复。
 check_help_popup_layout_contract.py: 核精确arm caller、401表、arm popup_abi与候选LLVM Qt绑定；保留全局no-flat门。
 title_format_policy.h: 共享Project/Scene字节投影保留名称、分隔符和后缀；Mac兼容入口仍核24字节源对象/借用地址，Windows薄适配另证MSVC空值，不互借ABI。
-title_format_abi_contract.h: 锁定Gui::updateAppTitle到fmt10的调用、frame偏移、24字节源对象与libc++空tag。
+title_format_abi_contract.h: arm64锁定2.8.1 Gui::updateAppTitle到fmt11的调用/GOT；x86_64保留原fmt10编译常量，不新增Intel标题准入。
+title_format_x86_64_abi_contract.inc: 保留旧Intel编译分支所用的fmt10与2.8.0 ARM常量；这些ARM窗不宣称Intel已核验，不新增Intel标题准入。
 title_format_adapter.inc: 复用唯一gLocale与fmt原函数；fmt前快照源对象，原调用后只适配精确LR/format/descriptor。
 shared_verified_text_fallback.inc: CoreText首选；仅覆盖拒绝后用三语固定PostScript名创建候选；复用8槽与单次RAII锁。
 skia_original_bindings.inc: 直接绑定四个 Skia 原函数并核对已验入口；未知链不准字体替换。
@@ -159,5 +161,11 @@ welcome_log_it_veneer_x86_64.S: 保存x86日志参数并按窄caller门路由。
 x86_64_owner_veneer_contract_test.cpp: 验证x86 veneers的寄存器透传与单次回调。
 x86_64_owner_veneer_probe.S: 为x86 owner合同提供合成调用帧。
 x86_macho_contract.py: 供x86静态合同复用UUID、符号、字节窗和Mach-O读取原语。
+
+dependency_node_font_abi_contract.h: 锁定Cavalry 2.8.1 arm64 NodeView/TextView符号、header child布局、两类源闭包及Measure/Draw返回点；不包含GraphEditor空态。
+dependency_node_font_policy.h: 纯值核验精确caller、NodeView父指针/vtable、child索引和完整源闭包；未证明者透传。
+dependency_node_font_adapter.inc: 从当前TextView的两种已证std::function target取完整源串，限NodeView两个header child复用shared字体选择；Measure、fill和stroke转发原span。
+dependency_node_font_contract_test.cpp: 编译期验证Measure/Draw返回位、header索引、target白名单和完整owner proof；合成两帧哨兵验证Measure只从elideFP-0x10取TextView。
+check_dependency_node_font_contract.py: 只读核官方2.8.1 ExtensionLayer UUID/SHA、目标符号和精确ARM64指令窗；不启动App。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

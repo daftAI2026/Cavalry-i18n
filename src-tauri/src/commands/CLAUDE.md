@@ -3,7 +3,7 @@
 
 成员清单
 native_windows.rs: Windows2.8宿主/OS根/写者准入；Apply写入前共用State持久化已验选择。卸载先解析目标，再恢复profile及原厂QPA；缺状态零profile写入，宿主已移除仍幂等恢复profile。
-native_resources.rs: 按编译期BuildMode绑定manifest kind；production-2.8要求三语完整10848键。status核文件长度，apply只校验所选payload摘要；不扫描定义或写profile。
+native_resources.rs: 显式2.8.1候选在编译期选独立target/10843键资源；按编译期BuildMode绑定manifest kind；production-2.8要求三语完整10848键。status核文件长度，apply只校验所选payload摘要；不扫描定义或写profile。
 native_resources_tests.rs: 显式模式的资源读取合同；生产完整包正例、错误kind/缺译反例与原preview合同共用真实loader，不依赖测试二进制的编译模式。
 native_runtime.rs: 显式native动作协调runtime与profile；NRT恢复先于路由，profile错误code不变；非English同源候选先读bounded owner hint与approved SHA，再用observe_install核canonical 2.8.0身份；匹配时只走canonical profile事务，不读baseline/槽/签名、不写App、不授App写恢复权；同源路由由native_user报告receipt恢复检查并在新receipt写前启动Apply；English、缺hint、坏hint、源不匹配与非2.8候选保留原完整owner准入；独立restart不变。
 native_runtime_profile_route_tests.rs: 用临时2.8 bundle/owner/profile证明同源hint只准profile快路；精确断言成功Verify→Ensure→Apply，坏receipt或漂移在Ensure以error结束；故意缺vendor baseline与Extension以证明未调用整包owner；覆盖English、未知/坏owner、源漂移/缺失、错误版本和NRT失败；取得bundle guard的用例使用共享test-only串行器；不接真实App/profile。

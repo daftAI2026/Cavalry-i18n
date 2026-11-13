@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖Cavalry 2.8各架构DocumentationPopup与QtWidgets Mach-O证据。
+ * [INPUT]: 依赖Cavalry 2.8.1 arm64及既有x86 DocumentationPopup与QtWidgets Mach-O证据。
  * [OUTPUT]: 分架构锁定setContent内QLayout::activate返回地址与调用窗。
  * [POS]: 帮助布局adapter的窄准入合同；未知调用只透传原函数。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -17,19 +17,19 @@ inline constexpr char kDocumentationSetContentSymbol[] =
     "__ZN18DocumentationPopup10setContentERK7QStringS2_S2_S2_S2_";
 inline constexpr char kQtLayoutActivateSymbol[] = "__ZN7QLayout8activateEv";
 
-inline constexpr std::uintptr_t kDocumentationSetContentOffset = 0x92394;
-inline constexpr std::uintptr_t kActivateCallWindowOffset = 0x924f4;
-inline constexpr std::uintptr_t kActivateReturnOffset = 0x92500;
-inline constexpr std::uintptr_t kActivateImportStubOffset = 0xad15c;
+inline constexpr std::uintptr_t kDocumentationSetContentOffset = 0x91518;
+inline constexpr std::uintptr_t kActivateCallWindowOffset = 0x91670;
+inline constexpr std::uintptr_t kActivateReturnOffset = 0x9167c;
+inline constexpr std::uintptr_t kActivateImportStubOffset = 0xa8014;
 inline constexpr std::uintptr_t kQtLayoutActivateOffset = 0x3cda0;
 
 inline constexpr std::array<std::uint8_t, 20> kActivateCallWindowBytes = {
-    0xe0, 0x03, 0x13, 0xaa, 0xac, 0x71, 0x00, 0x94,
-    0x18, 0x6b, 0x00, 0x94, 0xe0, 0x03, 0x13, 0xaa,
-    0xaf, 0x6b, 0x00, 0x94,
+    0xe0, 0x03, 0x13, 0xaa, 0xfe, 0x60, 0x00, 0x94,
+    0x67, 0x5a, 0x00, 0x94, 0xe0, 0x03, 0x13, 0xaa,
+    0xfe, 0x5a, 0x00, 0x94,
 };
 inline constexpr std::array<std::uint8_t, 12> kActivateImportStubBytes = {
-    0xd0, 0x00, 0x00, 0x90, 0x10, 0x26, 0x41, 0xf9,
+    0x50, 0x01, 0x00, 0xd0, 0x10, 0x32, 0x44, 0xf9,
     0x00, 0x02, 0x1f, 0xd6,
 };
 

@@ -86,10 +86,10 @@ def main() -> None:
             "构建产物不是批准的根布局表")
 
     expected_values = {
-        "kDocumentationSetContentOffset": 0x92394,
-        "kActivateCallWindowOffset": 0x924F4,
-        "kActivateReturnOffset": 0x92500,
-        "kActivateImportStubOffset": 0xAD15C,
+        "kDocumentationSetContentOffset": 0x91518,
+        "kActivateCallWindowOffset": 0x91670,
+        "kActivateReturnOffset": 0x9167C,
+        "kActivateImportStubOffset": 0xA8014,
         "kQtLayoutActivateOffset": 0x3CDA0,
     }
     for name, value in expected_values.items():

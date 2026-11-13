@@ -72,7 +72,7 @@ class UuidArchitectureContract(unittest.TestCase):
             return "\n".join(lines) + "\n"
 
         with tempfile.TemporaryDirectory(prefix="native-static-negative.") as folder:
-            (pathlib.Path(folder) / "title-format-fmt10-abi.s").write_text("")
+            (pathlib.Path(folder) / "title-format-fmt11-abi.s").write_text("")
             arguments = ["check_candidate_contract.py", str(ROOT), folder,
                          str(FRAMEWORKS), str(CANDIDATE)]
             with patch.object(checker, "run", mixed_slice_report), \

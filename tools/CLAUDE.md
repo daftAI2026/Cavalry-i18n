@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+prepare_cavalry_28_ci_inputs.sh的runtime源pin: 2.8.0生产从ad7d501b04133650ac9d26953fa60ee3f57eedec精确Git导出构建runtime，缺对象只fetch该SHA；当前281 native源码不进入旧生产ABI。依赖复用锁定node_modules，源提交记入CI摘要；原DMG/Qt字节门不变。
 cavalry_native_target_2_8_1.json / native_281_delta.test.js: 用户官方2.8.1包的独立候选source锁与33键三语增补/12移除合同；不改变2.8.0已验生产目标。native_resource_bundle的development-2.8.1复用原producer和375补充源，隔离输出完整候选包。
 watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建兼容评估issue，不改变产品准入；离线合同覆盖网络/源漂移、数值版本及重复运行。
 check_powershell_syntax.ps1: Parser.ParseFile单文件语法driver；只读源码并以退出码报告错误，不执行待验脚本。
@@ -67,7 +68,7 @@ native_array_distribution_translations.test.js: Node 的 Array完整4键/12值�
 native_auto_animate_translations.test.js: Node 离线 autoAnimate 128 叶入库合同；锁定 owner/source/notes 与稳定键摘要、三语格式、当前进度模式/层级标签引用、相机变焦/几何缩放与可逆进退场、显示投影不写模型身份和厂商日语优先，先RED后入库，不调用服务或App。
 native_metadata_reuse.js: Node 的已审帮助复用与表装配器；复用478条SHA审批和34条source-bound补译，拒绝缺项/源漂移，输出384 main与17 def根表。
 native_metadata_reuse.test.js: Node 的纯复用/帮助表合同；锁哈希、补译闭合、分表输出与synthetic边界，环境指定时校验384/17/111分账。
-build_native_help_description_table.js: 从SHA锁定的四份2.8.0 MetaData与source-bound审定仓外生成跨平台384/17说明表、独立401根排版表及回执；说明字节不变，ABI由消费者承担。
+build_native_help_description_table.js: 默认保留2.8.0源锁；显式--cavalry-version 2.8.1应用6说明/2删除delta，源锁下复用473条与39补译，生成同384/17说明及401根排版表；ABI与live由消费者承担。
 build_native_help_description_table.test.js: Node生成器合同；锁UTF-8转义、仓外输出、384/17说明与401根排版分表，不授live信用。
 native_easing_display_data.js: 构建期内置缓动显示源；15项root批准译文仅作显示，五项复用既有native键，不进官方catalog或包统计。
 build_native_easing_display_table.js: 校验20项内置身份与现有源键；接受Windows跨卷仓外输出，生成同源C++表，不接runtime。

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 native_resources 的模式化manifest/payload准入与临时文件夹。
- * [OUTPUT]: 覆盖共享preview/production资源准入与Windows文件/symlink差异；Mac宿主plist夹具仅在Mac编译。
+ * [OUTPUT]: 覆盖共享preview/production/2.8.1候选资源准入；夹具数量与版本绑定当前编译目标。
  * [POS]: native_resources 的隔离合同；测试显式选择编译profile，不绕过资源摘要校验。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,6 +9,10 @@ use super::*;
 use std::os::unix::fs::symlink;
 
 const PREVIEW_BUILD_MODE: &str = "debug-preview";
+
+fn fixture_native_keys() -> usize {
+    target().unwrap().native_keys + 375
+}
 
 fn load_preview_at(root: &Path, compiled: &[u8]) -> Result<NativeResources, String> {
     load_at_for_mode(root, compiled, PREVIEW_BUILD_MODE)
@@ -37,6 +41,15 @@ fn compile_mode_selects_manifest_kind_and_production_requires_complete_resources
         resource_profile("production-2.8"),
         Some(("production-2.8", true))
     );
+    assert_eq!(
+        resource_profile("development-2.8.1"),
+        Some(("development-preview", true))
+    );
+    assert!(!manifest_profile_matches(
+        "development-2.8.1",
+        "development-preview",
+        false
+    ));
     assert!(manifest_profile_matches(
         "production-2.8",
         "production-2.8",
@@ -106,9 +119,10 @@ fn approved_fixture_for(kind: &str, complete: bool) -> (tempfile::TempDir, Vec<u
     use serde_json::json;
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
-    let mut manifest = json!({"schemaVersion":1,"kind":kind,"cavalryVersion":"2.8.0",
+    let total = fixture_native_keys();
+    let mut manifest = json!({"schemaVersion":1,"kind":kind,"cavalryVersion":NATIVE_VERSION,
             "targetSha256":hash(TARGET_BYTES),"inputSha256":"a".repeat(64),"approvedUIKeys":1,
-            "nativeKeys":10848,"supplementalKeys":375,"complete":complete,"packs":{}});
+            "nativeKeys":total,"supplementalKeys":375,"complete":complete,"packs":{}});
     for language in LANGUAGES {
         let vendor = if language == "ja_JP" { 390 } else { 0 };
         let values = (0..1 + vendor)
@@ -121,8 +135,8 @@ fn approved_fixture_for(kind: &str, complete: bool) -> (tempfile::TempDir, Vec<u
         fs::write(root.join(format!("{language}.json")), &bytes).unwrap();
         manifest["packs"][language] = json!({"file":format!("{language}.json"),"nativeLocale":locale,
                 "sha256":hash(&bytes),"bytes":bytes.len(),"reviewed":1,
-                "preserved":if complete { 10847-vendor } else { 0 },"vendor":vendor,
-                "missing":if complete { 0 } else { 10847-vendor }});
+                "preserved":if complete { total-1-vendor } else { 0 },"vendor":vendor,
+                "missing":if complete { 0 } else { total-1-vendor }});
     }
     let bytes = serde_json::to_vec(&manifest).unwrap();
     fs::write(root.join("manifest.json"), &bytes).unwrap();
@@ -285,10 +299,11 @@ fn one_pending_caption_keeps_an_honest_partial_pack_available() {
     let (temp, compiled) = approved_fixture();
     let root = temp.path().canonicalize().unwrap();
     let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
-    manifest["approvedUIKeys"] = serde_json::json!(10652);
+    let total = fixture_native_keys();
+    manifest["approvedUIKeys"] = serde_json::json!(total - 196);
     for language in LANGUAGES {
         let vendor = if language == "ja_JP" { 390 } else { 0 };
-        let values = (0..10847)
+        let values = (0..total - 1)
             .map(|i| {
                 (
                     format!("fixture.{i}"),
@@ -305,7 +320,7 @@ fn one_pending_caption_keeps_an_honest_partial_pack_available() {
         let info = &mut manifest["packs"][language];
         info["sha256"] = serde_json::json!(hash(&bytes));
         info["bytes"] = serde_json::json!(bytes.len());
-        info["reviewed"] = serde_json::json!(10652 - vendor);
+        info["reviewed"] = serde_json::json!(total - 196 - vendor);
         info["preserved"] = serde_json::json!(195);
         info["missing"] = serde_json::json!(1);
     }
@@ -326,7 +341,7 @@ fn schema_supplement_count_is_explicit_and_cannot_masquerade_as_official_catalog
     let mut manifest: serde_json::Value = serde_json::from_slice(&compiled).unwrap();
     // -- 补充仍缺译的合成包：只改变来源分账，不伪造已显示或已审批 -----
     manifest["supplementalKeys"] = serde_json::json!(375);
-    manifest["nativeKeys"] = serde_json::json!(10848);
+    manifest["nativeKeys"] = serde_json::json!(fixture_native_keys());
     let bytes = serde_json::to_vec(&manifest).unwrap();
     fs::write(root.join("manifest.json"), &bytes).unwrap();
     assert!(
@@ -338,8 +353,8 @@ fn schema_supplement_count_is_explicit_and_cannot_masquerade_as_official_catalog
         ("supplementalKeys", 9),
         ("supplementalKeys", 373),
         ("supplementalKeys", 374),
-        ("nativeKeys", 10473),
-        ("nativeKeys", 10847),
+        ("nativeKeys", target().unwrap().native_keys),
+        ("nativeKeys", fixture_native_keys() - 1),
     ] {
         let mut drift = manifest.clone();
         drift[field] = serde_json::json!(value);
@@ -374,8 +389,8 @@ fn host_identity_fixture() -> (tempfile::TempDir, PathBuf, Target) {
     let mut lock = target().unwrap();
     fs::create_dir_all(root.join("Contents/MacOS")).unwrap();
     let info = format!(
-        r#"<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>{}</string><key>CFBundleShortVersionString</key><string>2.8.0</string><key>CFBundleExecutable</key><string>Cavalry</string></dict></plist>"#,
-        lock.bundle_id
+        r#"<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>{}</string><key>CFBundleShortVersionString</key><string>{}</string><key>CFBundleExecutable</key><string>Cavalry</string></dict></plist>"#,
+        lock.bundle_id, NATIVE_VERSION
     );
     fs::write(root.join("Contents/Info.plist"), info).unwrap();
     fs::write(root.join(&lock.executable), b"main").unwrap();
