@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/getpath_font_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖独审的 Cavalry 2.8 arm64 GetPath 与固定owner字节窗；x86 Graph合同见专用头。
  * [OUTPUT]: 锁定arm64映像UUID、GetPath ABI、FPS/Graph调用窗及字体factory导出。
@@ -113,3 +116,5 @@ inline constexpr std::array<std::uint8_t, 24> kGlyphBytes = {
     0xbf, 0xa3, 0x1f, 0x78, 0x08, 0x00, 0x40, 0xf9
 };
 }  // namespace native_getpath_abi::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

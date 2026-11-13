@@ -6,6 +6,20 @@
 -->
 # Cavalry 2.8 native candidate
 
+The explicit 2.8.1 arm64 target is built with:
+
+```sh
+CAVALRY_QT_PREFIX=<Qt-6.9.2-public-headers> \
+  python3 injector/native/build_candidate_2_8_1.py <Cavalry-2.8.1.app/Contents/Frameworks>
+```
+
+This entry composes the shared implementation with `abi_2_8_1` inputs in a
+temporary source tree. The default 2.8.0 builder, title adapter and Viewport
+dispatcher retain their existing implementation. Only the explicit 2.8.1
+arm64 target enables the NodeView two-header route. The profile snapshot test
+checks that all 14 default ABI headers retain their original contents.
+Build success does not establish live display or Windows acceptance.
+
 ## Scope
 
 This module documents the Cavalry 2.8 macOS arm64 candidate and the x86_64 implementation.

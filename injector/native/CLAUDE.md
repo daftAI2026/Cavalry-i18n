@@ -16,6 +16,10 @@ Demo reader只投影精确Preset读取caller、官方文件路径、源SHA和文
 三语各100菜单已核AX；完整首帧与正式发行另验。
 
 成员清单
+ABI合同默认保持950e713的2.8.0完整内容；仅定义`CAVALRY_NATIVE_TARGET_281`时，14个既有合同头才包含`abi_2_8_1/`中的arm64合同。
+abi_2_8_1/: Cavalry 2.8.1 arm64合同快照；SetSize使用已复核`0x6f`字节，title合同只含arm64 fmt11，不定义Intel合同。
+abi_2_8_1/contract_snapshot_test.py: 校验14个2.8.0默认头的SHA快照、15个281 profile头及标题/SetSize边界；不调用vendor。
+dependency_node_font_abi_contract.h: 仅在281 arm64显式配置下转入profile；280没有NodeView字体准入合同。
 native_font_candidate.mm: 定位同bundle Frameworks；接通Graph空态、Demo、字体、标题、帮助、Guide、Easing与Welcome，并装配双保存caption。
 candidate_contract_test.cpp: 验证FPS/Graph直连帧、Graph三语精确门、旧owner透传与75项lane。
 guide_body_abi_contract.h: 锁定唯一Guide正文caller、尾跳callee、双映像UUID与Qt setter符号。
@@ -80,7 +84,7 @@ help_popup_layout_contract_test.cpp: 用同bundleQt离线测401项上限、QLabe
 help_popup_layout_sequence_test.inc: 三语核长短参数/返回切换、fresh行几何及隐藏行恢复。
 check_help_popup_layout_contract.py: 核精确arm caller、401表、arm popup_abi与候选LLVM Qt绑定；保留全局no-flat门。
 title_format_policy.h: 共享Project/Scene字节投影保留名称、分隔符和后缀；Mac兼容入口仍核24字节源对象/借用地址，Windows薄适配另证MSVC空值，不互借ABI。
-title_format_abi_contract.h: 锁定Gui::updateAppTitle到fmt10的调用、frame偏移、24字节源对象与libc++空tag。
+title_format_abi_contract.h: 默认锁定2.8.0 fmt10标题合同；显式281配置选择arm64 fmt11合同，不新增Intel准入。
 title_format_adapter.inc: 复用唯一gLocale与fmt原函数；fmt前快照源对象，原调用后只适配精确LR/format/descriptor。
 shared_verified_text_fallback.inc: CoreText首选；仅覆盖拒绝后用三语固定PostScript名创建候选；复用8槽与单次RAII锁。
 skia_original_bindings.inc: 直接绑定四个 Skia 原函数并核对已验入口；未知链不准字体替换。
@@ -160,4 +164,13 @@ x86_64_owner_veneer_contract_test.cpp: 验证x86 veneers的寄存器透传与单
 x86_64_owner_veneer_probe.S: 为x86 owner合同提供合成调用帧。
 x86_macho_contract.py: 供x86静态合同复用UUID、符号、字节窗和Mach-O读取原语。
 
+native_font_candidate.mm（2.8.1增量）: 仅显式arm64目标启用NodeView头文字与fmt v11符号；默认2.8.0路径保持原样。
+dependency_node_font_policy.h: 仅识别2.8.1 NodeView Name/Type header slots、measure/draw caller与源文本target。
+dependency_node_font_adapter.inc: 在共享字体回退前证明精确NodeView/TextView owner、完整源文本和caller帧；未证明则透传。
+dependency_node_font_contract_test.cpp: vendor-free验证两个measure/draw返回点、TextView receiver取帧和header slots。
+skia_text_dispatch_281.inc: 仅供CAVALRY_NATIVE_TARGET_281 arm64使用；把两个NodeView header的Measure/Draw接入既有字体核心。
+
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+build_candidate_2_8_1.py：在临时源树使用abi_2_8_1合同与测试构建显式arm64候选，不覆盖280构建器或安装App。
+check_dependency_node_font_contract.py：对281 NodeView两header定位的符号与调用窗做只读vendor校验。

@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/fast_search_unicode_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖固定Cavalry 2.8 arm64 Fast调用和Qt 6.9.2 C1符号审查。
  * [OUTPUT]: 锁定Extension调用点、import stub、原正则与QtCore构造入口。
@@ -32,3 +35,5 @@ inline constexpr std::array<std::uint8_t, 4> kCallBytes = {
     0xf6, 0x2f, 0x1a, 0x94
 };
 }  // namespace native_fast_search::abi
+
+#endif  // CAVALRY_NATIVE_TARGET_281

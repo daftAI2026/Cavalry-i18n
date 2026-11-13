@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/help_popup_layout_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖Cavalry 2.8各架构DocumentationPopup与QtWidgets Mach-O证据。
  * [OUTPUT]: 分架构锁定setContent内QLayout::activate返回地址与调用窗。
@@ -78,3 +81,5 @@ static_assert(kActivateImportStubOffset + kActivateImportStubBytes.size() +
 }  // namespace x86_64
 
 }  // namespace native_help_popup_layout::abi
+
+#endif  // CAVALRY_NATIVE_TARGET_281

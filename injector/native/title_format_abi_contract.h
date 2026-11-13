@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/title_format_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖Cavalry 2.8 arm64 Extension/fmt10调用与libc++源对象证据。
  * [OUTPUT]: 锁定标题fmt调用、24字节源对象、空值tag和借用参数布局。
@@ -172,3 +175,5 @@ static_assert(kLibCppShortLengthOffset + 1 == kLibCppStringObjectBytes);
 
 }  // namespace contract
 }  // namespace native_title_format_abi
+
+#endif  // CAVALRY_NATIVE_TARGET_281

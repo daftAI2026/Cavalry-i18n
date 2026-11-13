@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/help_description_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖 Cavalry 2.8 arm64 Extension/UI 导入与 callee 的静态二进制证据。
  * [OUTPUT]: 锁定main/def两caller、同一导入callee与文档对象布局。
@@ -87,3 +90,5 @@ static_assert(__builtin_offsetof(ScriptDocumentationAbiMirror, opaqueStrings60) 
 #pragma clang diagnostic pop
 
 }  // namespace native_help_description::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

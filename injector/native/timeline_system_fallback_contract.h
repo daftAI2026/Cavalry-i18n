@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/timeline_system_fallback_contract.h"
+#else
 /**
  * [INPUT]: 依赖已验 SkFont::setSize arm64 导出窗口与原字体槽合同。
  * [OUTPUT]: 锁定8个字体槽、factory seed、PostScript 上限与 setSize ABI。
@@ -21,3 +24,5 @@ inline constexpr std::array<std::uint8_t, 16> kSetSizeBytes = {
     0x00, 0x08, 0x00, 0xbd, 0xc0, 0x03, 0x5f, 0xd6
 };
 }  // namespace timeline_system_fallback::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

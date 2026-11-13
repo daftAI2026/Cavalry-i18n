@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/viewport_owner_snapshot.h"
+#else
 /**
  * [INPUT]: 依赖已锁定调用点、线程栈范围与只读复制器。
  * [OUTPUT]: 单次读取调用帧记录，复用线程栈关系并复制有限名称容器。
@@ -84,3 +87,5 @@ bool snapshot(std::uintptr_t offset,int encoding,std::uintptr_t frame,
  *outputLength=span.size;return true;
 }
 } // namespace viewport_owner
+
+#endif  // CAVALRY_NATIVE_TARGET_281

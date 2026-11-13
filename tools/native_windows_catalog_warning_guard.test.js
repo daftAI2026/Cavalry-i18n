@@ -10,7 +10,7 @@ const assert=require('node:assert/strict');
 const {renderGuard}=require('./native_windows_catalog_warning_guard');
 const {catalogs}=require('./cavalry_native_target.json');
 function fixture(){
-  return {manifest:{kind:'production-2.8',nativeKeys:1,complete:true,packs:Object.fromEntries(
+  return {manifest:{kind:'production-2.8',cavalryVersion:'2.8.0',nativeKeys:1,complete:true,packs:Object.fromEntries(
     ['zh-Hans','zh-Hant','ja_JP'].map(language=>[language,{nativeLocale:language==='ja_JP'?'ja':language,
       sha256:'a'.repeat(64),bytes:100,reviewed:1,preserved:0,vendor:0,missing:0}]))}};
 }

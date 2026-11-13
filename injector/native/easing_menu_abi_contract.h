@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/easing_menu_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖 Cavalry 2.8 arm64 `addEasingMenu` 调用窗与 Qt 6.9.2 导出。
  * [OUTPUT]: 锁定 Extension、QtWidgets、QtGui 的 UUID、偏移与机器码。
@@ -66,3 +69,5 @@ static_assert(static_cast<std::int64_t>(kAddActionCallerOffset) +
               arm64BranchDisplacement(kAddActionBranchBytes) ==
               static_cast<std::int64_t>(kAddActionImportStubOffset));
 }  // namespace native_easing_menu::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

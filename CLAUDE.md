@@ -167,3 +167,5 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 工具链迁移保留main的1.1.2版本。
 Tauri CLI/API 2.10.1与Rust 2.10.3同minor。
 Node合同在原生编译前拒绝单边升级。
+
+2.8.1增量分支以950e713的2.8.0产品源码为基线：`injector/native/abi_2_8_1/`只提供显式目标合同，`build_candidate_2_8_1.py`在临时树组合共享实现。默认280的ABI、标题/Viewport实现和生产构建器保留；NodeView两header仅在281 arm64宏启用。2.8.1显示和Windows验证不继承280结果。

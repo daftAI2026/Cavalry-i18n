@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native模式另读固定target工件manifest、官方域摘要及目标架构dylib，并将BuildMode写入OUT_DIR。
- * [OUTPUT]: 按BuildMode固化原生资源；Windows x64 production复用资源manifest；Mac继续验证目标架构runtime。
+ * [OUTPUT]: 按BuildMode固化原生资源，2.8.1候选独立编译target与完整资源；Windows x64 production复用资源manifest；Mac继续验证目标架构runtime。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -43,6 +43,10 @@ fn main() {
             .as_deref(),
     )
     .expect("native build mode rejected");
+    println!("cargo:rustc-check-cfg=cfg(cavalry_native_281)");
+    if native_mode == NativeBuildMode::Development281 {
+        println!("cargo:rustc-cfg=cavalry_native_281");
+    }
     println!("cargo:rustc-check-cfg=cfg(cavalry_native_windows)");
     if env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows")
         && native_mode != NativeBuildMode::Disabled
@@ -68,7 +72,11 @@ fn embed_native_build_mode(mode: NativeBuildMode) {
 fn embed_native_resource_manifest(mode: NativeBuildMode) {
     println!("cargo:rerun-if-env-changed=CAVALRY_I18N_ENABLE_NATIVE_PREVIEW");
     println!("cargo:rerun-if-env-changed=CAVALRY_I18N_NATIVE_BUILD_PROFILE");
-    let input = Path::new("target/native-language-packs/manifest.json");
+    let input = Path::new(if mode == NativeBuildMode::Development281 {
+        "target/native-language-packs-2.8.1/manifest.json"
+    } else {
+        "target/native-language-packs/manifest.json"
+    });
     println!("cargo:rerun-if-changed={}", input.display());
     let bytes = if mode != NativeBuildMode::Disabled {
         for source in [
@@ -82,6 +90,7 @@ fn embed_native_resource_manifest(mode: NativeBuildMode) {
             "../tools/native_translation_format.js",
             "../package-lock.json",
             "../tools/cavalry_native_target.json",
+            "../tools/cavalry_native_target_2_8_1.json",
         ] {
             println!("cargo:rerun-if-changed={source}");
         }
@@ -89,6 +98,8 @@ fn embed_native_resource_manifest(mode: NativeBuildMode) {
         check.args(["../tools/native_resource_bundle.js", "--check"]);
         if mode == NativeBuildMode::Production {
             check.args(["--profile", "production-2.8"]);
+        } else if mode == NativeBuildMode::Development281 {
+            check.args(["--profile", "development-2.8.1"]);
         }
         let checked = check
             .status()
@@ -130,7 +141,9 @@ fn embed_native_runtime_injector(mode: NativeBuildMode) {
     assert!(
         !matches!(
             mode,
-            NativeBuildMode::ReleaseCandidate | NativeBuildMode::Production
+            NativeBuildMode::ReleaseCandidate
+                | NativeBuildMode::Production
+                | NativeBuildMode::Development281
         ) || !bytes.is_empty(),
         "native candidate/production mode requires CAVALRY_I18N_NATIVE_INJECTOR_FILE"
     );

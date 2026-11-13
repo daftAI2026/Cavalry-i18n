@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖显式官方四份 MetaData、SHA 审批、旧四语数据和 source-bound 补译。
+ * [INPUT]: 依赖显式2.8.0/2.8.1官方四份MetaData、各版本SHA审批、旧四语数据和source-bound补译。
  * [OUTPUT]: 在仓外生成不依赖文档ABI的384/17说明表、401根排版表及回执。
  * [POS]: tools构建期投影；不改仓库资源，不接入UI-text或默认发布链。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -24,22 +24,34 @@ const OFFICIAL_METADATA_SHA256 = Object.freeze({
   'widget_api_function_metadata.json': '25478df251d984df00be067d0dda3ae84365d85a1fe7cba8a6bc69f8834d937d',
 });
 
+const OFFICIAL_METADATA_281_SHA256 = Object.freeze({
+  'api_function_metadata.json': '86ea1a09d47bd8bf37b9b8f878927cecfb99682033adf73838f5743eed11b7f4',
+  'core_api_function_metadata.json': OFFICIAL_METADATA_SHA256['core_api_function_metadata.json'],
+  'gui_api_function_metadata.json': 'dc248f242a41faf13c26fec7f00ef875ebc246c18a81fc760eeb46a3da767f3a',
+  'widget_api_function_metadata.json': OFFICIAL_METADATA_SHA256['widget_api_function_metadata.json'],
+});
+
 function parseArguments(argv) {
   const parsed = {};
   for (let index = 0; index < argv.length; index += 1) {
     const key = argv[index];
     const value = argv[index + 1];
-    if (!['--metadata-dir', '--out'].includes(key) || !value || value.startsWith('--')) {
-      throw new Error('usage: build_native_help_description_table.js --metadata-dir <absolute-dir> --out <absolute-file>');
+    if (!['--metadata-dir', '--out', '--cavalry-version'].includes(key) || !value || value.startsWith('--')) {
+      throw new Error('usage: build_native_help_description_table.js --metadata-dir <absolute-dir> --out <absolute-file> [--cavalry-version 2.8.0|2.8.1]');
     }
     if (Object.hasOwn(parsed, key)) throw new Error(`duplicate option: ${key}`);
     parsed[key] = value;
     index += 1;
   }
-  if (Object.keys(parsed).length !== 2) {
+  if (!parsed['--metadata-dir'] || !parsed['--out']) {
     throw new Error('both --metadata-dir and --out are required');
   }
-  return validatePaths(parsed['--metadata-dir'], parsed['--out']);
+  const paths = validatePaths(parsed['--metadata-dir'], parsed['--out']);
+  if (parsed['--cavalry-version']) {
+    requireVersion(parsed['--cavalry-version']);
+    paths.cavalryVersion = parsed['--cavalry-version'];
+  }
+  return paths;
 }
 
 function validatePaths(metadataInput, outputInput) {
@@ -64,14 +76,20 @@ function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-function readOfficialMetadata(metadataDirectory) {
+function requireVersion(version) {
+  if (!['2.8.0', '2.8.1'].includes(version)) throw new Error('unsupported metadata Cavalry version');
+}
+
+function readOfficialMetadata(metadataDirectory, cavalryVersion) {
+  requireVersion(cavalryVersion);
+  const expected = cavalryVersion === '2.8.1' ? OFFICIAL_METADATA_281_SHA256 : OFFICIAL_METADATA_SHA256;
   const documents = {};
   const inputSha256 = {};
   for (const file of METADATA_FILE_NAMES) {
     const bytes = fs.readFileSync(path.join(metadataDirectory, file));
     const actual = sha256(bytes);
-    if (actual !== OFFICIAL_METADATA_SHA256[file]) {
-      throw new Error(`${file} SHA-256 differs from the locked official 2.8 source`);
+    if (actual !== expected[file]) {
+      throw new Error(`${file} SHA-256 differs from the locked official ${cavalryVersion} source`);
     }
     documents[file] = JSON.parse(bytes.toString('utf8'));
     inputSha256[file] = actual;
@@ -158,7 +176,7 @@ function renderCppTable(entries, defEntries) {
   }
   return [
     '/**',
-    ' * [INPUT]: 依赖SHA锁定的官方四份MetaData、478条审批与34条source-bound补译。',
+    ' * [INPUT]: 依赖所选版本SHA锁定的官方四份MetaData、源绑定复用审批与补译。',
     ' * [OUTPUT]: 提供384个非def根和17个def根的独立三语说明表。',
     ' * [POS]: 仓外构建期只读表；主表与def表隔离，不覆盖机器字段。',
     ' * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md',
@@ -207,21 +225,31 @@ function renderCppLayoutRows(rows) {
   ].join('\n');
 }
 
-function generate({ metadataDirectory, outputFile }) {
+function generate({ metadataDirectory, outputFile, cavalryVersion = '2.8.0' }) {
   const validated = validatePaths(metadataDirectory, outputFile);
   metadataDirectory = validated.metadataDirectory;
   outputFile = validated.outputFile;
-  const { documents, inputSha256 } = readOfficialMetadata(metadataDirectory);
+  const { documents, inputSha256 } = readOfficialMetadata(metadataDirectory, cavalryVersion);
   const legacy = readLegacyMetadata();
   const reuseManifestPath = path.join(REPO_ROOT, 'languages/native/metadata_reuse_manifest.js');
   const supplementPath = path.join(REPO_ROOT, 'languages/native/metadata_supplement.js');
   const reuseManifest = require('../languages/native/metadata_reuse_manifest.js');
   const supplement = require('../languages/native/metadata_supplement.js');
+  let reuseApprovals = reuseManifest.approvals;
+  let supplementEntries = supplement.entries;
+  let deltaPath;
+  if (cavalryVersion === '2.8.1') {
+    deltaPath = path.join(REPO_ROOT, 'languages/native/metadata_2_8_1_delta.js');
+    const delta = require(deltaPath);
+    const replaced = new Set([...delta.removedKeys, ...delta.entries.map(entry => entry.key)]);
+    reuseApprovals = reuseApprovals.filter(entry => !replaced.has(entry.key));
+    supplementEntries = [...supplementEntries.filter(entry => !replaced.has(entry.key)), ...delta.entries];
+  }
   const table = buildApprovedRuntimeRootHelpTable({
     metadataDocuments: documents,
     legacyDocuments: legacy.documents,
-    reuseApprovals: reuseManifest.approvals,
-    supplementEntries: supplement.entries,
+    reuseApprovals,
+    supplementEntries,
   });
   const expectedCounts = {
     descriptionLeaves: 512,
@@ -229,8 +257,8 @@ function generate({ metadataDirectory, outputFile }) {
     candidateRoots: 384,
     excludedDefRoots: 17,
     nestedDescriptions: 111,
-    reusedApprovals: 478,
-    supplementedDescriptions: 34,
+    reusedApprovals: cavalryVersion === '2.8.1' ? 473 : 478,
+    supplementedDescriptions: cavalryVersion === '2.8.1' ? 39 : 34,
     reviewedDescriptions: 512,
   };
   for (const [count, expected] of Object.entries(expectedCounts)) {
@@ -251,19 +279,21 @@ function generate({ metadataDirectory, outputFile }) {
   const outputSha256 = sha256(Buffer.from(rendered, 'utf8'));
   const receipt = {
     l3Contract: {
-      INPUT: 'SHA锁定的官方四份MetaData、旧四语MetaData、478条审批与34条source-bound补译。',
+      INPUT: '所选版本SHA锁定的官方四份MetaData、旧四语MetaData、源绑定审批与补译。',
       OUTPUT: '记录384/17说明表与401根排版表身份、来源和consumer边界。',
       POS: '仓外构建期回执；不构成产品consumer或live证据。',
       PROTOCOL: '变更时更新此头部，然后检查 CLAUDE.md',
     },
     input: {
       metadataDirectory,
+      cavalryVersion,
+      ...(deltaPath ? { deltaSourceSha256: sha256(fs.readFileSync(deltaPath)) } : {}),
       officialMetadataSha256: inputSha256,
       legacyMetadataSha256: legacy.inputSha256,
       approvalManifestSha256: sha256(fs.readFileSync(reuseManifestPath)),
       supplementSourceSha256: sha256(fs.readFileSync(supplementPath)),
-      reuseApprovals: reuseManifest.approvals.length,
-      sourceBoundSupplements: supplement.entries.length,
+      reuseApprovals: reuseApprovals.length,
+      sourceBoundSupplements: supplementEntries.length,
     },
     counts: table.counts,
     output: {

@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/demo_reader_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖官方2.8 Core/Extension架构切片与Preset回调反汇编。
  * [OUTPUT]: 锁定textFromFile optional返回槽、导出、导入和唯一菜单caller。
@@ -147,3 +150,5 @@ static_assert(static_cast<std::int64_t>(kPresetTextFromFileCallOffset) +
               static_cast<std::int64_t>(kTextFromFileStubOffset));
 #endif
 }  // namespace native_demo_reader::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

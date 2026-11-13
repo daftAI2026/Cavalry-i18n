@@ -35,3 +35,5 @@ Tauri 是唯一桌面壳；renderer 文件仍是 UI 真相源。Rust command 返
 非English同源profile在canonical回执校验后报告真实恢复阶段，再进入首次receipt写入；不加IO或动画延时。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+2.8.1候选：`tauri.native-2.8.1-candidate.conf.json`绑定独立identifier与完整281资源；显式Development281模式选择281 target，默认生产仍为280。

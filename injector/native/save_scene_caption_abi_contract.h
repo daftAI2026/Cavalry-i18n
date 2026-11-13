@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/save_scene_caption_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖官方2.8各架构QFileDialog调用窗、QtWidgets UUID与导出符号。
  * [OUTPUT]: 锁定QString返回槽、四个引用参数、精确caption caller及BL目标。
@@ -108,3 +111,5 @@ static_assert(static_cast<std::int64_t>(kCallOffset) +
               static_cast<std::int64_t>(kImportStubOffset));
 #endif
 }  // namespace native_save_scene_caption::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

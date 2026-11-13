@@ -1,0 +1,141 @@
+/**
+ * [INPUT]: 依赖独审的 Cavalry 2.8.1 arm64 GetPath 与固定owner字节窗；x86 Graph合同见专用头。
+ * [OUTPUT]: 锁定arm64映像UUID、GetPath ABI、FPS/Graph调用窗及字体factory导出。
+ * [POS]: 只保存已审二进制合同；运行路径由主映像推导。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+#pragma once
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+
+namespace native_getpath_abi::contract {
+inline constexpr char kCoreUuid[] = "FEFE5F95-740D-374F-9413-2AF1173AD9E0";
+inline constexpr char kExtensionUuid[] = "AF1367BD-2D7E-3EC0-A111-935E4881C655";
+inline constexpr char kSkiaUuid[] = "39783571-E2D1-3C48-971B-9D97981CE13B";
+
+inline constexpr char kGetPathSymbol[] =
+    "__ZN11SkTextUtils7GetPathEPKvm14SkTextEncodingffRK6SkFontP6SkPath";
+inline constexpr std::uintptr_t kGetPathOffset = 0x190a8;
+inline constexpr std::array<std::uint8_t, 24> kGetPathBytes = {
+    0xff, 0x83, 0x05, 0xd1, 0xe9, 0x23, 0x11, 0x6d,
+    0xfc, 0x6f, 0x12, 0xa9, 0xf6, 0x57, 0x13, 0xa9,
+    0xf4, 0x4f, 0x14, 0xa9, 0xfd, 0x7b, 0x15, 0xa9
+};
+
+inline constexpr char kMakePathFromTextSymbol[] =
+    "__ZN7cavalry16MakePathFromTextERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEd";
+inline constexpr char kSetupToolHelpSymbol[] = "__ZN20GraphicsViewportBase13setupToolHelpEv";
+inline constexpr char kGetOrCreateTextPathSymbol[] =
+    "__ZN20GraphicsViewportBase19getOrCreateTextPathERKNSt3__112basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEdRNS0_13unordered_mapIS6_N7cavalry4PathENS0_4hashIS6_EENS0_8equal_toIS6_EENS4_INS0_4pairIS7_SB_EEEEEE";
+inline constexpr char kViewportRenderFrameSymbol[] =
+    "__ZN20GraphicsViewportBase11renderFrameER8SkCanvasb";
+inline constexpr char kGraphEditorRenderFrameSymbol[] =
+    "__ZN7cavalry19AnimGraphEditorView11renderFrameEP9SkSurface";
+inline constexpr std::uintptr_t kSetupToolHelpOffset = 0x2327e4;
+inline constexpr std::uintptr_t kGetOrCreateTextPathOffset = 0x23c268;
+inline constexpr std::uintptr_t kViewportRenderFrameOffset = 0x2342e0;
+inline constexpr std::uintptr_t kGraphEditorRenderFrameOffset = 0x57dae8;
+inline constexpr std::uintptr_t kMakePathFromTextEntryOffset = 0x65954;
+inline constexpr std::array<std::uint8_t, 24> kMakePathFromTextEntryBytes = {
+    0xff, 0x43, 0x02, 0xd1, 0xe9, 0x23, 0x06, 0x6d,
+    0xf4, 0x4f, 0x07, 0xa9, 0xfd, 0x7b, 0x08, 0xa9,
+    0xfd, 0x03, 0x02, 0x91, 0xf3, 0x03, 0x08, 0xaa
+};
+inline constexpr std::uintptr_t kCoreGetPathImportStubOffset = 0xaf271c;
+inline constexpr std::array<std::uint8_t, 12> kCoreGetPathImportStubBytes = {
+    0xd0, 0x18, 0x00, 0xb0, 0x10, 0x7a, 0x43, 0xf9,
+    0x00, 0x02, 0x1f, 0xd6
+};
+inline constexpr std::uintptr_t kCoreGetPathCallOffset = 0x659f4;
+inline constexpr std::array<std::uint8_t, 24> kCoreGetPathCallBytes = {
+    0xa3, 0xe3, 0x00, 0xd1, 0xe4, 0xc3, 0x00, 0x91,
+    0x02, 0x00, 0x80, 0x52, 0x47, 0x33, 0x2a, 0x94,
+    0x28, 0x5c, 0x00, 0xf0, 0x00, 0x49, 0xc1, 0x3d
+};
+inline constexpr std::uintptr_t kExtensionGetPathCallOffset = 0x23c4f4;
+inline constexpr std::array<std::uint8_t, 24> kExtensionGetPathCallBytes = {
+    0xe8, 0x03, 0x13, 0xaa, 0xe0, 0x03, 0x15, 0xaa,
+    0x00, 0x1d, 0xa8, 0x4e, 0x9d, 0x98, 0x2b, 0x94,
+    0xe8, 0x03, 0x01, 0x91, 0xe8, 0x0b, 0x00, 0xf9
+};
+inline constexpr std::uintptr_t kSetupGetPathCallOffset = 0x232884;
+inline constexpr std::array<std::uint8_t, 48> kSetupGetPathCallBytes = {
+    0xe8, 0x03, 0x01, 0x91, 0x00, 0x10, 0x65, 0x1e,
+    0x62, 0xc2, 0x14, 0x91, 0x76, 0x26, 0x00, 0x94,
+    0xe8, 0x03, 0x00, 0x91, 0x00, 0x10, 0x65, 0x1e,
+    0x62, 0xc2, 0x14, 0x91, 0xe1, 0x03, 0x14, 0xaa,
+    0x71, 0x26, 0x00, 0x94, 0x75, 0xa2, 0x5b, 0xa9,
+    0xbf, 0x02, 0x08, 0xeb, 0x42, 0x03, 0x00, 0x54
+};
+inline constexpr std::uintptr_t kViewportGetPathCallOffset = 0x237ed4;
+inline constexpr std::array<std::uint8_t, 32> kViewportGetPathCallBytes = {
+    0xe8, 0x43, 0x1b, 0x91, 0xe1, 0x83, 0x37, 0x91,
+    0x00, 0x10, 0x65, 0x1e, 0x82, 0xc2, 0x14, 0x91,
+    0xe1, 0x10, 0x00, 0x94, 0xe8, 0x83, 0x39, 0x91,
+    0xe0, 0x43, 0x1b, 0x91, 0x22, 0xbb, 0x2b, 0x94
+};
+inline constexpr std::uintptr_t kViewportFpsGetPathCallOffset = 0x237544;
+inline constexpr std::array<std::uint8_t, 4> kViewportFpsGetPathCallBytes = {
+    0x8c, 0xac, 0x2b, 0x94
+};
+
+inline constexpr std::uintptr_t kCoreOwnerReturnOffset = 0x65a04;
+inline constexpr std::uintptr_t kCacheOwnerReturnOffset = 0x23c504;
+inline constexpr std::uintptr_t kToolHelpProducerReturnA = 0x232894;
+inline constexpr std::uintptr_t kToolHelpProducerReturnB = 0x2328a8;
+inline constexpr std::uintptr_t kViewportStatusProducerReturn = 0x237ee8;
+inline constexpr std::uintptr_t kViewportFpsProducerReturn = 0x237548;
+inline constexpr std::uintptr_t kGraphEditorEmptyStateCallWindowOffset = 0x57e28c;
+inline constexpr std::array<std::uint8_t, 16> kGraphEditorEmptyStateCallWindowBytes = {
+    0x00, 0x00, 0x62, 0x1e, 0xe8, 0x83, 0x01, 0x91,
+    0xe0, 0xc3, 0x02, 0x91, 0x37, 0x91, 0x1e, 0x94
+};
+inline constexpr std::uintptr_t kGraphEditorEmptyStateMakePathCallOffset = 0x57e298;
+inline constexpr std::uintptr_t kGraphEditorEmptyStateProducerReturn = 0x57e29c;
+inline constexpr std::uintptr_t kMakePathFromTextImportStubOffset = 0xd22774;
+inline constexpr std::array<std::uint8_t, 12> kMakePathFromTextImportStubBytes = {
+    0x30, 0x18, 0x00, 0xb0, 0x10, 0x42, 0x45, 0xf9,
+    0x00, 0x02, 0x1f, 0xd6
+};
+inline constexpr std::uintptr_t kNodeDataCaptureOffset = 0x18;
+inline constexpr std::uintptr_t kStringFieldOffset = 0x08;
+inline constexpr std::size_t kStringObjectBytes = 0x18;
+inline constexpr std::size_t kStringTagOffset = 0x17;
+inline constexpr std::size_t kShortStringCapacity = 22;
+
+inline constexpr char kMakeScalableFontSymbol[] =
+    "__ZN7cavalry16MakeScalableFontE5sk_spI10SkTypefaceEf";
+inline constexpr std::uintptr_t kMakeScalableFontOffset = 0x9bd14;
+inline constexpr std::array<std::uint8_t, 44> kMakeScalableFontBytes = {
+    0xff, 0xc3, 0x00, 0xd1, 0xf4, 0x4f, 0x01, 0xa9,
+    0xfd, 0x7b, 0x02, 0xa9, 0xfd, 0x83, 0x00, 0x91,
+    0xf3, 0x03, 0x08, 0xaa, 0x08, 0x00, 0x40, 0xf9,
+    0x1f, 0x00, 0x00, 0xf9, 0xe8, 0x07, 0x00, 0xf9,
+    0xe1, 0x23, 0x00, 0x91, 0xe0, 0x03, 0x13, 0xaa,
+    0x6b, 0x5e, 0x29, 0x94
+};
+inline constexpr char kMakeTypefaceSymbol[] = "__Z24SkMakeTypefaceFromCTFontPK8__CTFont";
+inline constexpr std::uintptr_t kTypefaceOffset = 0x352818;
+inline constexpr std::array<std::uint8_t, 32> kTypefaceBytes = {
+    0xff, 0xc3, 0x00, 0xd1, 0xf4, 0x4f, 0x01, 0xa9,
+    0xfd, 0x7b, 0x02, 0xa9, 0xfd, 0x83, 0x00, 0x91,
+    0xf3, 0x03, 0x00, 0xaa, 0xf4, 0x03, 0x08, 0xaa,
+    0x39, 0x63, 0x0d, 0x94, 0xff, 0x4f, 0x00, 0xa9
+};
+inline constexpr char kGetCTFontSymbol[] = "__Z23SkTypeface_GetCTFontRefPK10SkTypeface";
+inline constexpr std::uintptr_t kGetCTFontOffset = 0x3524e0;
+inline constexpr std::array<std::uint8_t, 20> kGetCTFontBytes = {
+    0x80, 0x00, 0x00, 0xb4, 0x08, 0x00, 0x40, 0xf9,
+    0x01, 0x7d, 0x40, 0xf9, 0x20, 0x00, 0x1f, 0xd6,
+    0xc0, 0x03, 0x5f, 0xd6
+};
+inline constexpr char kGlyphSymbol[] = "__ZNK10SkTypeface14unicharToGlyphEi";
+inline constexpr std::uintptr_t kGlyphOffset = 0x1b3a84;
+inline constexpr std::array<std::uint8_t, 24> kGlyphBytes = {
+    0xff, 0x83, 0x00, 0xd1, 0xfd, 0x7b, 0x01, 0xa9,
+    0xfd, 0x43, 0x00, 0x91, 0xa1, 0xc3, 0x1f, 0xb8,
+    0xbf, 0xa3, 0x1f, 0x78, 0x08, 0x00, 0x40, 0xf9
+};
+}  // namespace native_getpath_abi::contract

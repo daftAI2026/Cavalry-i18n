@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/timeline_owner_observer_contract.h"
+#else
 /**
  * [INPUT]: 依赖已审 Cavalry 2.8 arm64 Timeline call windows 与 caller symbols。
  * [OUTPUT]: 锁定两个 Measure/Draw return PC、closure 字段和调用窗口。
@@ -49,3 +52,5 @@ inline constexpr std::array<std::uint8_t, kDrawWindowBytes> kDrawWindow = {
 inline constexpr std::array<std::uint8_t, 4> kClosureEntry = {0xf3, 0x03, 0x00, 0xaa};
 inline constexpr std::array<std::uint8_t, 4> kMeasureOwnerLoad = {0x68, 0x0e, 0x40, 0xf9};
 }  // namespace timeline_owner_observer::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

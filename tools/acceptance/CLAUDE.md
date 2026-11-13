@@ -16,6 +16,8 @@ migration.js: 验证冻结v1与ToolHelp父链；归档原件与逐项crosswalk�
 scene-scope.js: 显式修订195个未填展开项；保留观察索引，以15个父场景核Timeline。
 scene-scope.test.js: 临时表核父链、原件与全部历史；拒绝已填结果转库存。
 checklist.test.js: path.win32覆盖跨卷及runs边界；临时目录验证库存、scope链、FAIL拒绝与归档篡改，不执行GUI。
+dependency_graph_fixture.py: 从skill六名称原生CV asset确定性派生自有DG fixture、六个共享case/expected与run_flow未绑定模板；不运行Cavalry。
+test_dependency_graph_fixture.py: 临时目录核六名称/ID/结构、无外部asset、源文件不变、输出确定及平台命令待绑定。
 local/handoff_windows/: Windows接手包、D-6/G-5/G-3/G-6任务单与源SHA打包器；只含安全文本差异、公开工具和离线平台夹具，不含Mac私档。
 
 本地忽略目录：runs/保存填写副本与证据；local/保存私人方案与驱动索引。

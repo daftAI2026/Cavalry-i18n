@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/native_locale_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖独审的 Cavalry 2.8 arm64 activeLocale 与 Extension GOT 证据。
  * [OUTPUT]: 锁定 getter 入口、调用者、stub、GOT 偏移与机器码。
@@ -37,3 +40,5 @@ inline bool extensionGotTargetsInterposer(
     return loadedTarget != nullptr && loadedTarget == interposer;
 }
 }  // namespace native_locale_interpose::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

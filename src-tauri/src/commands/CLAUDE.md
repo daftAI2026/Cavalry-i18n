@@ -35,3 +35,5 @@ update.rs: Switcher自更新；preview禁用，production仅允许正式identifi
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+`native_resources.rs`仅在编译期cavalry_native_281选择独立281 target；默认280资源与事务路径保留。

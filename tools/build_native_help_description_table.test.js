@@ -76,6 +76,12 @@ test('rejects unpaired UTF-16 surrogates before generating UTF-8 source', () => 
   assert.throws(() => generator.cppLiteral('\udc00', 'synthetic'), /unpaired low surrogate/);
 });
 
+test('2.8.1 metadata requires an explicit supported version', () => {
+  const args = ['--metadata-dir', path.join(os.tmpdir(), 'metadata'), '--out', path.join(os.tmpdir(), 'help.inc')];
+  assert.equal(generator.parseArguments([...args, '--cavalry-version', '2.8.1']).cavalryVersion, '2.8.1');
+  assert.throws(() => generator.parseArguments([...args, '--cavalry-version', '2.8.2']), /unsupported metadata/);
+});
+
 test('projects layout strings separately without description or locale data', () => {
   const row = {
     key: 'api_function_metadata.json#/same/description', runtimeName: 'same', kind: 'function',
@@ -124,5 +130,29 @@ test('generates the locked 384 main and 17 def official tables outside the check
     assert.deepEqual(persistedReceipt, receipt);
   } finally {
     fs.rmSync(outputDirectory, { recursive: true, force: true });
+  }
+});
+
+test('2.8.1 keeps all help roots while replacing changed descriptions and encode names', {
+  skip: !process.env.CAVALRY_2_8_1_METADATA_DIR,
+}, () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-281-help.'));
+  const outputFile = path.join(directory, 'help.inc');
+  try {
+    const metadataDirectory = process.env.CAVALRY_2_8_1_METADATA_DIR;
+    assert.throws(() => generator.generate({ metadataDirectory, outputFile }), /locked official 2.8.0/);
+    const receipt = generator.generate({ metadataDirectory, outputFile, cavalryVersion: '2.8.1' });
+    assert.equal(receipt.counts.reusedApprovals, 473);
+    assert.equal(receipt.counts.supplementedDescriptions, 39);
+    assert.equal(receipt.counts.descriptionLeaves, 512);
+    assert.equal(receipt.output.runtimeRootEntries, 384);
+    assert.equal(receipt.output.runtimeDefEntries, 17);
+    assert.equal(receipt.output.layoutRootEntries, 401);
+    const table = fs.readFileSync(outputFile, 'utf8');
+    assert.match(table, /u8"encode"/);
+    assert.match(table, /u8"encodeFile"/);
+    assert.doesNotMatch(table, /u8"encrypt(?:File)?"/);
+  } finally {
+    fs.rmSync(directory, { recursive: true, force: true });
   }
 });

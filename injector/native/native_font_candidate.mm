@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖arm64或x86字体ABI合同、独立locale门及分架构owner校验。
- * [OUTPUT]: 提供唯一gLocale、双合同字体准入门及精确caller文字投影。
- * [POS]: x86字体门要求locale与ABI合同同时通过；ARM准入逻辑不变。
+ * [INPUT]: 依赖arm64或x86字体ABI合同、独立locale门及分架构owner校验；显式2.8.1 arm64另依赖NodeView合同。
+ * [OUTPUT]: 提供唯一gLocale、字体准入门与精确caller文字投影；目标宏启用时加NodeView Measure/Draw路由和fmt v11导入符号。
+ * [POS]: 默认2.8.0实现保持原样；NodeView与fmt v11只在CAVALRY_NATIVE_TARGET_281 arm64目标编译。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include <CoreText/CoreText.h>
@@ -57,6 +57,10 @@ namespace native_candidate_arch = native_candidate_architecture;
 #include "title_format_abi_contract.h"
 #include "help_description_abi_contract.h"
 #include "demo_reader_abi_contract.h"
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#include "dependency_node_font_abi_contract.h"
+#include "dependency_node_font_policy.h"
+#endif
 
 using DemoTextFromFileResult = native_demo_reader::contract::TextFromFileResult;
 namespace native_demo_reader { extern std::atomic<bool> gContractReady; }
@@ -77,7 +81,11 @@ extern "C" std::string nativeTitleVformatInterpose(
 extern "C" std::string titleFormatVformatTarget(
     native_title_format_abi::FormatStringView format,
     native_title_format_abi::FormatArguments arguments)
+#if defined(CAVALRY_NATIVE_TARGET_281)
+    __asm__("__ZN3fmt3v117vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_7contextEEE");
+#else
     __asm__("__ZN3fmt3v107vformatENS0_17basic_string_viewIcEENS0_17basic_format_argsINS0_20basic_format_contextINS0_8appenderEcEEEE");
+#endif
 #pragma clang diagnostic pop
 extern "C" void nativeHelpDocumentationInterpose(
     void *owner, const std::string &key,
@@ -98,7 +106,6 @@ void welcomeLogItTarget(void *logger, const void *message,
                         bool logEnabled, bool tracebackEnabled)
     __asm__("__ZN6spdlog6logger7log_it_ERKNS_7details7log_msgEbb");
 }
-
 namespace {
 namespace e4_contract = native_getpath_abi::contract;
 namespace observer_contract = timeline_owner_observer::contract;
@@ -276,12 +283,10 @@ public:
 private:
     CFDictionaryRef value_;
 };
-
 bool imagePathMatches(const char *path, const char *expected) noexcept
 {
     return native_image_paths::pathMatchesCanonical(path, expected);
 }
-
 #if !defined(__x86_64__)
 bool appFrameworkPath(const char *leaf, char *output, std::size_t capacity) noexcept
 {
@@ -296,7 +301,6 @@ bool symbolAt(const LoadedImage &image, const char *symbol,
 {
     return findMachOSymbol(image, symbol) == imageAddress(image, offset);
 }
-
 #endif
 #if defined(__x86_64__)
 [[maybe_unused]] bool verifyViewportProbe(const LoadedImage &) noexcept;
@@ -395,7 +399,6 @@ bool verifyContract() noexcept
     return exactNativeLocaleRuntimeBinding(api, extension);
 #endif
 }
-
 bool readSelf(const void *source, std::size_t size, void *destination) noexcept
 {
     if (source == nullptr || destination == nullptr || size == 0 ||
@@ -593,6 +596,9 @@ FontSlot *findOrCreateSlot(const FontKey &key, CTFontRef resolvedFont,
 }
 
 #include "shared_verified_text_fallback.inc"
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#include "dependency_node_font_adapter.inc"
+#endif
 #include "viewport_font_adapter.inc"
 #include "timeline_font_adapter.inc"
 #include "getpath_font_adapter.inc"
@@ -733,6 +739,9 @@ extern "C" __attribute__((noinline)) std::string nativeActiveLocaleInterpose(Api
     return result;
 }
 
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#include "skia_text_dispatch_281.inc"
+#else
 extern "C" float timelineMeasureDispatch(
     const void *font, const void *text, std::size_t length, int encoding,
     const void *bounds, const void *paint, const void *closure,
@@ -759,6 +768,7 @@ extern "C" void timelineDrawDispatch(
             original(canvas, text, length, encoding, x, y, displayFont, paint);
         });
 }
+#endif
 
 extern "C" viewport_blob::BlobResultAbi viewport_blob::viewportBlobDispatch(
     const void *text,std::size_t length,const void *font,int encoding,

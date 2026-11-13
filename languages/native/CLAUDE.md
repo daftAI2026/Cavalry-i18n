@@ -98,3 +98,5 @@ official_demo_menus.js: 构建期源绑定审批，100个官方demo叶/300译槽
 此目录与父级四语 2.7.2 overlay 资产分开：数据供生成层消费，不直接复制到用户 Plugins，不将审稿元数据写入 registry。UI 译文经 `tools/native_language_pack.js` 的源绑定和厂商日语优先选择后投影单语言 `strings.json`；脚本说明经 `tools/native_metadata_help.js` 只修改当前源 description，不能写进 UI registry 或套 ICU 门。UI 数据经显式 `tools/native_resource_bundle.js` 接入未发布的 macOS debug 开发预览；独立脚本帮助尚未部署。纯投影API默认保留全部 `dontTranslate`。生产asset-root入口只选择 `official_demo_menus.js` 中100个root批准的官方demo叶，并核对完整catalog/键/source/notes/vendor/DNT身份及三语精确译值。JavaScript类别、Audio Solver和其他DNT保持原文；该例外不改preset路径、模型名或触发动作。通常由 AGY 沿项目级宝玉 Skill 出稿、Grok 独立检查、主代理裁定；维护者授权的 CLI 额度回退仍须完整源绑定、独立全域审校与主代理审批，provenance 分别记录真实出稿/修订/审校来源和未完成终态，待收追加审稿不能充当通过门。构建和测试不需要这些 CLI、Skill 或私有过程文件。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+metadata_2_8_1_delta.js：2.8.1官方MetaData四个改动/两个新增source的三语补译，由显式281帮助producer消费；280默认帮助源不变。

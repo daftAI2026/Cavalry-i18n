@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/guide_body_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖Cavalry 2.8 arm64 Guide caller与Qt 6.9.2 QTextEdit导出。
  * [OUTPUT]: 锁定唯一source caller、尾跳callee、映像UUID与setter符号。
@@ -65,3 +68,5 @@ static_assert(static_cast<std::int64_t>(kBodyOverrideOffset + 4U) +
               arm64BranchDisplacement(kBodyOverrideBranchBytes) ==
               static_cast<std::int64_t>(kSetTextImportStubOffset));
 }  // namespace native_guide_body::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

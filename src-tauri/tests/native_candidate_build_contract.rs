@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖native_candidate_build_contract的纯构建模式裁决。
- * [OUTPUT]: 验证Mac preview、Mac双架构和Windows x64显式2.8 production构建模式。
+ * [OUTPUT]: 验证Mac preview/2.8.1候选、Mac双架构和Windows x64显式2.8 production构建模式。
  * [POS]: 构建入口的无副作用合同；不运行App或读用户状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -8,6 +8,40 @@
 mod contract;
 
 use contract::{select_native_build_mode as select, NativeBuildMode as Mode};
+
+#[test]
+fn candidate_281_is_explicit_and_does_not_enable_other_platforms() {
+    for profile in ["debug", "release"] {
+        assert_eq!(
+            select(
+                "macos",
+                "aarch64",
+                profile,
+                None,
+                None,
+                Some("development-2.8.1")
+            ),
+            Ok(Mode::Development281)
+        );
+    }
+    for (os, arch) in [
+        ("macos", "x86_64"),
+        ("windows", "x86_64"),
+        ("linux", "aarch64"),
+    ] {
+        assert!(select(os, arch, "release", None, None, Some("development-2.8.1")).is_err());
+    }
+    assert!(select(
+        "macos",
+        "aarch64",
+        "release",
+        Some("1"),
+        None,
+        Some("development-2.8.1")
+    )
+    .is_err());
+    assert_eq!(Mode::Development281.as_str(), "development-2.8.1");
+}
 
 #[test]
 fn default_release_stays_legacy_even_with_stray_candidate_flag() {

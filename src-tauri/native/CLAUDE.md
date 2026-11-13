@@ -9,3 +9,5 @@ native_preview_injector_contract.rs: build.rs 与 native_runtime_source 共用�
 法则: 固定权限·非激活窗口·真实拖拽·业务结果裁决·预览二进制边界
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+`native_candidate_build_contract.rs`的Development281只供显式macOS arm64候选；默认/production模式的选择规则保留。

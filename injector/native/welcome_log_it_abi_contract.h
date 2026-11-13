@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/welcome_log_it_abi_contract.h"
+#else
 /**
  * [INPUT]: 依赖已审Cavalry 2.8 arm64 Extension与spdlog映像事实。
  * [OUTPUT]: 锁定唯一Welcome调用点、log_it_导出与log_msg payload布局。
@@ -48,3 +51,5 @@ static_assert(sizeof(LogMessageAbi) == kLogMessageBytes);
 static_assert(kExtensionReturnOffset == kExtensionCallOffset + sizeof(std::uint32_t));
 
 }  // namespace welcome_log_it::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

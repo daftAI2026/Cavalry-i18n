@@ -27,6 +27,7 @@
 | 其他插件 | approved-plugin-targets.json + request.py | 标签、枚举、条件提示及nodeInfo同面板完成 |
 | 六名五态 | run_six_name_matrix.py | keep-alive接run_quality_toolhelp.py；helper不算正常首帧 |
 | 已存工程 | run_loaded_fixture.py | resume-pid要求兼容helper；自动Quit必须放批末 |
+| Dependency Graph六名 | dependency_graph_fixture.py + 外部F2只读host/client | 自有CV由skill原生asset确定性派生；共享六case；计划动作待各平台绑定 |
 | 普通首帧 | f4_normal_capture.py | 启动前采集；同PID继续菜单，不先刷新 |
 | 菜单计时 | run_menu_pair.py | 旧入口仅en/Hant且固定路径；不可假称三语通用 |
 | Guide | 已成功完整Animation/Connection/Behaviour入口 | 每语完整路径；不用before/diagnostic失败入口 |
@@ -88,5 +89,32 @@ OCR、全文比较、摘要汇总在采集批次后执行。
 表单分组是检查索引，不是可以盲目顺序执行的命令。
 共用动作不共用结论，每个细项必须有自己的判定。
 成功脚本有输入假设；缺适配时记录缺口，不重新发明成功链路。
+
+## Dependency Graph字体补验
+
+固定fixture、expected和六个case由外部工具生成；不使用Cavalry内部Script菜单或JavaScript API生成、重命名或保存场景：
+
+```sh
+python3 tools/acceptance/dependency_graph_fixture.py --out '<新run目录绝对路径>' --locale zh-Hans
+```
+
+工具只从项目skill的`timeline-six-names.cv`复制固定节点结构，并改写六个自有`niceName`和composition名称。
+输出包括`fixture/dependency-graph-six-names.cv`、`expected.json`与`plan.template.json`。
+fixture保留六个固定`javaScriptShape#1`至`#6`节点、默认椭圆表达式和连接；名称及机器type分开记录，外部资源与引用保持为空。
+源asset有固定SHA；变更后须审阅并更新绑定，不能改用来历不明的CV附件。
+
+一语一份输出；三语共用同一CV结构和六个case，只按locale给出类型行预期及截图文件名。
+步骤为初始两行文字、ASCII对照、长名省略、同节点原生改名、标准Save/重开持久性、Timeline/Viewport同名回归。
+每个case单独记录读回目标、像素预期、采集目标和PNG名；输入清单只说明预期，不自动给PASS。
+
+`plan.template.json`沿用`run_flow.py`的step字段和命令映射。
+macOS与Windows的`action`、`capture`命令数组故意为空；未绑定时`run_flow.py --check`应失败，不能填虚构可执行路径。
+绑定真实平台动作后，仍须经声明`profileHandback`的实际平台生命周期入口运行。
+外部runner应正常打开本轮CV副本，通过真实菜单/Qt动作显示Dependency Graph，并使用外部Qt host完成界面库存与F2只读全文回读；不要读DisplayRole冒充像素。
+重命名、Save和重开走Cavalry标准界面；截图按exact PID/窗口单图采集，再离线审图和记录。
+
+macOS可复用外部F2的`inventory`与`readFixtureRow`协议，但本模块不捆绑runner、host二进制或私有会话路径。
+Windows目前只有共享fixture与case定义，尚无Windows动作驱动；Windows实跑前必须绑定并验证其自身host、窗口采集及生命周期入口。
+未绑定的菜单动作、读回或清理保留为待办，不把macOS驱动映射成Windows PASS。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
