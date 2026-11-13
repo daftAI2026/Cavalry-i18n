@@ -114,6 +114,6 @@ test('asset-root production path opts in only through the approved demo module',
 
   const producer = fs.readFileSync(path.join(__dirname, 'native_resource_bundle.js'), 'utf8');
   assert.match(producer,
-    /buildNativeResourceBundle\(pairs, approvedEntries\(\), undefined, supplements, DEMO_MENU_DNT_KEYS, profile\)/,
+    /buildNativeResourceBundle\(pairs, approvedEntries\(target\.cavalryVersion\), undefined, supplements, DEMO_MENU_DNT_KEYS, profile\)/,
     'buildFromAssetRoot must use the narrowly approved producer');
 });

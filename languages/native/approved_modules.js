@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖同目录已经由主代理审定的UI显示批次；官方demo菜单100条、Forge8、缺源365和插件caption1独立登记。
- * [OUTPUT]: 提供构建原生用户包的唯一显式审批模块清单与合并入口。
- * [POS]: languages/native 的审批装配边界；新增批次显式进入此清单，构建不依赖AGY/Grok或私库。
+ * [INPUT]: 依赖同目录已登记UI审批批次；2.8.1只选择独立source-bound delta并过滤已删除键。
+ * [OUTPUT]: 提供按Cavalry版本选择的显式原生UI审批列表；默认仍为2.8.0。
+ * [POS]: languages/native 的审批装配边界；构建不依赖AGY/Grok或私库。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -38,7 +38,14 @@ const APPROVED_MODULES = Object.freeze([
   'schema_attribute_gap_a',
   'schema_attribute_gap_b', 'plugin_caption_supplement',
 ]);
-function approvedEntries() {
-  return APPROVED_MODULES.flatMap(name => require(`./${name}.js`).entries);
+function approvedEntries(cavalryVersion = '2.8.0') {
+  const base = APPROVED_MODULES.flatMap(name => require(`./${name}.js`).entries);
+  if (cavalryVersion === '2.8.0') return base;
+  if (cavalryVersion !== '2.8.1') throw new Error(`unsupported native approval target: ${cavalryVersion}`);
+
+  const { entries, removedEntries } = require('./release_2_8_1_delta');
+  const replacedKeys = new Set(entries.map(row => row.key));
+  const removedKeys = new Set(removedEntries.map(row => row.key));
+  return [...base.filter(row => !replacedKeys.has(row.key) && !removedKeys.has(row.key)), ...entries];
 }
 module.exports = { APPROVED_MODULES, approvedEntries };

@@ -11,10 +11,29 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
 const { assertOfficialTarget, officialTargetSha256, OFFICIAL_TARGET_SHA256 } = require('./native_official_target');
+const { assertCandidate281Target } = require('./native_official_target');
 
 const TARGET_PATH = path.join(__dirname, 'cavalry_native_target.json');
 const targetBytes = fs.readFileSync(TARGET_PATH);
 const canonicalBytes = target => Buffer.from(`${JSON.stringify(target, null, 2)}\n`);
+
+test('2.8.1 candidate has a separate exact source lock without admitting it as 2.8.0', () => {
+  const bytes = fs.readFileSync(path.join(__dirname, 'cavalry_native_target_2_8_1.json'));
+  const { target } = assertCandidate281Target(bytes);
+  assert.equal(target.cavalryVersion, '2.8.1');
+  assert.equal(target.nativeKeys, 10468);
+  assert.equal(target.vendorJapaneseKeys, 390);
+  assert.throws(() => assertOfficialTarget(bytes));
+  assert.throws(() => assertCandidate281Target(targetBytes));
+  for (const mutate of [
+    t => { t.executableSha256 = 'a'.repeat(64); },
+    t => { t.catalogs[0].sourceSha256 = 'b'.repeat(64); },
+    t => { t.sourceFiles[0].sha256 = 'c'.repeat(64); },
+  ]) {
+    const changed = structuredClone(target); mutate(changed);
+    assert.throws(() => assertCandidate281Target(canonicalBytes(changed)), /candidate target digest/);
+  }
+});
 
 test('official target domain projects to the frozen pre-supplement SHA', () => {
   const result = assertOfficialTarget(targetBytes);
