@@ -173,4 +173,5 @@ skia_text_dispatch_281.inc: 仅供CAVALRY_NATIVE_TARGET_281 arm64使用；把两
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 build_candidate_2_8_1.py：在临时源树使用abi_2_8_1合同与测试构建显式arm64候选，不覆盖280构建器或安装App。
+build_candidate_2_8_1_test.py：核281 fmt/Viewport/TextBlob输入被选中，并验证280原源逐字保留。
 check_dependency_node_font_contract.py：对281 NodeView两header定位的符号与调用窗做只读vendor校验。

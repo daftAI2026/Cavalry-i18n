@@ -45,6 +45,14 @@ def prepare_tree(root: Path, destination: Path) -> dict:
     end = text.index("viewport_owner::StackRange currentThreadStack", start)
     viewport.write_text(text[:start] + (profile / "viewport_probe.inc").read_text() + text[end:])
 
+    bindings = native / "skia_original_bindings.inc"
+    text = bindings.read_text()
+    old_blob = "imageAddress(gSkiaImage, 0x1b40d8)"
+    if text.count(old_blob) != 1:
+        raise RuntimeError("shared Skia binding no longer has its expected 2.8.0 input")
+    bindings.write_text(text.replace(old_blob,
+        "imageAddress(gSkiaImage, observer_contract::kTextBlobSymbolOffset)"))
+
     build = native / "build_candidate.sh"
     text = build.read_text()
     text = text.replace("clang++ ", "clang++ -DCAVALRY_NATIVE_TARGET_281=1 ")
