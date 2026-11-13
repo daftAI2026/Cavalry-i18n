@@ -82,6 +82,25 @@ test('native build emits one-language display-only previews with honest fallback
   }
   assert.deepEqual(JSON.parse(packs.ja_JP)[0].value.vendor, { 'UI-text': '完了' });
 });
+
+test('2.8.1 candidate uses the existing pack shape and requires complete translations', () => {
+  const { pairs } = fixture();
+  const { collectNativeCatalog } = require('./native_language_pack');
+  const rows = collectNativeCatalog(pairs[0].id, pairs[0].source, pairs[0].japanese).entries;
+  const approved = rows.filter(row => !row.dontTranslate).map(row => ({
+    ...row, translations: Object.fromEntries(['zh-Hans', 'zh-Hant', 'ja_JP'].map(language =>
+      [language, { decision: 'preserve', text: row.source }])),
+  }));
+  const built = buildNativeResourceBundle(pairs, approved, undefined, [], [], 'development-2.8.1');
+  assert.equal(built.manifest.cavalryVersion, '2.8.1');
+  assert.equal(built.manifest.kind, 'development-preview');
+  assert.equal(built.manifest.complete, true);
+  assert.equal(JSON.parse(built.packs['zh-Hans'])[0].language, 'zh-Hans');
+  const { validateResourceProfile } = require('./native_resource_bundle');
+  assert.equal(validateResourceProfile(built.manifest, 'development-2.8.1'), true);
+  assert.throws(() => validateResourceProfile(built.manifest, 'development-preview'), /version differs/);
+  assert.throws(() => buildNativeResourceBundle(pairs, [], undefined, [], [], 'development-2.8.1'), /complete translations/);
+});
 test('production resource profile rejects incomplete packs and binds the explicit profile', () => {
   const { pairs, approved } = fixture();
   assert.throws(() => buildNativeResourceBundle(pairs, approved, undefined, [], [], 'production-2.8'), /complete translations/i);

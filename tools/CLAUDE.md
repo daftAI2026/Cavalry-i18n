@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+cavalry_native_target_2_8_1.json / native_281_delta.test.js: 用户官方2.8.1包的独立候选source锁与33键三语增补/12移除合同；不改变2.8.0已验生产目标。native_resource_bundle的development-2.8.1复用原producer和375补充源，隔离输出完整候选包。
 watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建兼容评估issue，不改变产品准入；离线合同覆盖网络/源漂移、数值版本及重复运行。
 check_powershell_syntax.ps1: Parser.ParseFile单文件语法driver；只读源码并以退出码报告错误，不执行待验脚本。
 windows_native_pack_contract.ps1: Windows合同driver加载真实native pack校验器；只消费临时fixture，不安装软件。

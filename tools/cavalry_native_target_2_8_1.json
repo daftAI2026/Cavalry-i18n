@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "purpose": "macOS 2.8.1 candidate source lock; not a release support declaration",
+  "cavalryVersion": "2.8.1",
+  "qtVersion": "6.9.2",
+  "bundleId": "com.scenegroup.cavalry",
+  "executable": "Contents/MacOS/Cavalry",
+  "executableSha256": "66a1a6a4c63eb0f1fb6bae149d26a4f8b59e0d78213b3a4a4ab6c672a70a32a8",
+  "nativeKeys": 10468,
+  "vendorJapaneseKeys": 390,
+  "catalogs": [
+    {
+      "id": "Definitions/Translation/appStrings",
+      "source": "Definitions/Translation/appStrings_en-GB.source.json",
+      "sourceSha256": "79fc4745b1eb9c87af3e750df51e6ba8987b1f52e48876d68a29c1aebedeb32e",
+      "japanese": "Definitions/Translation/appStrings_ja-JP.translation.json",
+      "japaneseSha256": "4b4c326b864722d3f1d760f5383704cf0081907a6852600a9a9a2b58016b7247"
+    },
+    {
+      "id": "Definitions/Translation/nodeStrings",
+      "source": "Definitions/Translation/nodeStrings_en-GB.source.json",
+      "sourceSha256": "09f9c938274a96d58a6b95ca82ef81ab07d60abfc2ec8136ffff72898e1b00e9",
+      "japanese": "Definitions/Translation/nodeStrings_ja-JP.translation.json",
+      "japaneseSha256": "5d0e0e015395453aab476d9cb9947a9f409ef7ecbafe2de62fd5d50d269ca65e"
+    },
+    {
+      "id": "Learn/Guides/Translation/strings",
+      "source": "Learn/Guides/Translation/strings_en-GB.source.json",
+      "sourceSha256": "301a799c21c60552bce93a5e5ef3bc263c4121032a3fd89f35f547b3b6f524b0",
+      "japanese": "Learn/Guides/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "9c4651365a168a5ddd1e9de5292719cc8f7c14d84fbda86c8429e61fe41a8a0d"
+    },
+    {
+      "id": "Plugins/Bilateral Blur Filter/Translation/strings",
+      "source": "Plugins/Bilateral Blur Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "745b79dddd53b1e9b00993740b4772938eea01cf138a3182c500b6cdbd44ab1d",
+      "japanese": "Plugins/Bilateral Blur Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "7c6c8c5c3e7da46072cb82f506684bc032f889cd9b787c075590402b45514f37"
+    },
+    {
+      "id": "Plugins/Box Blur Filter/Translation/strings",
+      "source": "Plugins/Box Blur Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "214f15281af7ce14dbdabf93758735e79eb4634d398e22a583046c122196e84e",
+      "japanese": "Plugins/Box Blur Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "87c4d39294e2ea5804609ae46ebe3987cfd13c2fea34a953da2cd050a9b3e4db"
+    },
+    {
+      "id": "Plugins/Bulge Filter/Translation/strings",
+      "source": "Plugins/Bulge Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "0184d3832b500d2da132e43255dcd27b08428d4ca34cc2ec324086e4c07ee7ba",
+      "japanese": "Plugins/Bulge Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "e0d69d937330f1ac492899cfab8146b9ac929fa2e697f79377eebd7e899b7908"
+    },
+    {
+      "id": "Plugins/Chroma Key Filter/Translation/strings",
+      "source": "Plugins/Chroma Key Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "db5f2b210acc1e044cf16380861bf078eb53f3e86fc3bb323f31ea5230a95a44",
+      "japanese": "Plugins/Chroma Key Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "f8a61e1e8769a22280ab9aaefc3f5f1d211433429c884ef846d3ac9fc241ca7a"
+    },
+    {
+      "id": "Plugins/Directional Blur Filter/Translation/strings",
+      "source": "Plugins/Directional Blur Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "8319ba0837779a287fed61a45a6ac344788ba52d22847c7af4772d8dbd3fcb77",
+      "japanese": "Plugins/Directional Blur Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "46dc96975e6fb51851cc093d084f22066c23c4e52b4067897ebf5d30b50ae658"
+    },
+    {
+      "id": "Plugins/Erosion Filter/Translation/strings",
+      "source": "Plugins/Erosion Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "229acf7ebf6af314e264e1e9ab88547eef4c0eaf02623889e9ea593c1c789186",
+      "japanese": "Plugins/Erosion Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "9a94703d2d0ed5eff89a64203397d1ab9b316a04f101f42234baa09313160a04"
+    },
+    {
+      "id": "Plugins/Gaussian Blur Filter/Translation/strings",
+      "source": "Plugins/Gaussian Blur Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "5aa36de3b5a91f31f1c4e699244cd4909a28eaadac6c99213a2034feb4b2adb5",
+      "japanese": "Plugins/Gaussian Blur Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "1cb39254364453b8c7d2814ddd13a1df542252007b93a2ec9c352307aa1bdf52"
+    },
+    {
+      "id": "Plugins/Grain Filter/Translation/strings",
+      "source": "Plugins/Grain Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "2553d94c4701302d369719f76719958bd50e8ef859d108da684ffa19ba2cec24",
+      "japanese": "Plugins/Grain Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "af467c142d4b6d584e66cfb82f5194c56c672a53c0e315664daaa5f0f2c6ef3a"
+    },
+    {
+      "id": "Plugins/Light Sweep Filter/Translation/strings",
+      "source": "Plugins/Light Sweep Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "f27a47ff1bc9257820f8cf1b4fb05ce0295be37593c0faaae8d7cd3fda7411a3",
+      "japanese": "Plugins/Light Sweep Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "26a078e0453e2cf6aa9266091163682fb74d58cadc1829b44898e8029135476a"
+    },
+    {
+      "id": "Plugins/Polar Coordinates Filter/Translation/strings",
+      "source": "Plugins/Polar Coordinates Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "6e478d20329221b88982832934a777a620473846460dd5bcdfc76661560b0a13",
+      "japanese": "Plugins/Polar Coordinates Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "062240d40e9f649fab6d4f7f526918e1a26e7c6eb22e4ef263c7ac766bd1fcb2"
+    },
+    {
+      "id": "Plugins/Ripple Filter/Translation/strings",
+      "source": "Plugins/Ripple Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "7d0f83c2e4afa51d6e61e0383db9c33964e0a5015cdbb115150ae7f8d7a43100",
+      "japanese": "Plugins/Ripple Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "a205da0c72ee5fcd455f79ed8a90da2cc09c6a803c827c97ea0b8924021808e7"
+    },
+    {
+      "id": "Plugins/Spherise Filter/Translation/strings",
+      "source": "Plugins/Spherise Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "55138e82d488f6942583bb17071756397b8560b6f6711ef6c0dce35439f0a72f",
+      "japanese": "Plugins/Spherise Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "e89e01fc72667c76f6f2df811d577edbcd9419024091bb6eee6a31a6e96e9cb3"
+    },
+    {
+      "id": "Plugins/Twist Filter/Translation/strings",
+      "source": "Plugins/Twist Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "e40a515366f9c692440a252d5fbf63cb996e792e447421c1d1334a82f1735ffc",
+      "japanese": "Plugins/Twist Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "9313039093c237fef8621aaddd31cbcdae56163dcf30e653afdcc93ff0574586"
+    },
+    {
+      "id": "Plugins/Zoom Blur Filter/Translation/strings",
+      "source": "Plugins/Zoom Blur Filter/Translation/strings_en-GB.source.json",
+      "sourceSha256": "c2f52693e246d9e0c2fe29ec9d623107b857aacc57c65863d74261ca9d9b3439",
+      "japanese": "Plugins/Zoom Blur Filter/Translation/strings_ja-JP.translation.json",
+      "japaneseSha256": "3eead69c623979b39bcff7cc211360d319a51c37716d0191aeffcc3af1b0344b"
+    }
+  ],
+  "runtimeFiles": [
+    {
+      "path": "Contents/Frameworks/libApi.dylib",
+      "sha256": "6aa6257c45222ea32135907cbed43cf6b2a67ffe7bd84afb1b42bc93cc29bb77"
+    },
+    {
+      "path": "Contents/Frameworks/libCore.dylib",
+      "sha256": "9be57aae3a950c36ee7983f7231031114bbd438822bb7e06ffc6a9da17a8e955"
+    },
+    {
+      "path": "Contents/Frameworks/QtCore.framework/Versions/A/QtCore",
+      "sha256": "e3ac89989203c3e9653b79e04216102c24ecc3e30fe2d83a0125d5a5cba2e1f6"
+    }
+  ],
+  "supplementalKeys": 373,
+  "sourceFiles": [
+    {
+      "path": "Definitions/nodeDefinitions.json",
+      "sha256": "d3acdbcc8da60354d57674cc3ae0025409f06e66758646114f808a43c29321af"
+    }
+  ]
+}
