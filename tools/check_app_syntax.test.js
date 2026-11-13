@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖应用语法清单、package.json、Node测试器与受控临时目录。
- * [OUTPUT]: 锁定短入口、原218项及顺序，并验证逐文件命令对语法错和缺文件失败。
+ * [OUTPUT]: 锁定短入口、原218项及顺序、追加的版本监控项，并验证逐文件命令对语法错和缺文件失败。
  * [POS]: tools 的语法runner合同；不扫描目录，不启动应用。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,6 +41,8 @@ test('the runner retains every legacy syntax path in its original order', () => 
     'tools/windows_native_build.test.js',
     'tools/check_windows_native_nsis.test.js',
     'tools/prepare_cavalry_28_windows_ci_inputs.test.js',
+    'tools/watch_cavalry_release.js',
+    'tools/watch_cavalry_release.test.js',
   ]);
   assert.equal(new Set(APP_SYNTAX_FILES).size, APP_SYNTAX_FILES.length);
 });

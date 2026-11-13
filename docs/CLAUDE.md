@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+upstream-version-monitor.md: 官方稳定版本每日监控SOP；native target基线、全状态issue去重、dry-run/写入及失败处理；不授新版兼容信用。
 acceptance-workflow.md: 整轮单表、库存与实屏范围、显式迁移、失败复验及Windows源SHA交接、未接驱动和平台独立规则。
 cavalry-glossary.md: Cavalry四语术语表，按数值/图像区分Add与Multiply、HSV/普通Value、文本Line/几何端部/描边Round/Flat/Projecting（Adobe分产品的合法同義詞不机械判错）、布局Wrap/数值倍率/Oklab及物理Still/Fixture/Body；Knot采用起始方向并记录原notes歧义，不接永久先画段提案；Transform日文/繁中與Extrude的成熟软件合法替代词与项目首选标签分开归因，地区译名与项目选择分开归因，原厂说明冲突沿sourceCorrections复核，字体/品牌/模型/API身份不改。 Combine/Merge现代詞形與並字合法释义分界、Stepped Next下一关键帧功能证据防止词典式误判。 Row/Column地区轴词与日文minutes分数合法用法分界，繁中Stroke筆畫的台湾成熟软件用法与项目描邊首选不混为功能错误；Scale倍率不套几何禁词，Fade/Fill All/With/通道映射按数值与对象角色限定。
 runtime-ui-live-capture-workflow.md: 同时区分时间轴用户名称字体覆盖与界面翻译、两平台独立 ABI 和无逐帧诊断落盘； Runtime UI live 抓取流程，Windows 启动状态 marker 与显式绘制计数采样分离，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 平台精确边界（QLineEdit 只翻译 `placeholderText`；实际名称/查询值含只读、parentless/重挂接保持原文；未经采证的 model DisplayRole 风险仍独立处理），并规定全量复抓、增量修复、coverage 对比路径。

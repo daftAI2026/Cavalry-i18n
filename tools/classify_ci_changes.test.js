@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 classify_ci_changes.js 的路径分类接口与临时 Git 仓库
- * [OUTPUT]: 验证源码改名为文档仍走完整证据门；验证Windows catalog guard独占Windows门及近似未知路径仍fail-closed；证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [OUTPUT]: 独立官方版本监控仅走合同与依赖门；验证源码改名为文档仍走完整证据门；验证Windows catalog guard独占Windows门及近似未知路径仍fail-closed；证明离线验收工具合同门与未知驱动边界、技能 Markdown 文档轻门与脚本未知路径边界、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -25,6 +25,18 @@ function projection(scope) {
     reason: scope.reason,
   };
 }
+
+test('upstream watcher uses contracts while unknown workflow/tool names retain native gates', () => {
+  const scope = classifyPaths(['.github/workflows/watch-cavalry-release.yml', 'tools/watch_cavalry_release.js']);
+  assert.equal(scope.source, true);
+  assert.equal(scope.vulnerability, true);
+  assert.equal(scope.windows, false);
+  assert.equal(scope.macosInjector, false);
+  for (const unknown of ['.github/workflows/watch-other.yml', 'tools/watch_other_release.js']) {
+    assert.equal(classifyPaths([unknown]).windows, true);
+    assert.equal(classifyPaths([unknown]).macosInjector, true);
+  }
+});
 
 test('renaming executable source into documentation still requires source evidence', () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'ci-scope-rename-'));

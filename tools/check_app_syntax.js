@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 Node.js child_process 与 process.execPath；接收固定的应用语法检查文件清单。
+ * [INPUT]: 依赖 Node.js child_process 与 process.execPath；接收固定的应用与版本监控语法检查文件清单。
  * [OUTPUT]: 按原顺序逐文件执行 Node --check；首个缺失、语法错误或启动失败立即返回非零。
  * [POS]: tools 的短命令语法检查器；不扫描目录，不经 shell 展开参数。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -236,6 +236,8 @@ const APP_SYNTAX_FILES = Object.freeze([
   'tools/windows_native_build.test.js',
   'tools/check_windows_native_nsis.test.js',
   'tools/prepare_cavalry_28_windows_ci_inputs.test.js',
+  'tools/watch_cavalry_release.js',
+  'tools/watch_cavalry_release.test.js',
 ]);
 
 function runAppSyntaxCheck(files = APP_SYNTAX_FILES, options = {}) {

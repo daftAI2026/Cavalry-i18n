@@ -1,0 +1,31 @@
+# [INPUT]: 官方 Docs 版本入口与仓库 native target。
+# [OUTPUT]: 每个新稳定版本至多一条兼容性 issue（含关闭项去重）。
+# [POS]: 独立监控；不构建、不改支持版本、不发布。
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+name: Watch Cavalry Releases
+on:
+  schedule:
+    - cron: '23 2 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: cavalry-release-watch
+  cancel-in-progress: false
+jobs:
+  watch:
+    if: github.repository == 'daftAI2026/Cavalry-i18n'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '24.22.1'
+      - name: Check official version and open a deduplicated issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/watch_cavalry_release.js --write
