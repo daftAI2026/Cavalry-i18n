@@ -37,6 +37,7 @@ const mimeByExtension = Object.freeze({
   '.js': 'text/javascript; charset=utf-8',
   '.md': 'text/markdown; charset=utf-8',
   '.png': 'image/png',
+  '.webp': 'image/webp',
 });
 
 function loadReviewModules() {
@@ -87,6 +88,8 @@ function fixtureSource() {
   'use strict';
   const params = new URLSearchParams(location.search);
   const scenario = params.get('scenario') || 'translated';
+  // Explicit review replay only. Production never loads fixture.js or resets this marker.
+  if (scenario === 'followHand') localStorage.removeItem('cavalry-i18n:follow-hand-seen');
   const locale = params.get('locale') || 'zh-Hans';
   const browserLocale = {
     en: 'en-US', 'zh-Hans': 'zh-CN', 'zh-Hant': 'zh-TW', ja_JP: 'ja-JP',
@@ -174,8 +177,8 @@ function fixtureSource() {
     permissionAction: scenario === 'permissionWindows' ? 'requestElevation' : scenario === 'permissionMac' ? 'openPrivacy' : 'none',
     platform: windowsScenario ? 'windows' : 'macos',
     reconciliationRequired: false,
-    supportedVersion: nativeProfileScenario ? '2.8.0' : '2.7.2',
-    version: nativeProfileScenario && scenario !== 'nativeLegacyRelease'
+    supportedVersion: scenario === 'followHand' ? '2.8.1' : nativeProfileScenario ? '2.8.0' : '2.7.2',
+    version: scenario === 'followHand' ? '2.8.1' : nativeProfileScenario && scenario !== 'nativeLegacyRelease'
       ? '2.8.0'
       : scenario === 'olderVersion' ? '2.7.1' : scenario === 'newerVersion' ? '2.7.3' : '2.7.2',
     versionCompatibility: scenario === 'nativeLegacyRelease' || scenario === 'olderVersion'
@@ -311,7 +314,7 @@ function fixtureSource() {
       return;
     }
     const actionSelectors = Object.freeze({
-      patchDrift: '#applyButton', switch: '#applyButton', warning: '#applyButton', verifyFailure: '#applyButton', error: '#applyButton',
+      patchDrift: '#applyButton', switch: '#applyButton', followHand: '#applyButton', warning: '#applyButton', verifyFailure: '#applyButton', error: '#applyButton',
       restore: '#restoreButton', restoreConfirm: '#restoreButton',
       update: '#updateButton', updateConfirm: '#updateButton', updateFailure: '#updateButton',
       permissionMac: '#applyButton', permissionWindows: '#applyButton',

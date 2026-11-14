@@ -30,8 +30,11 @@
     "renderer/ui-text.js",
     "renderer/styles.css",
     "renderer/project-link-control.js",
+    "renderer/support-follow-hand.js",
     "renderer/support-footer.js",
     "renderer/support-footer.css",
+    "renderer/follow-hand.webp",
+    "renderer/THIRD_PARTY_NOTICES.md",
     "renderer/tauri-bridge.js",
     "src-tauri/Cargo.toml",
     "src-tauri/Cargo.lock",
@@ -79,7 +82,8 @@
     "tools/dependency_vulnerability_gate.js",
     "tools/dependency_vulnerability_gate.test.js",
     "tools/verify_runner_image.js",
-    "tools/resolve_cavalry_qt_sdk.js"
+    "tools/resolve_cavalry_qt_sdk.js",
+    "tools/support_follow_hand.test.js"
   ],
   "sourceArchivePaths": [
     ".gitattributes",
