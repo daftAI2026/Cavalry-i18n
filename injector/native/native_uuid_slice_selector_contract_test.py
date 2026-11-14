@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[INPUT]: 依赖两份候选构建脚本、双slice dwarfdump行与系统awk。
+[INPUT]: 依赖281 ARM实际构建profile、Intel构建脚本、双slice dwarfdump行与系统awk。
 [OUTPUT]: 验证UUID选择只读取第三字段并支持两种slice顺序。
 [POS]: vendor-free构建门合同；路径含架构词时仍精确选择slice。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -14,7 +14,7 @@ import unittest
 
 NATIVE_DIR = pathlib.Path(__file__).resolve().parent
 BUILDERS = {
-    "arm64": (NATIVE_DIR / "build_candidate.sh", "ARM-UUID", 3),
+    "arm64": (NATIVE_DIR / "abi_2_8_1/build_candidate.sh", "ARM-UUID", 3),
     "x86_64": (NATIVE_DIR / "build_x86_64_candidate.sh", "X86-UUID", 2),
 }
 FIXTURE_ROWS = (

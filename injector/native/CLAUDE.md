@@ -38,7 +38,7 @@ candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，
 macho_bindings.py: 读取候选LLVM Bind/Lazy bind表；按精确符号、库与section校验GOT/interpose槽。
 macho_bindings_test.py: 离线验证LLVM列解析、错库、缺slot、flat反例与多合同汇总。
 check_help_popup_layout_contract_test.py: 验证arm Popup checker接受arm alias并拒绝x86/generic alias。
-native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证两构建器按dwarfdump第三字段选UUID；不调用vendor。
+native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证281 ARM实际profile与Intel构建器按dwarfdump第三字段选UUID；不读取仅委托composer的ARM入口包装器，不调用vendor。
 check_candidate_contract.py: 核GetPath/FPS、281 Load .cv source/caller/QtWidgets import与三语TS来源、Welcome producer及候选two-level绑定。
 build_candidate.sh: 当前2.8.1 ARM默认入口，调用已验build_candidate_2_8_1.py在隔离树编译并运行完整vendor/夹具门；2.8.0仅历史release。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
