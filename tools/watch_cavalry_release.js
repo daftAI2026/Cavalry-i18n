@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 官方 Docs Latest version/发行说明、当前 native target 与 GitHub Issues。
- * [OUTPUT]: dry-run 候选或按版本去重的新版本兼容性 issue；网络/解析失败直接报错。
+ * [OUTPUT]: dry-run 候选或按版本去重的翻译兼容性 issue，验收随实际影响确定；网络/解析失败直接报错。
  * [POS]: 独立定时监控，不修改支持版本、翻译、ABI 或发布制品。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -77,13 +77,14 @@ async function watch({ repo, baseline, write = false, read = readOfficial, api =
   const body = `${marker}\n官方已发布 Cavalry **${latest.version}**；仓库当前 native target 为 **${baseline}**。\n\n`
     + `- [官方版本入口](${DOCS_URL})\n- [官方发行说明](${latest.notesUrl})\n\n`
     + (runUrl ? `发现来源：[GitHub Actions 监控运行](${runUrl})。\n\n` : '')
-    + `这是版本发现提醒，尚未证明新版注入或字体兼容。\n\n`
-    + `- [ ] 获取官方安装包，记录版本、签名、架构及 SHA-256。\n`
+    + `这是翻译兼容性提醒，按实际变更确定范围；不自动新增宿主功能或全量验收任务。\n\n`
+    + `- [ ] 核对官方版本、目标平台安装包及 SHA-256，确认本次需要适配的差异。\n`
     + `- [ ] 对比 catalog/schema/MetaData，按稳定键和英文源复用已审批译文，审定新增或改动项。\n`
-    + `- [ ] 核对 Qt/Skia、映像身份、符号、调用窗和恢复事务；不能仅替换 UUID 或放宽版本门。\n`
-    + `- [ ] 回归简/繁/日菜单、帮助、Timeline 测量/绘制、Viewport 与自绘节点；稳定显示和首帧分开验收。\n`
-    + `- [ ] 核查 CLI、后台渲染及官方移除功能；macOS 和 Windows 分别验收。\n`
-    + `- [ ] 完成安装、切语、恢复及打包验证后再更新支持版本。\n`;
+    + `- [ ] 仅对受影响的翻译运行时入口核对 Qt/Skia、映像身份及调用点；不能仅替换 UUID 或放宽版本门。\n`
+    + `- [ ] 按影响范围回归简/繁/日文字显示、用户名称保全及切语/英文恢复；字体或启动路径变化时检查首帧。\n`
+    + `- [ ] 按交付平台完成构建打包；安装/恢复路径变化时补安装、更新、卸载回归。\n\n`
+    + `CLI、后台渲染及宿主其他功能不列为默认任务；只有翻译改动实际影响其路径时，才补最小不回归检查。`
+    + `Intel 以构建打包为要求，不以缺少实机单独阻塞翻译适配。\n`;
   if (!write) return { status: 'would-create', baseline, ...latest, title, body };
   // List directly instead of search: search indexing can lag immediately after creation.
   const issues = api(`repos/${repo}/issues?state=all&per_page=100`);

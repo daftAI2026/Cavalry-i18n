@@ -5,7 +5,7 @@
 ui_review_workspace.js / ui_review_server.js 的followHand场景：工作台显式“成功后播放/重播”沿真实app成功流程；仅本地fixture清除审查origin的已播标记，生产不提供重播/重置入口，Reduce Motion仍跳过。
 support_follow_hand.test.js: fake clock/DOM执行真实footer控制器，验证完整成功结果+前台落稳才触发、一次性持久化、后台延期、输入/新事务取消、Reduce Motion及三个随机落点；布局/像素另由真实renderer和Mac App审图。
 cavalry_native_target.json / native_281_delta.test.js: 当前Cavalry 2.8.1完整source lock与33键三语增补/12移除合同；生产target锁定17个catalog、runtime与schema source摘要。历史2.8.0 source fixture只供旧审批合同测试。
-watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建兼容评估issue，不改变产品准入；离线合同覆盖网络/源漂移、数值版本及重复运行。
+watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建按翻译影响范围验收的兼容评估issue，不改变产品准入，不将CLI/后台渲染或Intel实机设为默认门槛；离线合同覆盖网络/源漂移、数值版本、范围清单及重复运行。
 check_powershell_syntax.ps1: Parser.ParseFile单文件语法driver；只读源码并以退出码报告错误，不执行待验脚本。
 windows_native_pack_contract.ps1: Windows合同driver加载真实native pack校验器；只消费临时fixture，不安装软件。
 windows_native_pack.ps1: NSIS烟测的production三语资源校验器；显式接收源根与安装根，读取唯一Windows目标版本，复用调用方断言并核manifest与payload字节。

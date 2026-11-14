@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 合成官网/Issues/API与监控工作流配置。
- * [OUTPUT]: 核验版本比较、官网漂移拒绝、关闭issue去重及最小写入边界。
+ * [OUTPUT]: 核验版本比较、官网漂移拒绝、关闭issue去重、翻译影响范围提醒及最小写入边界。
  * [POS]: 版本监控离线行为合同，不触网或创建真实issue。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -52,6 +52,17 @@ test('Action discoveries carry the exact workflow run provenance', async () => {
   const result = await watch(options({ runUrl }));
   assert.ok(result.body.includes(runUrl));
   await assert.rejects(watch(options({ runUrl: 'https://example.com/fake' })), /workflow run/);
+});
+
+test('new-version issues scope checks to translation impact rather than all host features', async () => {
+  const { body } = await watch(options());
+  assert.match(body, /按实际变更确定范围/);
+  assert.match(body, /不自动新增宿主功能或全量验收任务/);
+  assert.match(body, /只有翻译改动实际影响其路径时/);
+  assert.match(body, /Intel 以构建打包为要求/);
+  assert.match(body, /字体或启动路径变化时检查首帧/);
+  assert.match(body, /不能仅替换 UUID 或放宽版本门/);
+  assert.doesNotMatch(body, /- \[ \] 核查 CLI、后台渲染及官方移除功能/);
 });
 test('equal/older version does not fetch notes or touch Issues', async () => {
   let reads = 0;
