@@ -4,6 +4,7 @@
  * [POS]: Vendor-free合同；不证明真实二进制加载或实屏菜单显示。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#include "dg_context_menu_abi_contract.h"
 #include "dg_context_menu_policy.h"
 #ifndef NATIVE_DG_CONTEXT_MENU_TABLE
 #error "合同测试必须消费source-bound DG/TransformTool表。"

@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - 首次成功切换后，回到切换器时显示一次从左斜上方伸出、随机指向底部 GitHub、X 或小红书图标的手势；继续操作或开启减少动态效果时不播放，原有关注链接保持可用。
-- 适配 Cavalry 2.8.1 的 macOS Apple Silicon 版本，增补简体中文、繁体中文与日文原生语言资源；Intel 与 Windows 的 2.8.1 适配尚未完成。
+- 适配 Cavalry 2.8.1 的 macOS Apple Silicon 与 Windows x64 版本，增补简体中文、繁体中文与日文原生语言资源；Intel 的 2.8.1 适配尚未完成。
 
 ### Fixed
 - 沿用 2.8.0 的字体与标题方案，修复 2.8.1 时间轴和依赖关系图的中日文字体显示、长节点名称省略，以及项目、场景标题的版本差异；用户名称保持原样。

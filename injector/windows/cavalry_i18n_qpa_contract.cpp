@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖同一严格QPA manifest合同；显式native构建绑定官方2.8/Qt6.9.2，默认历史构建身份独立。
+ * [INPUT]: 依赖同一严格QPA manifest合同；显式native构建绑定官方Cavalry2.8.1/Qt6.9.2，默认历史构建身份独立。
  * [OUTPUT]: 对外实现 exact-key manifest v1、固定 vendor qwindows 身份、实际文件 hash 与精确四语言 marker 验证
  * [POS]: injector/windows 的 fail-closed 翻译激活判定；失败仅禁止 generic runtime，不影响原厂 QPA 委托
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -15,10 +15,10 @@
 namespace {
 
 #ifdef CAVALRY_I18N_NATIVE_28
-constexpr auto kExpectedCavalryVersion = "2.8.0";
+constexpr auto kExpectedCavalryVersion = "2.8.1";
 constexpr auto kExpectedQtVersion = "6.9.2";
 constexpr auto kExpectedVendorQwindowsSha256 =
-    "f80153ee381ad1437148f785aa4f952b29d285729185e952866e141f96b13b86";
+    "0673d9050ee2f04c108f7673abdbee57c5bbb5bf84fab39e4a82eb96b1bcc8e8";
 #else
 constexpr auto kExpectedCavalryVersion = "2.7.2";
 constexpr auto kExpectedQtVersion = "6.6.3";

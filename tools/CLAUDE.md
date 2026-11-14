@@ -8,17 +8,17 @@ cavalry_native_target.json / native_281_delta.test.js: 当前Cavalry 2.8.1完整
 watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建兼容评估issue，不改变产品准入；离线合同覆盖网络/源漂移、数值版本及重复运行。
 check_powershell_syntax.ps1: Parser.ParseFile单文件语法driver；只读源码并以退出码报告错误，不执行待验脚本。
 windows_native_pack_contract.ps1: Windows合同driver加载真实native pack校验器；只消费临时fixture，不安装软件。
-windows_native_pack.ps1: NSIS烟测的production三语资源校验器；显式接收源根与安装根，复用调用方断言，核manifest与payload字节。
-windows_native_build.js: 保留的Windows 2.8.0生产包装器；当前共享native target已升到2.8.1，2.8.0官方assets在resource source digest门被拒，Windows迁移前不可完成production构建。
+windows_native_pack.ps1: NSIS烟测的production三语资源校验器；显式接收源根与安装根，读取唯一Windows目标版本，复用调用方断言并核manifest与payload字节。
+windows_native_build.js: Windows唯一production包装器；2.8.1官方assets经共享source lock生成完整语言包，Qt6.9.2 MSVC构建当前native/QPA，再沿四配置闭合NSIS；历史2.8.0输入继续被摘要门拒绝。
 windows_native_build.test.js: 注入进程与文件操作验证准备/打包阶段、MSVC与CTest、DLL发布、production隔离及tag参数；不运行原生编译器。
 native_windows_catalog_warning_guard.js: Windows DLL构建期复用完整production bundle审批，生成三语包长度/摘要与17官方catalog相对表；沿native_生产者命名进入既有NSIS来源清单，不写宿主/profile/Mac runtime。
 native_windows_catalog_warning_guard.test.js: 离线核三语/目录精确投影和preview、不完整、locale/摘要/大小及目录漂移拒绝。
-prepare_cavalry_28_windows_ci_inputs.ps1: Windows CI官方输入；按现有target摘要提取MSI到RUNNER_TEMP，aqt准备Qt6.9.2后导出assets/SDK路径，不安装宿主。
-prepare_cavalry_28_windows_ci_inputs.test.js: 官方源、既有身份、隔离路径及BOM/CRLF合同；Windows真实解析全部生产PS并拒绝坏续行，不替代实际提取。
-check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证原样通过与manifest/payload漂移拒绝；不执行安装。
+prepare_cavalry_28_windows_ci_inputs.ps1: Windows 2.8.1 CI唯一官方输入准备器；以固定MSI与五项PE摘要校验行政展开到RUNNER_TEMP，再准备Qt6.9.2并导出assets/SDK路径，不安装宿主。
+prepare_cavalry_28_windows_ci_inputs.test.js: 锁定官方2.8.1 MSI/五项文件SHA并拒绝旧2.8.0身份漂移；验证隔离路径及BOM/CRLF，Windows解析生产PS但不执行提取。
+check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证当前版本通过、旧2.8.0拒绝与manifest/payload漂移拒绝；不执行安装。
 check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
 check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
-cavalry_native_windows_target.json: Windows 2.8.0官方MSI及x64运行时摘要锁；仅宿主准入，译文沿共享native catalog。
+cavalry_native_windows_target.json: 锁定官方Cavalry 2.8.1 MSI、Cavalry/API/Core/QtCore/vendor QPA五项x64摘要；仅供Windows宿主与运行时准入，译文沿共享native catalog。
 acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。
 generate_demo_reader_tables.js: 构建期将批准示例投影为有限native表；Windows显式CRLF须还原完整批准LF身份后映射实际SHA/偏移，不修改厂商文件。
 generate_demo_reader_tables.test.js: 合成UTF-8源验证默认精确准入、显式CRLF偏移映射及BOM/未知字节漂移拒绝，不授官方运行信用。
@@ -126,13 +126,13 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；禁止重命名隐藏被删除源码；Windows catalog guard生成器精确归属Windows门，近似未知路径仍fail-closed；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；真实 Git 覆盖源码改名为文档；覆盖Windows catalog guard单文件/混合变更/近似未知路径边界；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: 逐事件执行真实YAML条件，取消运行停止源/Windows重任务但保留聚合证据，核验定时仅审计与非定时失败传播；NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify；macOS 2.8.1 arm64 production与Intel/Windows待迁移边界合同；保留统一latest.json、p12历史资产、三平台tag发布guard及既有配置/provenance合同。injector检查与镜像记录均固定macos-15。
+check_tauri_build_sop.js: 逐事件执行真实YAML条件，取消运行停止源/Windows重任务但保留聚合证据，核验定时仅审计与非定时失败传播；NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify；macOS arm64/Windows x64的2.8.1官方输入、构建与实屏/发行分账及Intel待验边界合同；保留统一latest.json、p12历史资产、三平台tag发布guard及既有配置/provenance合同。injector检查与镜像记录均固定macos-15。
 check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
 packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
 packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。
 windows_nsis_provenance_contract.js: Windows NSIS provenance 跨边界结构真相层；从 machine-readable schema 读取唯一版本、目标与 required keys，向 producer 提供文档构造器、向 producer/verifier 提供同一 fail-closed 结构校验，但不替代双方对真实文件与哈希的独立复验。
-windows_nsis_provenance.js: 与默认wrapper共用四份2.8.0配置；指纹绑定native三语包、原生源码、译文、两DLL及配置的NSIS语言文件；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
-check_windows_nsis_install.ps1: 保留的2.8.0 Windows NSIS fixture gate；当前共享native target/source lock已升到2.8.1，Windows production pack生成被source digest门拒；带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
+windows_nsis_provenance.js: 与默认wrapper共用四份Windows production配置；指纹绑定native三语包、原生源码、译文、两DLL及配置的NSIS语言文件；通过共享 contract 生成 schema v2 sidecar，intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared translation+input+Quick Add context+tabs+display+search+Classic search/rank+Quick Add 描述 policy/JSON/generated table/generic/QPA 复算 fingerprint。
+check_windows_nsis_install.ps1: 当前2.8.1 Windows NSIS安装态gate；native pack版本沿唯一Windows目标配置准入；带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
 capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 且 Transform 必须同时命中 action 与三条长操作前缀的 64 位位图，并在有界 exact-HWND 前台获取重试中以 `VK_A` 触发 Edit Shape，键投递前由 helper 再复核 HWND/PID；Onboarding 只接受 runtime 发布的非零十进制 HWND，复核可见、未 cloaked 且属于 exact PID 后直接截图；Adjacent 正式 gate 由 producer-side Qt grab 封存瞬态 PNG，本 helper 的 exact-HWND screen-copy 只保留为诊断回退；Close 向 exact PID 全部顶层 HWND 投递 WM_CLOSE，ForceStop 只在超时且再次复核同 executable/PID 后用于 disposable child 清理，不参与 PASS；按键后的同 PID 子窗/模态窗焦点变化不再被误判为失败，禁止盲键确认、场景脚本、Qt UIA、坐标/鼠标自动化、固定 sleep 和覆盖证据。
 check_dmg_layout.sh: DMG 身份、布局与签名守门器；挂载真实镜像并从 `.DS_Store` 锁定 800×476 Finder frame、400px 左锚和非正 AppKit bottom-origin，确保首次打开由 Finder 约束到当前可见底边；同时验证卷标、背景、卷宗图标、Applications 链接及 DMG/安装态 bundle seal。
 window_contract_lib.js: 窗口回归公共库，封装 AX 权限探测、精确 PID 绑定的窗口枚举/聚焦/resize/关闭、选定bundle的CFBundleName读取、原生交通灯几何与About菜单精确操作，以及400×541 Overlay内容截图与`sips`尺寸归一；System Events直接tell PID，旧API保持兼容。
@@ -153,7 +153,7 @@ create_legacy_updater_manifest.test.js: 固定历史feed的离线合同；锁原
 release_publish.js: profile-aware GitHub Release发布器；2.7 p12仅只读回读七项资产，p13+拒绝；当前2.8.1 profile沿用latest.json并使用tag-pinned包地址，公开发布仍受三平台构建/验收闭包约束。
 release_publish.test.js: fake-gh离线合同；验证p12只读七项回读、阻断p13、2.8.1 profile的manifest/provenance与公开资产闭环；离线fixture不代表Windows/Intel 2.8.1生产ready。
 create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并在 CI 内按所选profile复核 ReleaseAssetProvenance v5、release commit、真实平台签名声明、SBOM/toolchain、单feed九项分发身份及manifest语义；这些构建证据不作为用户下载附件。
-create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；必需路径包含2.7与2.8.1 release profiles及2.8 endpoint overlay；verifier独立生成同commit的`git archive`，拒绝link/special/traversal/duplicate/secret并精确比对路径、bytes、type与mode，marker不能替代tree校验。
+create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；必需路径包含2.7与2.8.1 release profiles、共享UTF8省略策略及2.8 endpoint overlay；verifier独立生成同commit的`git archive`，拒绝link/special/traversal/duplicate/secret并精确比对路径、bytes、type与mode，marker不能替代tree校验。
 verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist、Node/Python/aqt/Rust 精确 pin，并要求 cargo-audit 使用版本/目标/SHA-256锁定的官方预编译归档，先验摘要再解包，拒绝源码安装。固定 runner 集合要求 macos-15。
 verify_ci_action_pins.test.js: 离线夹具验证精确 action、工具链与 runner pin；退役 macOS 镜像回归必须失败。
 record_toolchain_evidence.js / create_toolchain_evidence_bundle.js: 前者在 source-contract/macOS 真实 producer 上 fail-closed 捕获无 secret 的版本与 runner 证据；后者要求 source-contracts、macOS aarch64/x64 三 scope 与 release commit/target 精确一致，聚合为由公开 provenance 绑定的 `toolchain-evidence.json`；Windows producer evidence 由 `record_windows_toolchain_evidence.js` 单独上传，待 #16 纳入 release 聚合。

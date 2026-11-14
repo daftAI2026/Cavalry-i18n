@@ -47,6 +47,7 @@
     "injector/CavalryTranslatorInjector.mm",
     "injector/generated_translations.inc",
     "injector/cavalry_i18n_translation_policy.h",
+    "injector/native/utf8_elision_policy.h",
     "languages/en/appStrings.json",
     "languages/zh-Hans/appStrings.json",
     "languages/zh-Hant/appStrings.json",

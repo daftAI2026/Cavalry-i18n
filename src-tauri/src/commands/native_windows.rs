@@ -1,7 +1,7 @@
 /*
- * [INPUT]: 依赖现有安装发现、冻结Windows 2.8宿主摘要、共享资源loader/profile事务和Windows系统适配器。
- * [OUTPUT]: 原生profile/runtime事务在写入前持久化已验安装选择；卸载先解析必要目标，再恢复profile及runtime；复用现有State/QPA/journal。
- * [POS]: Windows 2.8窄facade；共享翻译/事务仍由Mac主干承担，Windows只绑定宿主、OS路径与写者准入。
+ * [INPUT]: 依赖现有安装发现、冻结Windows 2.8.1宿主摘要、共享资源loader/profile事务和Windows系统适配器。
+ * [OUTPUT]: 原生profile/runtime事务先以精确2.8.1身份确认宿主并持久化已验安装选择，再执行既有事务；卸载先解析必要目标，再恢复profile及runtime；复用现有State/QPA/journal。
+ * [POS]: Windows 2.8.1窄facade；共享翻译/事务仍由Mac主干承担，Windows只绑定宿主、OS路径与写者准入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
@@ -23,7 +23,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Deserialize)]
+const NATIVE_CAVALRY_VERSION: &str = "2.8.1";
+
+#[derive(Clone, Deserialize)]
 #[serde(rename_all = "camelCase", deny_unknown_fields)]
 struct Target {
     schema_version: u32,
@@ -38,16 +40,41 @@ fn target() -> Result<Target, String> {
         "../../../tools/cavalry_native_windows_target.json"
     ))
     .map_err(|e| e.to_string())?;
+    validate_target(&target)?;
+    Ok(target)
+}
+
+fn validate_target(target: &Target) -> Result<(), String> {
     if target.schema_version != 1
-        || target.cavalry_version != "2.8.0"
+        || target.cavalry_version != NATIVE_CAVALRY_VERSION
         || target.qt_version != "6.9.2"
         || target.architecture != "x86_64"
-        || target.msi_sha256.len() != 64
-        || target.files.len() != 5
+        || !is_sha256(&target.msi_sha256)
     {
         return Err("Windows native target identity differs".into());
     }
-    Ok(target)
+    const EXPECTED_FILES: [&str; 5] = [
+        "Cavalry.exe",
+        "Api.dll",
+        "Core.dll",
+        "Qt6Core.dll",
+        "qwindows.dll",
+    ];
+    if target.files.len() != EXPECTED_FILES.len()
+        || EXPECTED_FILES
+            .iter()
+            .any(|name| !target.files.get(*name).is_some_and(|hash| is_sha256(hash)))
+    {
+        return Err("Windows native target file identity set differs".into());
+    }
+    Ok(())
+}
+
+fn is_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
 }
 fn digest_file(path: &Path) -> Result<String, String> {
     privilege::verify_windows_path_components(
@@ -109,7 +136,7 @@ fn verify_host(selection: &Path) -> Result<PathBuf, String> {
         }
         if digest_file(&layout.root.join(relative))? != expected {
             return Err(
-                "Windows native host differs from the approved 2.8 runtime; no profile written"
+                "Windows native host differs from the approved 2.8.1 runtime; no profile written"
                     .into(),
             );
         }
@@ -293,7 +320,7 @@ fn runtime_transaction(
         state_dir: state,
         layout: &layout,
         language,
-        cavalry_version: "2.8.0",
+        cavalry_version: NATIVE_CAVALRY_VERSION,
         staging_root: &staging,
         overlay_pairs: &[],
         english_snapshot_manifest: None,
@@ -391,3 +418,31 @@ fn restore_profile_for_uninstall(state: &Path) -> Result<(), String> {
 #[cfg(test)]
 #[path = "tests/native_windows_paths.rs"]
 mod tests;
+
+#[cfg(test)]
+mod target_tests {
+    use super::*;
+
+    #[test]
+    fn frozen_windows_target_accepts_281_and_rejects_old_or_drifted_identity() {
+        let approved = target().unwrap();
+        assert_eq!(approved.cavalry_version, NATIVE_CAVALRY_VERSION);
+        assert_eq!(NATIVE_CAVALRY_VERSION, "2.8.1");
+        assert_eq!(
+            approved.msi_sha256,
+            "b79d08290b6f1320154b9fec46cee1b4bba81a9670af636611f4c53e8057420a"
+        );
+        assert_eq!(
+            approved.files.get("Cavalry.exe").map(String::as_str),
+            Some("87689d8e7a37b2e2341cbf5c6327fd960afc65b8385ac35b170d71671961d9ad")
+        );
+
+        let mut previous = approved.clone();
+        previous.cavalry_version = "2.8.0".into();
+        assert!(validate_target(&previous).is_err());
+
+        let mut drifted = approved;
+        drifted.files.insert("Cavalry.exe".into(), "g".repeat(64));
+        assert!(validate_target(&drifted).is_err());
+    }
+}

@@ -1,7 +1,7 @@
 /*
- * [INPUT]: 显式只读官方2.8 vendor根、当前编译锚定的native DLL、隔离temp安装/state及真实Windows journal。
+ * [INPUT]: 显式只读官方Cavalry 2.8.1根、当前编译锚定的native DLL、隔离temp安装/state及真实Windows journal。
  * [OUTPUT]: 证明native激活/候选源更新状态/未知DLL拒删/English恢复/外来文件保全；不启动宿主，不触碰用户profile。
- * [POS]: Windows2.8 runtime-only集成合同；默认ignored，必须显式给官方vendor输入。
+ * [POS]: Windows2.8.1 runtime-only集成合同；默认ignored，必须显式给官方vendor输入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{apply_native_runtime, ParentApplyOutcome, ParentApplyRequest};
@@ -10,14 +10,17 @@ use sha2::{Digest, Sha256};
 use std::{fs, path::PathBuf};
 
 #[test]
-#[ignore = "Requires explicit official Windows2.8 vendor root and current native DLLs"]
+#[ignore = "Requires explicit official Windows 2.8.1 vendor root and current native DLLs"]
 fn native_runtime_transaction_preserves_unknown_and_restores_vendor() {
     let vendor = PathBuf::from(
         std::env::var_os("CAVALRY_I18N_TEST_WINDOWS_VENDOR")
-            .expect("Explicit read-only official2.8 root required"),
+            .expect("Explicit read-only official Windows 2.8.1 root required"),
     );
     let temporary = tempfile::tempdir().unwrap();
-    let root = temporary.path().join("Cavalry 2.8 custom root");
+    let root = temporary.path().join(format!(
+        "Cavalry {} custom root",
+        windows_qpa::SUPPORTED_CAVALRY_VERSION
+    ));
     let state = temporary.path().join("state");
     fs::create_dir(&root).unwrap();
     fs::create_dir(&state).unwrap();
@@ -57,7 +60,7 @@ fn native_runtime_transaction_preserves_unknown_and_restores_vendor() {
             state_dir: &state,
             layout: &layout,
             language,
-            cavalry_version: "2.8.0",
+            cavalry_version: windows_qpa::SUPPORTED_CAVALRY_VERSION,
             staging_root: &stage,
             overlay_pairs: &[],
             english_snapshot_manifest: None,

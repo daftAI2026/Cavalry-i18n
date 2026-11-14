@@ -1,7 +1,7 @@
 /*
- * [INPUT]: 官方2.8同根Core/Extension/Api/skia/fmt/UI/Qt/spdlog、原厂locale及共享显示策略、Windows Alt字体准入薄层和CAS。
- * [OUTPUT]: 固定状态/Graph/Timeline/Viewport字体与窄UI投影；Demo/Welcome保留已证边界，Api仅对批准包实际存在时的17目录预期探测warning降噪。
- * [POS]: Windows2.8窄补充；固定3个系统face进程期持有，不改模型/认证/profile；显示热路径无IO，精确启动warning才有界核用户包。
+ * [INPUT]: 官方2.8.1同根PE/导出/精确返回位、原厂locale、共享字体/文本策略与Windows QPA/CAS。
+ * [OUTPUT]: 保留固定状态/Timeline/Viewport与既有UI投影，补节点header同次测量/绘制及Save/Open；Api仅对实际批准包的预期探测warning降噪。
+ * [POS]: Windows窄ABI接线；仅替换已证IAT和TextView paint单槽，三个系统face进程期持有；显示热路径无IO，不改模型/认证/profile。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "runtime.h"
@@ -21,11 +21,12 @@
 #include "../../native/getpath_font_texts.inc"
 #include "tool_help_font_policy.h"
 #include "../../native/getpath_graph_editor_empty_texts.inc"
-#include "../../native/save_scene_caption_policy.h"
+#include "scene_dialog_adapter.h"
 #include "../../native/verified_text_selection.h"
 #include "../cavalry_i18n_iat_patch.h"
 #include "title_adapter.h"
 #include "viewport_snapshot.h"
+#include "dependency_node_adapter.h"
 #include "help_adapter.h"
 #include NATIVE_HELP_DESCRIPTION_TABLE
 #include "../../native/help_popup_layout_policy.h"
@@ -35,8 +36,11 @@
 #include <QtCore/QRegularExpression>
 #include <QtGui/QAction>
 #include "../../native/easing_menu_policy.h"
+#include "dg_menu_adapter.h"
 #include "../../native/fast_search_unicode_policy.h"
 #include NATIVE_EASING_DISPLAY_TABLE
+#include NATIVE_DG_CONTEXT_MENU_TABLE
+static_assert(native_dg_context_menu::kRows.size()==5);
 #include "demo_adapter.h"
 #include "welcome_adapter.h"
 #include "catalog_warning_adapter.h"
@@ -60,17 +64,20 @@ using TitleFormat=std::string*(__fastcall*)(std::string*,const native_windows_ti
 using NativeMeasureFunction=float(__fastcall*)(const void*,const void*,std::size_t,int,void*,const void*);
 using NativeDrawFunction=void(__fastcall*)(void*,const void*,std::size_t,int,float,float,const void*,const void*);
 using NativeBlobFunction=void*(__fastcall*)(void**,const void*,std::size_t,const void*,int);
+using NodePaintFunction=void(__fastcall*)(void*,void*);
 using SaveDialogFunction=decltype(&QFileDialog::getSaveFileName);
+using OpenDialogFunction=decltype(&QFileDialog::getOpenFileName);
 using FastConstructor=QRegularExpression*(*)(QRegularExpression*,const QString&,QRegularExpression::PatternOptions);
 static_assert(sizeof(QRegularExpression::PatternOptions)==4 && int(QRegularExpression::UseUnicodePropertiesOption)==native_fast_search::abi::kUnicodePropertiesOption);
 struct State {
     NativeGetPathFunction original=nullptr;Glyph glyph=nullptr;ActiveLocale localeOriginal=nullptr;
     TitleFormat titleOriginal=nullptr;
     SaveDialogFunction saveOriginal=nullptr;
+    OpenDialogFunction openOriginal=nullptr;
     native_windows_help::Original helpOriginal=nullptr;
     bool (*layoutOriginal)(QLayout*)=nullptr;
     void (*guideOriginal)(QTextEdit*,const QString&)=nullptr;
-    void (*easingOriginal)(QWidget*,QAction*)=nullptr;
+    void (*actionOriginal)(QWidget*,QAction*)=nullptr;
     FastConstructor fastOriginal=nullptr;
     native_windows_demo::Original demoOriginal=nullptr;
     native_windows_welcome::Original welcomeOriginal=nullptr;
@@ -80,13 +87,20 @@ struct State {
     QString catalogStrings;
     QString presetRoot;
     NativeMeasureFunction measureOriginal=nullptr;NativeDrawFunction drawOriginal=nullptr;NativeBlobFunction blobOriginal=nullptr;
+    NodePaintFunction nodePaintOriginal=nullptr;
     std::uintptr_t core=0,extension=0,ui=0,api=0;
     std::array<void*,3> faces{};
     std::size_t faceCount=0;
     cavalry_native_font::LocaleSnapshot locale;
-    std::array<std::atomic<std::uint64_t>,31> stats{};
+    std::array<std::atomic<std::uint64_t>,38> stats{};
 };
 State *g=nullptr;
+thread_local native_windows_dependency::PaintFrame *gNodeFrame=nullptr;
+struct NodeFrameScope {
+    native_windows_dependency::PaintFrame *previous=gNodeFrame;
+    explicit NodeFrameScope(native_windows_dependency::PaintFrame *frame){gNodeFrame=frame;}
+    ~NodeFrameScope(){gNodeFrame=previous;}
+};
 void bump(std::size_t n){g->stats[n].fetch_add(1,std::memory_order_relaxed);}
 const native_getpath_font::TextEntry *lane(){
     using cavalry_native_font::Locale;
@@ -102,14 +116,14 @@ PathOwner ownerChain(){
     void *frames[12]{};const auto count=CaptureStackBackTrace(0,12,frames,nullptr);
     bool core=false,cache=false;
     for(unsigned i=0;i<count;++i){const auto pc=reinterpret_cast<std::uintptr_t>(frames[i]);
-        if(pc==g->core+0xd2ac3)core=true;
-        else if(core && pc==g->extension+0x4096b0)cache=true;
-        else if(cache && (pc==g->extension+0x3f5843 || pc==g->extension+0x3f5856))return PathOwner::ToolHelp;
-        else if(cache && pc==g->extension+0x3fc45a)return PathOwner::ViewportStatus;
-        else if(cache && pc==g->extension+0x3fcb83)return PathOwner::RestrictedMode;
-        else if(cache && pc==g->extension+0x3fbd90)return PathOwner::ActiveCamera;
-        else if(core && !cache && (pc==g->extension+0x3fbaea || pc==g->extension+0x3fc700))return PathOwner::ViewportFps;
-        else if(core && !cache && pc==g->extension+0x9f5a7c)return PathOwner::GraphEmpty;
+        if(pc==g->core+0xd3b63)core=true;
+        else if(core && pc==g->extension+0x410020)cache=true;
+        else if(cache && (pc==g->extension+0x3fc1f3 || pc==g->extension+0x3fc206))return PathOwner::ToolHelp;
+        else if(cache && pc==g->extension+0x402c76)return PathOwner::ViewportStatus;
+        else if(cache && pc==g->extension+0x40339f)return PathOwner::RestrictedMode;
+        else if(cache && pc==g->extension+0x4025ac)return PathOwner::ActiveCamera;
+        else if(core && !cache && (pc==g->extension+0x402306 || pc==g->extension+0x402f1c))return PathOwner::ViewportFps;
+        else if(core && !cache && pc==g->extension+0xa02f9c)return PathOwner::GraphEmpty;
     }return PathOwner::Unknown;
 }
 bool approvedPathText(const void *text,std::size_t length,int encoding,PathOwner owner){
@@ -136,7 +150,7 @@ bool approvedPathText(const void *text,std::size_t length,int encoding,PathOwner
 __declspec(noinline) std::string *__fastcall localeHook(std::string *output,void *api){
     auto *result=g->localeOriginal(output,api);
     // registerNodesSetup同构入口；不借偏好UI另一个activeLocale caller授予语言。
-    if(_ReturnAddress()==reinterpret_cast<void*>(g->extension+0x16114fd) && result==output && output->size()<=16){
+    if(_ReturnAddress()==reinterpret_cast<void*>(g->extension+0x162aded) && result==output && output->size()<=16){
         g->locale.publish(std::string_view(output->data(),output->size()));bump(5);
     }
     return result;
@@ -149,9 +163,31 @@ const void *displayFont(const void *text,std::size_t length,int encoding,const v
     if(!face || face==originalFace)return font;
     std::memcpy(copy.data(),font,copy.size());std::memcpy(copy.data(),&face,sizeof(face));return copy.data();
 }
+__declspec(noinline) void __fastcall nodePaintHook(void *self,void *canvas){
+    const auto read=[](std::uintptr_t address,void *out,std::size_t size) noexcept {
+        SIZE_T copied=0;
+        return ReadProcessMemory(GetCurrentProcess(),reinterpret_cast<const void*>(address),out,size,&copied) && copied==size;
+    };
+    bump(31);
+    if(!native_windows_dependency::headerOwner(reinterpret_cast<std::uintptr_t>(self),g->extension,read)){
+        NodeFrameScope scope(nullptr);g->nodePaintOriginal(self,canvas);return;
+    }
+    bump(32);
+    native_windows_dependency::PaintFrame frame;
+    NodeFrameScope scope(&frame);
+    g->nodePaintOriginal(self,canvas);
+}
+const void *nodeDisplayFont(const void *font,std::array<std::byte,24> &copy){
+    return gNodeFrame->font(font,copy,[](const void *source,std::size_t size,const void *original){
+        std::array<std::byte,24> selected{};
+        const auto result=displayFont(source,size,0,original,selected);
+        if(result==original)return static_cast<const void*>(nullptr);
+        const void *face=nullptr;std::memcpy(&face,result,sizeof(face));bump(35);return face;
+    });
+}
 __declspec(noinline) void __fastcall pathHook(const void *text,std::size_t length,int encoding,float x,float y,const void *font,void *path){
     bump(0);const void *selected=font;std::array<std::byte,24> copy{};
-    if(_ReturnAddress()==reinterpret_cast<void*>(g->core+0xd2ac3)){
+    if(_ReturnAddress()==reinterpret_cast<void*>(g->core+0xd3b63)){
         PathOwner expected=PathOwner::Unknown;
         // 先筛已批准的固定文本，未知用户文本不抓栈、不解析字体。
         for(auto owner:{PathOwner::ToolHelp,PathOwner::ViewportStatus,PathOwner::ViewportFps,PathOwner::RestrictedMode,PathOwner::ActiveCamera,PathOwner::GraphEmpty})
@@ -165,7 +201,7 @@ __declspec(noinline) void __fastcall pathHook(const void *text,std::size_t lengt
     g->original(text,length,encoding,x,y,selected,path);
 }
 __declspec(noinline) std::string *__fastcall titleHook(std::string *output,const native_windows_title::View *format,const native_windows_title::Arguments *arguments){
-    const bool caller=_ReturnAddress()==reinterpret_cast<void*>(g->extension+0x1effb5);
+    const bool caller=_ReturnAddress()==reinterpret_cast<void*>(g->extension+native_windows_title::kFormatReturn);
     const auto inputs=caller?native_windows_title::capture(output,format,arguments):native_windows_title::Inputs{};
     auto *result=g->titleOriginal(output,format,arguments);
     if(caller && result==output){bump(6);if(native_windows_title::project(*output,g->locale.value(),inputs))bump(7);}
@@ -173,7 +209,17 @@ __declspec(noinline) std::string *__fastcall titleHook(std::string *output,const
 }
 __declspec(noinline) QString saveDialogHook(QWidget *parent,const QString &caption,const QString &directory,const QString &filter,QString *selectedFilter,QFileDialog::Options options){
     // 同一官方scene-save函数的两个caption；预设和Snippet导出caller保持原样。
-    return native_save_scene_caption::forwardSaveCaption(g->saveOriginal,true,reinterpret_cast<std::uintptr_t>(_ReturnAddress()),g->extension+0xc6393c,parent,caption,directory,filter,selectedFilter,options,[]{return g->locale.value();});
+    return native_windows_scene_dialog::forwardSaveCaption(g->saveOriginal,true,reinterpret_cast<std::uintptr_t>(_ReturnAddress()),g->extension,parent,caption,directory,filter,selectedFilter,options,[]{return g->locale.value();});
+}
+__declspec(noinline) QString openDialogHook(QWidget *parent,const QString &caption,const QString &directory,const QString &filter,QString *selectedFilter,QFileDialog::Options options){
+    const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
+    std::uintptr_t producer=0;
+    if(caller==g->extension+native_windows_scene_dialog::contract::kSceneOpenFileDialogReturnRva && caption==QStringLiteral("Load .cv")){
+        void *frames[6]{};const auto count=CaptureStackBackTrace(0,6,frames,nullptr);
+        for(unsigned i=0;i+1<count;++i)
+            if(reinterpret_cast<std::uintptr_t>(frames[i])==caller){producer=reinterpret_cast<std::uintptr_t>(frames[i+1]);break;}
+    }
+    return native_windows_scene_dialog::forwardOpenCaption(g->openOriginal,true,caller,producer,g->extension,parent,caption,directory,filter,selectedFilter,options,[]{return g->locale.value();});
 }
 __declspec(noinline) void helpHook(void *owner,const std::string &key,const native_windows_help::Documentation &documentation){
     bump(14);
@@ -183,7 +229,7 @@ __declspec(noinline) void helpHook(void *owner,const std::string &key,const nati
     if(native_windows_help::forward(g->helpOriginal,owner,key,documentation,caller,g->extension,g->locale.value(),{kApprovedRuntimeRootHelp,kApprovedRuntimeRootHelpCount},{kApprovedRuntimeDefHelp,kApprovedRuntimeDefHelpCount}))bump(15);
 }
 __declspec(noinline) bool layoutHook(QLayout *layout){
-    if(_ReturnAddress()==reinterpret_cast<void*>(g->ui+0xd78b7)){
+    if(_ReturnAddress()==reinterpret_cast<void*>(g->ui+0xd7f17)){
         bump(16);
         if(auto *body=native_help_popup_layout::descriptionLabel(layout)){
             // 与Mac同一四行策略；每进程仅首次批准popup测401根，保留一个整数。
@@ -194,26 +240,37 @@ __declspec(noinline) bool layoutHook(QLayout *layout){
     return g->layoutOriginal(layout);
 }
 __declspec(noinline) void guideHook(QTextEdit *editor,const QString &body){
-    if(_ReturnAddress()==reinterpret_cast<void*>(g->extension+0x87d35c) && body==QStringLiteral("Keep going...")){
+    if(_ReturnAddress()==reinterpret_cast<void*>(g->extension+0x8897ac) && body==QStringLiteral("Keep going...")){
         bump(18);
-        const auto text=native_guide_body::approvedBody(g->extension+0x87d35c,g->extension+0x87d35c,native_guide_body::kSourceText,g->locale.value());
+        const auto text=native_guide_body::approvedBody(g->extension+0x8897ac,g->extension+0x8897ac,native_guide_body::kSourceText,g->locale.value());
         if(!text.empty()){bump(19);const auto projected=QString::fromUtf8(text.data(),qsizetype(text.size()));g->guideOriginal(editor,projected);return;}
     }
     g->guideOriginal(editor,body);
 }
 __declspec(noinline) QRegularExpression *fastHook(QRegularExpression *self,const QString &pattern,QRegularExpression::PatternOptions options){
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
-    if(caller==g->extension+0xcec5cb)bump(20);
-    const bool eligible=native_fast_search::policy::eligible(true,caller,g->extension+0xcec5cb,options.toInt(),[&]{return pattern==QLatin1StringView(native_fast_search::abi::kPattern);});
+    if(caller==g->extension+0xd0210b)bump(20);
+    const bool eligible=native_fast_search::policy::eligible(true,caller,g->extension+0xd0210b,options.toInt(),[&]{return pattern==QLatin1StringView(native_fast_search::abi::kPattern);});
     if(eligible)bump(21);
     // MSVC C1返回this；包括未知caller在内都保留原返回值，排序caller不改。
     return g->fastOriginal(self,pattern,eligible?QRegularExpression::PatternOptions(QRegularExpression::UseUnicodePropertiesOption):options);
 }
-__declspec(noinline) void easingHook(QWidget *menu,QAction *action){
+__declspec(noinline) void addActionHook(QWidget *menu,QAction *action){
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
-    if(caller==g->extension+0xbf15fc)bump(22);
+    if(caller==g->extension+native_dg_context_menu::contract::kToolMenuAddActionReturnOffset){
+        std::uintptr_t helper=0;void *frames[6]{};
+        const auto count=CaptureStackBackTrace(0,6,frames,nullptr);
+        for(unsigned i=0;i+1<count;++i)
+            if(reinterpret_cast<std::uintptr_t>(frames[i])==caller){helper=reinterpret_cast<std::uintptr_t>(frames[i+1]);break;}
+        bump(36);QByteArray source;
+        native_windows_dg_menu::forwardMenuAction([&]{g->actionOriginal(menu,action);},true,caller,helper,g->extension,
+            []{return g->locale.value();},[&]()->std::string_view{if(!action)return {};source=action->text().toUtf8();return {source.constData(),std::size_t(source.size())};},
+            [&](std::string_view projected){action->setText(QString::fromUtf8(projected.data(),qsizetype(projected.size())));bump(37);},native_dg_context_menu::kRows);
+        return;
+    }
+    if(caller==g->extension+0xc0604c)bump(22);
     QByteArray source;
-    native_easing_menu::forwardProjectedAction([&]{g->easingOriginal(menu,action);},true,caller,g->extension+0xbf15fc,
+    native_easing_menu::forwardProjectedAction([&]{g->actionOriginal(menu,action);},true,caller,g->extension+0xc0604c,
         []{return g->locale.value();},[&]()->std::string_view{if(!action)return {};source=action->text().toUtf8();return {source.constData(),std::size_t(source.size())};},
         [&](std::string_view projected){action->setText(QString::fromUtf8(projected.data(),qsizetype(projected.size())));bump(23);},native_easing_display::kRows);
 }
@@ -221,20 +278,33 @@ __declspec(noinline) float __fastcall measureHook(const void *font,const void *t
     const void *selected=font;std::array<std::byte,24> copy{};
     // Windows此调用直接消费同一name成员的完整c_str/strlen；不像分段Viewport需另读父名称。
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
-    if(caller==g->extension+0xa7a574 || caller==g->extension+0xa7bf8f){bump(8);selected=displayFont(text,length,encoding,font,copy);if(selected!=font)bump(9);}
+    if(gNodeFrame && caller>=g->extension && native_windows_dependency::measureCaller(caller-g->extension)){
+        if(caller-g->extension==native_windows_dependency::abi::kFullMeasureReturn)
+            gNodeFrame->capture(text,length,encoding);
+        const auto span=gNodeFrame->project(text,length,encoding);bump(33);
+        selected=nodeDisplayFont(font,copy);
+        return g->measureOriginal(selected,span.text,span.size,encoding,bounds,paint);
+    }
+    if(caller==g->extension+0xa88044 || caller==g->extension+0xa89a5f){bump(8);selected=displayFont(text,length,encoding,font,copy);if(selected!=font)bump(9);}
     return g->measureOriginal(selected,text,length,encoding,bounds,paint);
 }
 __declspec(noinline) void __fastcall drawHook(void *canvas,const void *text,std::size_t length,int encoding,float x,float y,const void *font,const void *paint){
     const void *selected=font;std::array<std::byte,24> copy{};
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
-    if(caller==g->extension+0xa7a750 || caller==g->extension+0xa7c45d){bump(10);selected=displayFont(text,length,encoding,font,copy);if(selected!=font)bump(11);}
+    if(gNodeFrame && caller>=g->extension && native_windows_dependency::drawCaller(caller-g->extension)){
+        if(!gNodeFrame->sourceKnown)gNodeFrame->capture(text,length,encoding);
+        const auto span=gNodeFrame->project(text,length,encoding);bump(34);
+        selected=nodeDisplayFont(font,copy);
+        g->drawOriginal(canvas,span.text,span.size,encoding,x,y,selected,paint);return;
+    }
+    if(caller==g->extension+0xa88220 || caller==g->extension+0xa89f2d){bump(10);selected=displayFont(text,length,encoding,font,copy);if(selected!=font)bump(11);}
     g->drawOriginal(canvas,text,length,encoding,x,y,selected,paint);
 }
 __declspec(noinline) void *__fastcall blobHook(void **output,const void *text,std::size_t length,const void *font,int encoding){
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
     const void *selected=font;std::array<std::byte,24> copy{};
-    if(caller==g->extension+0x4070bc){bump(12);selected=displayFont(text,length,encoding,font,copy);}
-    else if(caller==g->extension+0x42a4bf && encoding==0 && lane()){
+    if(caller==g->extension+0x40d7bc){bump(12);selected=displayFont(text,length,encoding,font,copy);}
+    else if(caller==g->extension+0x430bff && encoding==0 && lane()){
         native_windows_viewport::Snapshot name;
         if(native_windows_viewport::snapshot(font,g->extension,&name)){bump(12);selected=displayFont(name.bytes.data(),name.size,encoding,font,copy);}
     }
@@ -244,9 +314,9 @@ __declspec(noinline) void *__fastcall blobHook(void **output,const void *text,st
 __declspec(noinline) void welcomeHook(void *logger,const void *message,bool enabled,bool traceback){
     bool owned=false;
     // === 通用logger模板先核直接返回点，再查唯一启动producer，未知消息不读取 ===
-    if(reinterpret_cast<std::uintptr_t>(_ReturnAddress())==g->extension+0x1e2265){
+    if(reinterpret_cast<std::uintptr_t>(_ReturnAddress())==g->extension+0x1e4c55){
         void *frames[8]{};const auto count=CaptureStackBackTrace(0,8,frames,nullptr);
-        for(unsigned i=0;i<count;++i)if(reinterpret_cast<std::uintptr_t>(frames[i])==g->extension+0xbe9de3){owned=true;break;}
+        for(unsigned i=0;i<count;++i)if(reinterpret_cast<std::uintptr_t>(frames[i])==g->extension+0xbfe3a3){owned=true;break;}
     }
     if(owned)bump(27);
     if(native_windows_welcome::forward(g->welcomeOriginal,logger,message,enabled,traceback,owned,g->locale.value()))bump(28);
@@ -254,9 +324,12 @@ __declspec(noinline) void welcomeHook(void *logger,const void *message,bool enab
 __declspec(noinline) void catalogWarningHook(void *logger,const void *message,bool enabled,bool traceback){
     bool owned=false;
     // === Api模板也服务真实错误；必须同时命中目标缺文件分支，英语源缺失的相邻分支不准入 ===
-    if(reinterpret_cast<std::uintptr_t>(_ReturnAddress())==g->api+0x3b5a6){
+    if(reinterpret_cast<std::uintptr_t>(_ReturnAddress())==g->api+native_windows_catalog_warning::kLoggerCallReturn){
         void *frames[6]{};const auto count=CaptureStackBackTrace(0,6,frames,nullptr);
-        for(unsigned i=0;i<count;++i)if(reinterpret_cast<std::uintptr_t>(frames[i])==g->api+0x378d8){owned=true;break;}
+        std::uintptr_t callers[6]{};
+        for(unsigned i=0;i<count;++i)callers[i]=reinterpret_cast<std::uintptr_t>(frames[i]);
+        owned=native_windows_catalog_warning::approvedWarningCaller(
+            reinterpret_cast<std::uintptr_t>(_ReturnAddress()),callers,count,g->api);
     }
     if(owned)bump(29);
     if(!g->catalogPack){g->catalogWarningOriginal(logger,message,enabled,traceback);return;}
@@ -267,7 +340,7 @@ __declspec(noinline) void catalogWarningHook(void *logger,const void *message,bo
 }
 __declspec(noinline) native_windows_demo::Result demoHook(const std::string &path){
     const auto caller=reinterpret_cast<std::uintptr_t>(_ReturnAddress());
-    if(caller==g->extension+native_windows_demo::kDemoReturn)bump(25);
+    if(native_windows_demo::approvedCaller(caller,g->extension))bump(25);
     return native_windows_demo::forward(g->demoOriginal,path,caller,g->extension,[&]{return g->locale.value();},
         [&](std::string_view source,auto &&locale,std::string *output){
             if(path.empty() || path.find('\0')!=std::string::npos)return false;
@@ -308,59 +381,66 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
     if(language!=QStringLiteral("zh-Hans") && language!=QStringLiteral("zh-Hant") && language!=QStringLiteral("ja_JP"))return fail(error,"Unsupported native runtime language");
     wchar_t executable[32768];if(!GetModuleFileNameW(nullptr,executable,32768))return fail(error,"Host path unavailable");
     const auto file=QFileInfo(QString::fromWCharArray(executable));const auto root=file.canonicalPath();
-    if(hashFile(file.canonicalFilePath())!="bad89abf30c67b2d2fb3c9d0a26c3cfda9b738164e11bca050ac54ad0e2783a1")return fail(error,"Native host identity differs");
-    auto core=verified(L"Core.dll","79f13303824d33a70a2f148fe5c9cee7115d724f5e49ff975f9aad54dca8d398",root);
-    auto skia=verified(L"skia.dll","e4bac62b373335efeabf5cc79ecdda54c614e0b006437a6d7b79f3a7bc232d77",root);
-    auto extension=verified(L"ExtensionLayer.dll","de6825acb8c4dcf8693174f6cc5c21db37f9a43885ee189f0049f8e9163a0337",root);
-    auto api=verified(L"Api.dll","c59528bd08e2325eba8f18e1846ca0f551297d36619b1cf70f38448561892567",root);
-    auto fmt=verified(L"fmt.dll","2f9c10d067d2c64b7d9e5e9e6e858835be2164c500bce56412c42cd48068455e",root);
-    auto widgets=verified(L"Qt6Widgets.dll","31b5eec8575190482fc3cf68854cfa9fda3b756e0fe66546b7fd8bad00658318",root);
-    auto ui=verified(L"CavalryUI.dll","08e3a50e1bcfb4ba1c3e989bdbc0d0852e00d3283c4bb560d853b31a5bcb4c72",root);
-    auto qtCore=verified(L"Qt6Core.dll","b378b4447d8cd0170755298dd501adf6f648228dc93a07ff1dc8edb8852d7b4c",root);
-    auto qtGui=verified(L"Qt6Gui.dll","6ff6fd20bc716f3bb24295afe7006f827c40f20015e473109a26e32062dd987a",root);
-    auto spdlog=verified(L"spdlog.dll","f0706dbca48ba564530a6381c56dc9fb89ffe7ef3691a50b18b43995661686b1",root);
+    if(hashFile(file.canonicalFilePath())!="87689d8e7a37b2e2341cbf5c6327fd960afc65b8385ac35b170d71671961d9ad")return fail(error,"Native host identity differs");
+    auto core=verified(L"Core.dll","d19ab6b936bf9217ec0fc1abbd348b7dc2aa179a521355ae648afffcd49fcba4",root);
+    auto skia=verified(L"skia.dll","f516e283af947db642364a434e57ff28f570f7f1afce6844f1a163a58f78a8d0",root);
+    auto extension=verified(L"ExtensionLayer.dll",native_windows_dependency::abi::kExtensionSha256,root);
+    auto api=verified(L"Api.dll","938c61d28bdea82f4d30cc68d1076f8e3f4306b54d2a7d5d04d223d4f8216c61",root);
+    auto fmt=verified(L"fmt.dll","754708a450b413688dd2a9a2110bb4febe1f9caeaed5508027e7f5500ebffa9e",root);
+    auto widgets=verified(L"Qt6Widgets.dll","77c43155cfb237223f7171f9b73c47acf44076e95616dd72d676227c81ab5469",root);
+    auto ui=verified(L"CavalryUI.dll","d36edc515abac5224ea2e775d69988866e2f2c18d8c64db45bc9b2a54e7db626",root);
+    auto qtCore=verified(L"Qt6Core.dll","63e487c3bb4fb0afae2a1b418e6ec1a45cf1420393bcd1b36039a18c10d2deeb",root);
+    auto qtGui=verified(L"Qt6Gui.dll","e8d99d059e26be76d2f1fdaf77b0307c6acf2b28a7178640b841ae773a14b66c",root);
+    auto spdlog=verified(L"spdlog.dll","11094c408597105f89d9228e5029e125b1e1deed8ecdefbd59949ec81b630119",root);
     if(!core || !skia || !extension || !api || !fmt || !widgets || !ui || !qtCore || !qtGui || !spdlog)return fail(error,"Native dependency identity differs");
     const auto getPath=GetProcAddress(skia,"?GetPath@SkTextUtils@@SAXPEBX_KW4SkTextEncoding@@MMAEBVSkFont@@PEAVSkPath@@@Z");
     const auto getManager=GetProcAddress(core,"?defaultFontMgr@cavalry@@YA?AV?$sk_sp@VSkFontMgr@@@@XZ");
     const auto match=GetProcAddress(skia,"?matchFamilyStyle@SkFontMgr@@QEBA?AV?$sk_sp@VSkTypeface@@@@QEBDAEBVSkFontStyle@@@Z");
     const auto glyph=GetProcAddress(skia,"?unicharToGlyph@SkTypeface@@QEBAGH@Z");
     const auto locale=GetProcAddress(api,"?activeLocale@cavalry@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAVApi@@@Z");
-    if(reinterpret_cast<void*>(getPath)!=address(skia,0x1a660) || reinterpret_cast<void*>(getManager)!=address(core,0x1ded5) || reinterpret_cast<void*>(match)!=address(skia,0x137ad0) || reinterpret_cast<void*>(glyph)!=address(skia,0x20d360) || reinterpret_cast<void*>(locale)!=address(api,0x2f09))return fail(error,"Native export ABI differs");
-    auto pathSlot=reinterpret_cast<void**>(address(core,0x1bdd590));auto localeSlot=reinterpret_cast<void**>(address(extension,0x1f965e8));
-    auto titleSlot=reinterpret_cast<void**>(address(extension,0x1fa1cd8));
-    auto title=GetProcAddress(fmt,"?vformat@v10@fmt@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string_view@D@12@V?$basic_format_args@V?$basic_format_context@Vappender@v10@fmt@@D@v10@fmt@@@12@@Z");
-    if(*pathSlot!=reinterpret_cast<void*>(getPath) || *localeSlot!=reinterpret_cast<void*>(locale) || reinterpret_cast<void*>(title)!=address(fmt,0x15650) || *titleSlot!=reinterpret_cast<void*>(title))return fail(error,"Native import binding differs");
+    if(reinterpret_cast<void*>(getPath)!=address(skia,0x1a660) || reinterpret_cast<void*>(getManager)!=address(core,0x1df1b) || reinterpret_cast<void*>(match)!=address(skia,0x137ad0) || reinterpret_cast<void*>(glyph)!=address(skia,0x20d360) || reinterpret_cast<void*>(locale)!=address(api,0x2eaa))return fail(error,"Native export ABI differs");
+    auto pathSlot=reinterpret_cast<void**>(address(core,0x1bde5d0));auto localeSlot=reinterpret_cast<void**>(address(extension,0x1fbf5e8));
+    auto titleSlot=reinterpret_cast<void**>(address(extension,0x1fcace8));
+    auto title=GetProcAddress(fmt,"?vformat@v11@fmt@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@V?$basic_string_view@D@12@V?$basic_format_args@Vcontext@v11@fmt@@@12@@Z");
+    if(*pathSlot!=reinterpret_cast<void*>(getPath) || *localeSlot!=reinterpret_cast<void*>(locale) || reinterpret_cast<void*>(title)!=address(fmt,0x10bb0) || *titleSlot!=reinterpret_cast<void*>(title))return fail(error,"Native import binding differs");
     auto measure=GetProcAddress(skia,"?measureText@SkFont@@QEBAMPEBX_KW4SkTextEncoding@@PEAUSkRect@@PEBVSkPaint@@@Z");
     auto draw=GetProcAddress(skia,"?drawSimpleText@SkCanvas@@QEAAXPEBX_KW4SkTextEncoding@@MMAEBVSkFont@@AEBVSkPaint@@@Z");
     auto blob=GetProcAddress(skia,"?MakeFromText@SkTextBlob@@SA?AV?$sk_sp@VSkTextBlob@@@@PEBX_KAEBVSkFont@@W4SkTextEncoding@@@Z");
-    auto measureSlot=reinterpret_cast<void**>(address(extension,0x1fa29e0));auto drawSlot=reinterpret_cast<void**>(address(extension,0x1fa29c8));auto blobSlot=reinterpret_cast<void**>(address(extension,0x1fa29b8));
+    auto measureSlot=reinterpret_cast<void**>(address(extension,0x1fcba00));auto drawSlot=reinterpret_cast<void**>(address(extension,0x1fcb9e8));auto blobSlot=reinterpret_cast<void**>(address(extension,0x1fcb9d8));
     if(reinterpret_cast<void*>(measure)!=address(skia,0x13ec90) || reinterpret_cast<void*>(draw)!=address(skia,0x11c070) || reinterpret_cast<void*>(blob)!=address(skia,0x20ae90) || *measureSlot!=reinterpret_cast<void*>(measure) || *drawSlot!=reinterpret_cast<void*>(draw) || *blobSlot!=reinterpret_cast<void*>(blob))return fail(error,"Native name font import ABI differs");
+    auto nodePaintSlot=reinterpret_cast<void**>(address(extension,native_windows_dependency::abi::kTextViewVtable+native_windows_dependency::abi::kPaintSlot*sizeof(void*)));
+    auto nodePaint=address(extension,native_windows_dependency::abi::kPaintThunk);
+    if(*nodePaintSlot!=nodePaint)return fail(error,"Native dependency node paint ABI differs");
     // 全部函数先经官方同根映像/导出核验。固定3 face沿当前语言优先，进程期持有。
     auto save=GetProcAddress(widgets,"?getSaveFileName@QFileDialog@@SA?AVQString@@PEAVQWidget@@AEBV2@11PEAV2@V?$QFlags@W4Option@QFileDialog@@@@@Z");
-    auto saveSlot=reinterpret_cast<void**>(address(extension,0x1f9e800));
+    auto saveSlot=reinterpret_cast<void**>(address(extension,native_windows_scene_dialog::contract::kGetSaveFileNameIatRva));
     if(reinterpret_cast<void*>(save)!=address(widgets,0x253bb0) || *saveSlot!=reinterpret_cast<void*>(save))return fail(error,"Native save dialog import ABI differs");
+    auto open=GetProcAddress(widgets,"?getOpenFileName@QFileDialog@@SA?AVQString@@PEAVQWidget@@AEBV2@11PEAV2@V?$QFlags@W4Option@QFileDialog@@@@@Z");
+    auto openSlot=reinterpret_cast<void**>(address(extension,native_windows_scene_dialog::contract::kGetOpenFileNameIatRva));
+    if(reinterpret_cast<void*>(open)!=address(widgets,0x2530f0) || *openSlot!=reinterpret_cast<void*>(open))return fail(error,"Native open dialog import ABI differs");
     auto help=GetProcAddress(ui,"?addScriptDocumentationEntry@TextEdit@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@AEBUScriptDocumentation@cavalry@@@Z");
-    auto helpSlot=reinterpret_cast<void**>(address(extension,0x1f97b88));
-    if(reinterpret_cast<void*>(help)!=address(ui,0x355d) || *helpSlot!=reinterpret_cast<void*>(help))return fail(error,"Native help documentation import ABI differs");
+    auto helpSlot=reinterpret_cast<void**>(address(extension,0x1fc0b88));
+    if(reinterpret_cast<void*>(help)!=address(ui,0x3567) || *helpSlot!=reinterpret_cast<void*>(help))return fail(error,"Native help documentation import ABI differs");
     auto activate=GetProcAddress(widgets,"?activate@QLayout@@QEAA_NXZ");
-    auto layoutSlot=reinterpret_cast<void**>(address(ui,0x29bf10));
+    auto layoutSlot=reinterpret_cast<void**>(address(ui,0x29bf40));
     if(reinterpret_cast<void*>(activate)!=address(widgets,0x3d8a0) || *layoutSlot!=reinterpret_cast<void*>(activate))return fail(error,"Native help layout import ABI differs");
     auto guide=GetProcAddress(widgets,"?setText@QTextEdit@@QEAAXAEBVQString@@@Z");
-    auto guideSlot=reinterpret_cast<void**>(address(extension,0x1f9f208));
+    auto guideSlot=reinterpret_cast<void**>(address(extension,0x1fc8230));
     if(reinterpret_cast<void*>(guide)!=address(widgets,0x20ca70) || *guideSlot!=reinterpret_cast<void*>(guide))return fail(error,"Native guide body import ABI differs");
     auto fast=GetProcAddress(qtCore,"??0QRegularExpression@@QEAA@AEBVQString@@V?$QFlags@W4PatternOption@QRegularExpression@@@@@Z");
-    auto fastSlot=reinterpret_cast<void**>(address(extension,0x1f9cc10));
+    auto fastSlot=reinterpret_cast<void**>(address(extension,0x1fc5c40));
     auto easing=GetProcAddress(widgets,"?addAction@QWidget@@QEAAXPEAVQAction@@@Z");
-    auto easingSlot=reinterpret_cast<void**>(address(extension,0x1fa0300));
+    auto easingSlot=reinterpret_cast<void**>(address(extension,0x1fc9328));
     if(reinterpret_cast<void*>(fast)!=address(qtCore,0x268a10) || *fastSlot!=reinterpret_cast<void*>(fast) || reinterpret_cast<void*>(easing)!=address(widgets,0x50660) || *easingSlot!=reinterpret_cast<void*>(easing))return fail(error,"Native Fast/easing import ABI differs");
+    if(reinterpret_cast<void*>(GetProcAddress(extension,native_dg_context_menu::contract::kToolMenuAddMenuItemSymbol))!=address(extension,native_dg_context_menu::contract::kToolMenuAddMenuItemThunkOffset))return fail(error,"Native ToolMenu export ABI differs");
     auto demo=GetProcAddress(core,"?textFromFile@cavalry@@YA?AV?$optional@V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@std@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@3@@Z");
-    auto demoSlot=reinterpret_cast<void**>(address(extension,0x1f98a08));
+    auto demoSlot=reinterpret_cast<void**>(address(extension,0x1fc1a10));
     const auto presetRoot=QFileInfo(root+QStringLiteral("/assets/Presets")).canonicalFilePath();
-    if(reinterpret_cast<void*>(demo)!=address(core,0x10cb7) || *demoSlot!=reinterpret_cast<void*>(demo) || presetRoot.isEmpty())return fail(error,"Native Demo reader import or selected Presets root differs");
+    if(reinterpret_cast<void*>(demo)!=address(core,0x10cb2) || *demoSlot!=reinterpret_cast<void*>(demo) || presetRoot.isEmpty())return fail(error,"Native Demo reader import or selected Presets root differs");
     auto welcome=GetProcAddress(spdlog,"?log_it_@logger@spdlog@@IEAAXAEBUlog_msg@details@2@_N1@Z");
-    auto welcomeSlot=reinterpret_cast<void**>(address(extension,0x1fa30d0));
-    if(reinterpret_cast<void*>(welcome)!=address(spdlog,0x12550) || *welcomeSlot!=reinterpret_cast<void*>(welcome))return fail(error,"Native Welcome logger import ABI differs");
-    auto catalogWarningSlot=reinterpret_cast<void**>(address(api,0x377df8));
+    auto welcomeSlot=reinterpret_cast<void**>(address(extension,0x1fcc108));
+    if(reinterpret_cast<void*>(welcome)!=address(spdlog,0x14180) || *welcomeSlot!=reinterpret_cast<void*>(welcome))return fail(error,"Native Welcome logger import ABI differs");
+    auto catalogWarningSlot=reinterpret_cast<void**>(address(api,0x378df0));
     if(*catalogWarningSlot!=reinterpret_cast<void*>(welcome))return fail(error,"Native catalog logger import ABI differs");
     if(!pin(core) || !pin(skia) || !pin(extension) || !pin(api) || !pin(fmt) || !pin(widgets) || !pin(ui) || !pin(qtCore) || !pin(qtGui) || !pin(spdlog) || !pin(reinterpret_cast<const void*>(pathHook)))return fail(error,"Native callback module PIN failed");
     auto *state=new State;state->original=reinterpret_cast<NativeGetPathFunction>(getPath);state->glyph=reinterpret_cast<Glyph>(glyph);state->localeOriginal=reinterpret_cast<ActiveLocale>(locale);state->core=reinterpret_cast<std::uintptr_t>(core);state->extension=reinterpret_cast<std::uintptr_t>(extension);
@@ -380,14 +460,16 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
     for(const auto family:families){void *face=nullptr;reinterpret_cast<MatchFamily>(match)(manager,&face,family,&style);if(face)state->faces[state->faceCount++]=face;}
     if(!state->faceCount)return fail(error,"No native system typeface");
     g=state;
+    state->nodePaintOriginal=reinterpret_cast<NodePaintFunction>(nodePaint);
+    if(!replaceCavalryIatPointer(nodePaintSlot,nodePaint,reinterpret_cast<void*>(nodePaintHook),error))return false;
     state->catalogWarningOriginal=reinterpret_cast<native_windows_catalog_warning::Original>(welcome);
     if(!replaceCavalryIatPointer(catalogWarningSlot,reinterpret_cast<void*>(welcome),reinterpret_cast<void*>(catalogWarningHook),error))return false;
     state->welcomeOriginal=reinterpret_cast<native_windows_welcome::Original>(welcome);
     if(!replaceCavalryIatPointer(welcomeSlot,reinterpret_cast<void*>(welcome),reinterpret_cast<void*>(welcomeHook),error))return false;
     state->demoOriginal=reinterpret_cast<native_windows_demo::Original>(demo);state->presetRoot=presetRoot;
     if(!replaceCavalryIatPointer(demoSlot,reinterpret_cast<void*>(demo),reinterpret_cast<void*>(demoHook),error))return false;
-    state->fastOriginal=reinterpret_cast<FastConstructor>(fast);state->easingOriginal=reinterpret_cast<decltype(state->easingOriginal)>(easing);
-    if(!replaceCavalryIatPointer(fastSlot,reinterpret_cast<void*>(fast),reinterpret_cast<void*>(fastHook),error) || !replaceCavalryIatPointer(easingSlot,reinterpret_cast<void*>(easing),reinterpret_cast<void*>(easingHook),error))return false;
+    state->fastOriginal=reinterpret_cast<FastConstructor>(fast);state->actionOriginal=reinterpret_cast<decltype(state->actionOriginal)>(easing);
+    if(!replaceCavalryIatPointer(fastSlot,reinterpret_cast<void*>(fast),reinterpret_cast<void*>(fastHook),error) || !replaceCavalryIatPointer(easingSlot,reinterpret_cast<void*>(easing),reinterpret_cast<void*>(addActionHook),error))return false;
     state->guideOriginal=reinterpret_cast<decltype(state->guideOriginal)>(guide);
     if(!replaceCavalryIatPointer(guideSlot,reinterpret_cast<void*>(guide),reinterpret_cast<void*>(guideHook),error))return false;
     state->ui=reinterpret_cast<std::uintptr_t>(ui);state->layoutOriginal=reinterpret_cast<decltype(state->layoutOriginal)>(activate);
@@ -396,6 +478,8 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
     if(!replaceCavalryIatPointer(helpSlot,reinterpret_cast<void*>(help),reinterpret_cast<void*>(helpHook),error))return false;
     state->saveOriginal=reinterpret_cast<SaveDialogFunction>(save);
     if(!replaceCavalryIatPointer(saveSlot,reinterpret_cast<void*>(save),reinterpret_cast<void*>(saveDialogHook),error))return false;
+    state->openOriginal=reinterpret_cast<OpenDialogFunction>(open);
+    if(!replaceCavalryIatPointer(openSlot,reinterpret_cast<void*>(open),reinterpret_cast<void*>(openDialogHook),error))return false;
     state->measureOriginal=reinterpret_cast<NativeMeasureFunction>(measure);state->drawOriginal=reinterpret_cast<NativeDrawFunction>(draw);state->blobOriginal=reinterpret_cast<NativeBlobFunction>(blob);
     if(!replaceCavalryIatPointer(measureSlot,reinterpret_cast<void*>(measure),reinterpret_cast<void*>(measureHook),error) || !replaceCavalryIatPointer(drawSlot,reinterpret_cast<void*>(draw),reinterpret_cast<void*>(drawHook),error) || !replaceCavalryIatPointer(blobSlot,reinterpret_cast<void*>(blob),reinterpret_cast<void*>(blobHook),error))return false;
     state->titleOriginal=reinterpret_cast<TitleFormat>(title);
@@ -407,7 +491,7 @@ bool installNativeWindowsRuntime(const QString &language,QString *error){
 QJsonObject nativeWindowsRuntimeDiagnostics(){
     if(!g)return {{QStringLiteral("installed"),false}};
     QJsonObject result{{QStringLiteral("locale"),QString::fromLatin1(g->locale.hint()?g->locale.hint():"unset")}};
-    const char *names[]={"pathCalls","approvedText","ownerMatch","fallback","forward","localeCaptured","titleCalls","titleProjected","timelineMeasure","timelineMeasureFallback","timelineDraw","timelineDrawFallback","viewportName","viewportNameFallback","helpEntries","helpProjected","helpLayouts","helpLayoutProjected","guideBodies","guideProjected","fastQueries","fastUnicode","easingActions","easingProjected","helpBeforeLocale","demoReads","demoProjected","welcomeOwned","welcomeProjected","catalogWarningOwned","catalogWarningQuiet"};
+    const char *names[]={"pathCalls","approvedText","ownerMatch","fallback","forward","localeCaptured","titleCalls","titleProjected","timelineMeasure","timelineMeasureFallback","timelineDraw","timelineDrawFallback","viewportName","viewportNameFallback","helpEntries","helpProjected","helpLayouts","helpLayoutProjected","guideBodies","guideProjected","fastQueries","fastUnicode","easingActions","easingProjected","helpBeforeLocale","demoReads","demoProjected","welcomeOwned","welcomeProjected","catalogWarningOwned","catalogWarningQuiet","nodePaint","nodeHeaders","nodeMeasure","nodeDraw","nodeFallback","toolMenuActions","toolMenuProjected"};
     for(unsigned i=0;i<std::size(names);++i)result[QString::fromLatin1(names[i])]=double(g->stats[i].load(std::memory_order_relaxed));
     return result;
 }

@@ -166,7 +166,8 @@ x86_64_owner_veneer_probe.S: 为x86 owner合同提供合成调用帧。
 x86_macho_contract.py: 供x86静态合同复用UUID、符号、字节窗和Mach-O读取原语。
 
 native_font_candidate.mm（2.8.1增量）: 仅显式arm64目标启用NodeView头文字与fmt v11符号；默认2.8.0路径保持原样。
-dependency_node_font_policy.h: 识别281两header slots；复用既有UTF8解码器，仅为与完整源串吻合的损坏省略片段求字符边界。
+utf8_elision_policy.h: 跨平台纯UTF8省略边界；只修与完整源串吻合的截断片段，不依赖Mac或Windows对象ABI。
+dependency_node_font_policy.h: 识别281两header slots；复用共享UTF8省略边界，Mac原有接口保持一致。
 dependency_node_font_adapter.inc: 证明两种NodeView布局、完整源串与caller帧；字体覆盖后仅在同步原调用中修复省略span，模型原文不变。
 dependency_node_font_contract_test.cpp: 验证measure/draw取帧与有/无ComplexRoundRectView前项的两种布局；仅准两个header，拒绝composer伪装者。
 skia_text_dispatch_281.inc: 仅供CAVALRY_NATIVE_TARGET_281 arm64使用；把两个NodeView header的Measure/Draw接入既有字体核心。
@@ -177,7 +178,7 @@ build_candidate_2_8_1.py：在临时源树使用abi_2_8_1合同与测试构建�
 build_candidate_2_8_1_test.py：核281 fmt/Viewport/TextBlob输入；编译实际选中的标题suffix判断，验证281允许非零第二word、未知/空指针仍拒绝，280零值合同与原源保留。
 check_dependency_node_font_contract.py：对281 NodeView两header定位的符号与调用窗做只读vendor校验。
 dg_context_menu_abi_contract.h: 仅281 arm64锁定ToolMenu及五个TransformTool菜单helper的符号、frame prologue与调用字节。
-dg_context_menu_policy.h: 双层owner/source精确匹配构建器从批准源生成的五条三语菜单文本；未知locale与源原样透传。
-dg_context_menu_contract_test.cpp: Vendor-free验证五项source/caller/locale门、三语值与单次转发。
+dg_context_menu_policy.h: 纯source/helper策略供Mac与Windows复用；构建器只生成五条已批准三语菜单文本，未知locale与源原样透传。
+dg_context_menu_contract_test.cpp: 显式引入281 arm64 ABI合同，Vendor-free验证五项source/caller/locale门、三语值与单次转发。
 check_dg_context_menu_contract.py: 只读验证281 Extension UUID、五个helper直接调用及frame/导入字节；不启动App。
 easing_menu_runtime.inc（281增量）: 复用既有QWidget::addAction单一interpose；Easing原分支不变，五个TransformTool项加独立ABI/双frame/source门。

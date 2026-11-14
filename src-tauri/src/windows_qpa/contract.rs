@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、serde 与绝对 Windows 路径/小写 SHA-256 约束。
  * [OUTPUT]: 定义 QPA manifest、由 activate/restore plan 唯一导出的 manifest 字节、hash-locked Activate/EnglishRestore、四态检查与安全无操作计划。
- * [POS]: windows_qpa 的稳定数据合同；Rust 普通写入与受限提升 worker 共用同一 transition schema，C++ 代理只消费其中同构 manifest。
+ * [POS]: windows_qpa 的稳定数据合同；Rust 普通写入与受限提升 worker 共用同一 transition schema，native profile固定Cavalry 2.8.1与官方qwindows SHA，C++代理消费同构manifest。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::Path;
@@ -17,7 +17,7 @@ pub const QWINDOWS_FILE_NAME: &str = "qwindows.dll";
 pub const QT_CORE_FILE_NAME: &str = "Qt6Core.dll";
 pub const GENERIC_PLUGIN_RELATIVE_PATH: &str = "generic/cavalryi18n.dll";
 pub const SUPPORTED_CAVALRY_VERSION: &str = if cfg!(cavalry_native_windows) {
-    "2.8.0"
+    "2.8.1"
 } else {
     "2.7.2"
 };
@@ -28,7 +28,7 @@ pub const SUPPORTED_QT_VERSION: &str = if cfg!(cavalry_native_windows) {
 };
 pub const SUPPORTED_ARCHITECTURE: &str = "x86_64";
 pub const VENDOR_QWINDOWS_SHA256: &str = if cfg!(cavalry_native_windows) {
-    "f80153ee381ad1437148f785aa4f952b29d285729185e952866e141f96b13b86"
+    "0673d9050ee2f04c108f7673abdbee57c5bbb5bf84fab39e4a82eb96b1bcc8e8"
 } else {
     "e039d39a6b99a26a358a85660147941112a4c9df3a62b5e19a8ae9ed75be3f01"
 };

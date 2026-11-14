@@ -1,12 +1,11 @@
 /**
- * [INPUT]: 依赖五个已审TransformTool helper返回点、精确英文源与native locale。
+ * [INPUT]: 依赖平台适配器提供的helper返回位、共享source-bound表与native locale。
  * [OUTPUT]: 只为现有五条批准显示译文提供三语投影。
- * [POS]: Vendor-free窄策略；不改变QAction身份、菜单结构或模型数据。
+ * [POS]: Mac与Windows共用的纯策略；不依赖平台ABI或Qt，不改变QAction身份、菜单结构与模型数据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
 
-#include "dg_context_menu_abi_contract.h"
 #include "native_locale_snapshot.h"
 
 #include <array>

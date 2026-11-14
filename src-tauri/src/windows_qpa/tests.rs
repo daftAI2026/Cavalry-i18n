@@ -1,12 +1,13 @@
 /**
  * [INPUT]: 依赖 windows_qpa 内部 policy seam、临时 x64 PE fixture 与真实 ReplaceFileW 文件语义。
- * [OUTPUT]: 证明激活持久化、English 同时清理自有 generic/recovery、旧发行 manifest 可恢复、未知 generic/QPA 保留、rollback 表面、preflight 与 CAS/hash 锁。
+ * [OUTPUT]: 证明激活持久化、English清理自有generic/recovery、只读观察句柄阻断qwindows替换并在释放后安全重试、编译profile身份正反例、native 2.8.1 EXE SHA回退/漂移拒绝及manifest/rollback边界。
  * [POS]: windows_qpa 的 Windows 单元合同；只写 tempfile 安装根，不读取或修改真实 Cavalry。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
     cell::Cell,
     fs, io,
+    os::windows::fs::OpenOptionsExt,
     path::Path,
     time::{Duration, Instant},
 };
@@ -26,6 +27,7 @@ use super::{
     MANIFEST_FILE_NAME, PLAN_SCHEMA_VERSION, QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_FILE_NAME,
 };
 use crate::install::InstallLayout;
+use windows::Win32::Storage::FileSystem::FILE_SHARE_READ;
 
 struct Fixture {
     _temp: tempfile::TempDir,
@@ -40,7 +42,9 @@ struct Fixture {
 impl Fixture {
     fn new() -> Self {
         let temp = tempfile::tempdir().unwrap();
-        let root = temp.path().join("Cavalry 2.7.2");
+        let root = temp
+            .path()
+            .join(format!("Cavalry {}", super::SUPPORTED_CAVALRY_VERSION));
         fs::create_dir_all(root.join("assets/Definitions")).unwrap();
         fs::create_dir_all(root.join("generic")).unwrap();
         fs::write(root.join("assets/Definitions/appStrings.json"), b"{}").unwrap();
@@ -63,8 +67,8 @@ impl Fixture {
             proxy,
             generic,
             policy: Policy {
-                cavalry_version: "2.7.2".to_string(),
-                qt_version: "6.6.3".to_string(),
+                cavalry_version: super::SUPPORTED_CAVALRY_VERSION.to_string(),
+                qt_version: super::SUPPORTED_QT_VERSION.to_string(),
                 architecture: "x86_64".to_string(),
                 vendor_hash,
             },
@@ -77,7 +81,7 @@ impl Fixture {
     fn activation_request(&self) -> ActivationRequest<'_> {
         ActivationRequest {
             layout: &self.layout,
-            cavalry_version: "2.7.2",
+            cavalry_version: super::SUPPORTED_CAVALRY_VERSION,
             proxy_source: &self.proxy,
         }
     }
@@ -156,6 +160,72 @@ fn stock_qpa_with_hash_owned_generic_builds_cleanup_transition() {
         .root
         .join(super::GENERIC_PLUGIN_RELATIVE_PATH)
         .exists());
+    assert!(!recovery_directory(&fixture.layout).exists());
+}
+
+#[test]
+fn read_only_qwindows_observer_blocks_english_restore_until_released() {
+    let fixture = Fixture::new();
+    fixture.activate();
+
+    let transition = build_english_transition_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap();
+    let QpaTransitionPlan::EnglishRestore(plan) = transition else {
+        panic!("an active owned QPA must produce an English restore plan");
+    };
+    assert_eq!(plan.action, super::RestoreAction::ReplaceProxy);
+
+    let qwindows = fixture.layout.root.join(QWINDOWS_FILE_NAME);
+    let generic = fixture
+        .layout
+        .root
+        .join(super::GENERIC_PLUGIN_RELATIVE_PATH);
+    let foreign = generic.parent().unwrap().join("foreign.keep");
+    let vendor = recovery_directory(&fixture.layout).join(VENDOR_QWINDOWS_FILE_NAME);
+    let generic_before = fs::read(&generic).unwrap();
+    let vendor_before = fs::read(&vendor).unwrap();
+    fs::write(&foreign, b"test-only unknown sibling").unwrap();
+
+    // 仿照 PowerShell/.NET 的 FileShare.Read：允许读取，但不允许 ReplaceFileW 删除或替换。
+    let observer = fs::OpenOptions::new()
+        .read(true)
+        .share_mode(FILE_SHARE_READ.0)
+        .open(&qwindows)
+        .unwrap();
+    let error = execute_writable_restore_with_policy(&plan, &fixture.policy, false).unwrap_err();
+    println!("ReplaceFileW read-share rejection: {error}");
+    assert!(
+        error.contains("0x80070020")
+            || error.to_ascii_lowercase().contains("sharing violation")
+            || error
+                .to_ascii_lowercase()
+                .contains("used by another process"),
+        "expected a Windows sharing violation from ReplaceFileW, got: {error}"
+    );
+    assert_eq!(fs::read(&qwindows).unwrap(), fixture.proxy_bytes);
+    assert_eq!(fs::read(&generic).unwrap(), generic_before);
+    assert_eq!(fs::read(&vendor).unwrap(), vendor_before);
+    assert_eq!(
+        read_manifest(&fixture.layout, &fixture.policy)
+            .unwrap()
+            .unwrap()
+            .phase,
+        QpaManifestPhase::Restoring,
+        "the retryable restore state must remain recognizable"
+    );
+    assert_eq!(fs::read(&foreign).unwrap(), b"test-only unknown sibling");
+
+    drop(observer);
+    assert_eq!(
+        execute_writable_restore_with_policy(&plan, &fixture.policy, false).unwrap(),
+        RestoreOutcome::Restored
+    );
+    assert_eq!(fs::read(&qwindows).unwrap(), fixture.vendor_bytes);
+    assert!(!generic.exists());
+    assert_eq!(fs::read(&foreign).unwrap(), b"test-only unknown sibling");
     assert!(!recovery_directory(&fixture.layout).exists());
 }
 
@@ -477,15 +547,68 @@ fn english_restore_never_writes_an_old_vendor_backup_over_a_new_executable() {
 }
 
 #[test]
-fn cavalry_version_gate_rejects_every_other_release() {
+fn activation_plan_accepts_the_compiled_cavalry_and_qt_identity() {
     let fixture = Fixture::new();
+    let mut policy = fixture.policy.clone();
+    policy.cavalry_version = super::SUPPORTED_CAVALRY_VERSION.to_string();
+    policy.qt_version = super::SUPPORTED_QT_VERSION.to_string();
     let request = ActivationRequest {
         layout: &fixture.layout,
-        cavalry_version: "2.8.0",
+        cavalry_version: super::SUPPORTED_CAVALRY_VERSION,
         proxy_source: &fixture.proxy,
     };
-    let error = build_activation_plan_with_policy(request, &fixture.policy, false).unwrap_err();
-    assert!(error.contains("supports Cavalry 2.7.2 only"));
+
+    let plan = build_activation_plan_with_policy(request, &policy, false).unwrap();
+
+    assert_eq!(plan.cavalry_version, super::SUPPORTED_CAVALRY_VERSION);
+    assert_eq!(plan.qt_version, super::SUPPORTED_QT_VERSION);
+}
+
+#[test]
+fn production_policy_uses_the_approved_windows_identity_for_its_build_profile() {
+    let policy = Policy::production();
+    #[cfg(cavalry_native_windows)]
+    {
+        assert_eq!(policy.cavalry_version, "2.8.1");
+        assert_eq!(policy.qt_version, "6.9.2");
+        assert_eq!(
+            policy.vendor_hash,
+            "0673d9050ee2f04c108f7673abdbee57c5bbb5bf84fab39e4a82eb96b1bcc8e8"
+        );
+    }
+    #[cfg(not(cavalry_native_windows))]
+    {
+        assert_eq!(policy.cavalry_version, "2.7.2");
+        assert_eq!(policy.qt_version, "6.6.3");
+        assert_eq!(
+            policy.vendor_hash,
+            "e039d39a6b99a26a358a85660147941112a4c9df3a62b5e19a8ae9ed75be3f01"
+        );
+    }
+}
+
+#[test]
+fn cavalry_version_gate_rejects_the_previous_release_for_the_native_profile() {
+    let fixture = Fixture::new();
+    let mut policy = fixture.policy.clone();
+    policy.cavalry_version = super::SUPPORTED_CAVALRY_VERSION.to_string();
+    let previous_version = if super::SUPPORTED_CAVALRY_VERSION == "2.8.1" {
+        "2.8.0"
+    } else {
+        "2.8.1"
+    };
+    let request = ActivationRequest {
+        layout: &fixture.layout,
+        cavalry_version: previous_version,
+        proxy_source: &fixture.proxy,
+    };
+
+    let error = build_activation_plan_with_policy(request, &policy, false).unwrap_err();
+
+    assert!(
+        error.contains(&format!("supports Cavalry {} only", policy.cavalry_version)),
+        "{error}"
+    );
 }
 
 #[test]
@@ -545,7 +668,13 @@ fn fake_x64_pe(payload: &[u8]) -> Vec<u8> {
 #[test]
 fn fixture_paths_are_confined_to_temp() {
     let fixture = Fixture::new();
-    let expected_root = fs::canonicalize(fixture._temp.path().join("Cavalry 2.7.2")).unwrap();
+    let expected_root = fs::canonicalize(
+        fixture
+            ._temp
+            .path()
+            .join(format!("Cavalry {}", super::SUPPORTED_CAVALRY_VERSION)),
+    )
+    .unwrap();
     let actual_root = fs::canonicalize(&fixture.layout.root).unwrap();
     assert_eq!(
         actual_root.to_string_lossy().to_ascii_lowercase(),

@@ -12,29 +12,11 @@
 #include <cstring>
 
 #include "dependency_node_font_abi_contract.h"
-#include "../cavalry_i18n_macos_timeline_font_policy.h"
+#include "utf8_elision_policy.h"
 
 namespace dependency_node_font::policy {
-inline constexpr std::size_t kUnchangedTextSpan = std::numeric_limits<std::size_t>::max();
-
-inline std::size_t repairedElisionPrefix(const unsigned char *source, std::size_t sourceSize,
-                                        const void *text, std::size_t length, int encoding) noexcept
-{
-    if (!source || !text || encoding != 0 || length <= 3) return kUnchangedTextSpan;
-    const auto *span = static_cast<const unsigned char *>(text);
-    const std::size_t prefix = length - 3;
-    if (prefix >= sourceSize || std::memcmp(span + prefix, "...", 3) != 0 ||
-        std::memcmp(span, source, prefix) != 0 || (source[prefix] & 0xc0) != 0x80)
-        return kUnchangedTextSpan;
-    std::size_t offset = 0, boundary = 0;
-    while (offset < sourceSize) {
-        std::int32_t scalar = 0;
-        if (!cavalry_i18n::mac_timeline::nextCodepoint(source, sourceSize, offset, scalar))
-            return kUnchangedTextSpan;
-        if (offset <= prefix) boundary = offset;
-    }
-    return boundary;
-}
+using native_utf8_elision::kUnchangedTextSpan;
+using native_utf8_elision::repairedElisionPrefix;
 
 enum class HeaderSlot : std::uint8_t {
     None,

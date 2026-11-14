@@ -1,14 +1,14 @@
 ﻿<#
 [INPUT]: 依赖CI锁定的Cavalry MSI、Windows target摘要和hash-locked aqt 3.3.0。
 [OUTPUT]: 在RUNNER_TEMP提取官方assets并准备Qt 6.9.2 x64，再写入两个GitHub环境路径。
-[POS]: Windows 2.8构建输入唯一准备器；不安装Cavalry，不改本机宿主或用户profile。
+[POS]: Windows 2.8.1构建输入唯一准备器；不安装Cavalry，不改本机宿主或用户profile。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 $ErrorActionPreference = 'Stop'
 
 function Stop-CiInputPreparation {
   param([Parameter(Mandatory = $true)][string]$Message)
-  throw "[native-2.8-windows-ci-inputs] $Message"
+  throw "[native-2.8.1-windows-ci-inputs] $Message"
 }
 
 try {
@@ -24,15 +24,15 @@ try {
 
   $targetPath = Join-Path $PSScriptRoot 'cavalry_native_windows_target.json'
   if (-not (Test-Path -LiteralPath $targetPath -PathType Leaf)) {
-    Stop-CiInputPreparation 'the frozen Windows 2.8 target summary is missing.'
+    Stop-CiInputPreparation 'the frozen Windows 2.8.1 target summary is missing.'
   }
   $target = Get-Content -LiteralPath $targetPath -Raw | ConvertFrom-Json
   if ($target.schemaVersion -ne 1 -or
-      $target.cavalryVersion -ne '2.8.0' -or
+      $target.cavalryVersion -ne '2.8.1' -or
       $target.qtVersion -ne '6.9.2' -or
       $target.architecture -ne 'x86_64' -or
       $target.msiSha256 -notmatch '^[a-fA-F0-9]{64}$') {
-    Stop-CiInputPreparation 'the frozen Windows 2.8 target identity is invalid.'
+    Stop-CiInputPreparation 'the frozen Windows 2.8.1 target identity is invalid.'
   }
   $targetFiles = @($target.files.PSObject.Properties)
   if ($targetFiles.Count -ne 5 -or -not ($targetFiles.Name -contains 'Cavalry.exe')) {
@@ -51,10 +51,10 @@ try {
   if ($runId -notmatch '^[A-Za-z0-9._-]+$' -or $attempt -notmatch '^[A-Za-z0-9._-]+$') {
     Stop-CiInputPreparation 'GitHub run identity contains unsupported characters.'
   }
-  $inputRoot = Join-Path $runnerTemp "cavalry-2.8-windows-inputs-$runId-$attempt"
-  $msiPath = Join-Path $inputRoot 'Cavalry-2.8.0.msi'
-  $msiLog = Join-Path $inputRoot 'Cavalry-2.8.0-admin-extract.log'
-  $extractRoot = Join-Path $inputRoot 'Cavalry-2.8.0-admin-image'
+  $inputRoot = Join-Path $runnerTemp "cavalry-2.8.1-windows-inputs-$runId-$attempt"
+  $msiPath = Join-Path $inputRoot 'Cavalry-2.8.1.msi'
+  $msiLog = Join-Path $inputRoot 'Cavalry-2.8.1-admin-extract.log'
+  $extractRoot = Join-Path $inputRoot 'Cavalry-2.8.1-admin-image'
   $qtOutput = Join-Path $inputRoot 'qt_sdk'
   $qtPrefix = Join-Path $qtOutput '6.9.2\msvc2022_64'
   if (Test-Path -LiteralPath $inputRoot) {
@@ -64,14 +64,14 @@ try {
   New-Item -ItemType Directory -Path $extractRoot | Out-Null
 
   $msiUrl = 'https://cavalry.studio/downloads/latest/Cavalry.msi'
-  Write-Output '[native-2.8-windows-ci-inputs] Downloading the official Cavalry MSI under the frozen target SHA-256.'
+  Write-Output '[native-2.8.1-windows-ci-inputs] Downloading the official Cavalry MSI under the frozen target SHA-256.'
   Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -TimeoutSec 600 -UseBasicParsing
   $actualMsiSha256 = (Get-FileHash -LiteralPath $msiPath -Algorithm SHA256).Hash.ToLowerInvariant()
   if ($actualMsiSha256 -cne $target.msiSha256.ToLowerInvariant()) {
     Stop-CiInputPreparation 'official Cavalry MSI SHA-256 drifted; keep the target pin unchanged and stop.'
   }
 
-  Write-Output '[native-2.8-windows-ci-inputs] Extracting an administrative image into RUNNER_TEMP; no MSI install action runs.'
+  Write-Output '[native-2.8.1-windows-ci-inputs] Extracting an administrative image into RUNNER_TEMP; no MSI install action runs.'
   $msiexec = Join-Path $env:SystemRoot 'System32\msiexec.exe'
   $msiArguments = '/a "{0}" /qn /norestart /l*v "{1}" TARGETDIR="{2}"' -f $msiPath, $msiLog, $extractRoot
   $msiProcess = Start-Process -FilePath $msiexec -ArgumentList $msiArguments -Wait -PassThru -NoNewWindow
@@ -105,11 +105,11 @@ try {
   $assetsRoot = Join-Path $matchingRoots[0] 'assets'
   foreach ($requiredDirectory in @($assetsRoot, (Join-Path $assetsRoot 'MetaData'), (Join-Path $assetsRoot 'Presets'))) {
     if (-not (Test-Path -LiteralPath $requiredDirectory -PathType Container)) {
-      Stop-CiInputPreparation "verified Cavalry 2.8 assets are incomplete: $requiredDirectory"
+      Stop-CiInputPreparation "verified Cavalry 2.8.1 assets are incomplete: $requiredDirectory"
     }
   }
 
-  Write-Output '[native-2.8-windows-ci-inputs] Installing only the official Qt 6.9.2 qtbase archive with hash-locked aqtinstall 3.3.0.'
+  Write-Output '[native-2.8.1-windows-ci-inputs] Installing only the official Qt 6.9.2 qtbase archive with hash-locked aqtinstall 3.3.0.'
   & python -c "import aqt; from importlib.metadata import version; assert version('aqtinstall') == '3.3.0'"
   if ($LASTEXITCODE -ne 0) {
     Stop-CiInputPreparation 'the hash-locked CI Python environment must provide aqtinstall 3.3.0.'
@@ -137,8 +137,8 @@ try {
   $githubEnvPath = [System.IO.Path]::GetFullPath($env:GITHUB_ENV)
   $environmentLines = "CAVALRY_NATIVE_ASSETS_ROOT=$assetsRoot`nCAVALRY_QT_PREFIX=$qtPrefix`n"
   [System.IO.File]::AppendAllText($githubEnvPath, $environmentLines, [System.Text.UTF8Encoding]::new($false))
-  Write-Output "[native-2.8-windows-ci-inputs] Verified Cavalry assets: $assetsRoot"
-  Write-Output "[native-2.8-windows-ci-inputs] Verified Qt SDK prefix: $qtPrefix"
+  Write-Output "[native-2.8.1-windows-ci-inputs] Verified Cavalry assets: $assetsRoot"
+  Write-Output "[native-2.8.1-windows-ci-inputs] Verified Qt SDK prefix: $qtPrefix"
 } catch {
   Write-Error $_
   exit 1

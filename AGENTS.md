@@ -1,10 +1,10 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-11-14 | Current target: Cavalry 2.8.1 macOS arm64 | Intel ABI/build and Windows migration pending | Qt: 6.9.2
+Last verified: 2026-11-15 | Current target: Cavalry 2.8.1 macOS arm64 + Windows x64 | Intel ABI/build pending; Windows live acceptance tracked separately | Qt: 6.9.2
 
 ## OVERVIEW
 
-Cavalry-i18n is a macOS and Windows x64 Tauri desktop language switcher. The current macOS arm64 production target is Cavalry 2.8.1; Intel ABI/build validation is pending, and Windows build inputs still target 2.8.0 and currently fail the shared 2.8.1 native source lock; Windows 2.8.1 support is pending. Cavalry 2.8.0 remains available from historical releases. Production installs approved native language packs into the user profile and an architecture-matched runtime. The JSON/TS paths below describe retained legacy tooling; macOS installs a DYLD runtime translator, patches Keychain query behavior, re-signs the local `Cavalry.app`, and clears quarantine; Windows installs a hash-locked Qt QPA delegate plus the existing generic translator, retaining the exact vendor `qwindows.dll` for explicit English restoration. It relaunches Cavalry in English, Simplified Chinese, Traditional Chinese, or Japanese.
+Cavalry-i18n is a macOS and Windows x64 Tauri desktop language switcher. The current macOS arm64 and Windows x64 production inputs target Cavalry 2.8.1; Intel ABI/build validation is pending. Windows extends its accepted 2.8.0 runtime with independently verified 2.8.1 PE identities and callers; build/contracts and live UI acceptance remain separate evidence. Cavalry 2.8.0 remains available from historical releases. Production installs approved native language packs into the user profile and an architecture-matched runtime. The JSON/TS paths below describe retained legacy tooling; macOS installs a DYLD runtime translator, patches Keychain query behavior, re-signs the local `Cavalry.app`, and clears quarantine; Windows installs a hash-locked Qt QPA delegate plus the existing generic translator, retaining the exact vendor `qwindows.dll` for explicit English restoration. It relaunches Cavalry in English, Simplified Chinese, Traditional Chinese, or Japanese.
 
 Stack: vanilla HTML/CSS/JS renderer + Tauri 2 Rust backend + Objective-C++ Qt injector + Node/Python/Bash gate tooling. This is not a generic i18n repo; it is a local app-bundle patcher with runtime UI translation gates.
 
@@ -72,7 +72,7 @@ Cavalry-i18n/
 
 - 2.7 p12 is the final 2.7 release. Do not develop, update, or rerun acceptance for 2.7. Historical downloads remain available.
 - Current macOS arm64 packaging targets Cavalry 2.8.1 with the existing `production-2.8` mode, complete native resources, and the verified arm64 runtime. Intel 2.8.1 ABI/build validation remains pending. Do not use the historical Qt 6.6.3 injector build as a prerequisite.
-- The Windows source path remains 2.8.0-specific; its 2.8.1 producer/runtime migration and acceptance are pending. Do not infer Windows 2.8.1 support from the shared release profile or the existing `tools/windows_native_build.js` path.
+- Windows production inputs and its native runtime target 2.8.1 with Qt6.9.2 x64. Reuse the accepted 2.8.0 transaction, native producers and shared display policies; verify all changed Windows PE callers independently. A successful build does not replace live regression of existing surfaces and dependency-graph names.
 - Use one `latest.json` updater feed for all Switcher versions; incompatible hosts use the existing version notice and p12 download link. Keep historical p12 assets unchanged. Historical Intel/Windows 2.8.0 acceptance does not establish 2.8.1 support; the Intel 2.8.1 runtime requires its own ABI/build validation.
 
 - 2.8 migration targets one selected Cavalry 2.8 installation. Do not require a 2.7.2 installer, old-version coexistence, or two-installation acceptance. These are not release gates and no cross-version support is promised.
@@ -107,7 +107,7 @@ Cavalry-i18n/
 
 ### Injector and Qt
 
-- Current macOS arm64 native production targets Cavalry 2.8.1 with Qt 6.9.2; Intel validation remains pending. The Windows native path and official inputs remain 2.8.0 and fail the shared 2.8.1 resource source lock pending migration. Retained 2.7.2 injector paths use Qt 6.6.3. Do not add Qt API symbols without ABI verification; Windows plugin deployment must not carry a second Qt runtime.
+- Current macOS arm64 and Windows x64 native production target Cavalry 2.8.1 with Qt 6.9.2; Intel validation remains pending. Retained 2.7.2 injector paths use Qt 6.6.3. Do not add Qt API symbols without ABI verification; Windows plugin deployment must not carry a second Qt runtime.
 - `QMenu::aboutToShow`, `ActionAdded`, and `Show` are first-paint translation paths. Avoid delayed menu fixes that visibly flash English.
 - `QLineEdit` display translation must not mutate model identity. Time Editor item views and `QAbstractItemView` model roles preserve English where required.
 - `QTextEdit` MessageBar handling is append-time only. Do not scan full QTextEdit documents during Paint/Show or inventory.
@@ -118,11 +118,12 @@ Cavalry-i18n/
 
 ### Build and release
 
+- During Windows live acceptance, wait for the renderer's completed operation outcome before hashing or enumerating the installation root. A read-only DLL observer can hold a non-delete-sharing handle and block `ReplaceFileW`; keep verification outside the transaction's mutation window.
 - Tauri is the only active desktop shell. Do not restore old Electron/fallback packaging paths.
 - PR/main CI classifies changed paths through `tools/classify_ci_changes.js`: documentation keeps a lightweight check, contract-only changes stay on Ubuntu, dependency/platform changes select their owning gates, unknown source paths fail closed to both native gates, and stable `ci_gate` aggregates every selected/skipped result for branch protection. Never add workflow-level `paths-ignore`; release tags and manual packaging always run the full closure.
 - Internal app version is SemVer in `CHANGELOG.md`, `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`; sync with `npm run sync:version`.
 - Current release metadata uses `cavalry-2.8.1-pN` from `release-2.8.config.json`. Historical 2.7 p12 and 2.8.0 assets stay unchanged; Switcher versions share `latest.json`.
-- Current macOS arm64 production uses the approved 2.8.1 native runtime with Qt 6.9.2. Intel validation remains pending. Windows packaging still contains 2.8.0-specific inputs and fails the current shared 2.8.1 resource source lock; migrate it before a cross-platform 2.8.1 release.
+- Current macOS arm64 and Windows x64 production inputs use 2.8.1 with Qt 6.9.2. Intel validation remains pending. Windows live acceptance, installer validation and the complete release closure each require their own evidence before a cross-platform 2.8.1 release.
 
 ## ANTI-PATTERNS
 
@@ -230,8 +231,8 @@ Windows packaging follows the same JSON source and generated translation table, 
 | Rust | stable, edition 2021 | Tauri backend crate `cavalry-i18n-tauri` |
 | Tauri | Rust `tauri` 2.10.3 | npm CLI/API minor aligned with Rust runtime |
 | `tauri-build` | 2.5.6 exact | Build script dependency |
-| Qt SDK | 6.9.2 | Current macOS arm64 Cavalry 2.8.1 runtime; Intel ABI/build remains pending; 6.6.3 is legacy only |
-| Cavalry target | 2.8.1 macOS arm64 | Release tag prefix `cavalry-2.8.1-p`; Intel and Windows 2.8.1 closure pending |
+| Qt SDK | 6.9.2 | Current macOS arm64 and Windows x64 Cavalry 2.8.1 runtime; Intel ABI/build remains pending; 6.6.3 is legacy only |
+| Cavalry target | 2.8.1 macOS arm64 + Windows x64 | Release tag prefix `cavalry-2.8.1-p`; Intel and complete three-platform release closure remain pending |
 | Python | python3 | Translation validator and `aqtinstall` setup |
 | macOS tools | `codesign`, `hdiutil`, `xattr`, `osascript` | Required for package/sign/quarantine/runtime capture |
 | Windows build tools | Windows 10 x64+, Node.js 24+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, pinned CMake 4.4.3, Qt 6.9.2 `msvc2022_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |

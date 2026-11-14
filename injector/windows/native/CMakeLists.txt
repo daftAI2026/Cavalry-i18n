@@ -1,6 +1,6 @@
-# [INPUT]: Qt6.9.2 x64 SDK、官方MetaData/Presets、共享说明/缓动/Demo producer与显示策略及Windows QPA/CAS。
-# [OUTPUT]: native generic/QPA及标题、帮助/字体、Demo、Welcome和Api限域warning/实际包证明合同；不复制Qt。
-# [POS]: Windows2.8专用窄运行时构建；旧2.7全量translator不在编译闭包。
+# [INPUT]: Qt6.9.2 x64 SDK、官方MetaData/appStrings/Presets、共享说明/缓动/五项菜单/Demo producer及Windows QPA/CAS。
+# [OUTPUT]: native generic/QPA、显示策略合同及官方PE身份/节点绘制调用点证明；不复制Qt。
+# [POS]: Windows2.8.1专用窄运行时构建；共享producer生成翻译，独立Windows ABI合同约束接线。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
 project(cavalry_native_windows LANGUAGES CXX)
@@ -30,7 +30,7 @@ file(TO_CMAKE_PATH "$ENV{TEMP}" nativeTempRoot)
 set(nativeGenerated "${nativeTempRoot}/cavalry-native-windows-${nativeBuildKey}")
 file(MAKE_DIRECTORY "${nativeGenerated}")
 execute_process(COMMAND "${NATIVE_NODE_EXECUTABLE}" "${NATIVE_REPO_ROOT}/tools/build_native_help_description_table.js"
-  --metadata-dir "${CAVALRY_NATIVE_METADATA_DIR}" --out "${nativeGenerated}/help-descriptions.inc"
+  --metadata-dir "${CAVALRY_NATIVE_METADATA_DIR}" --out "${nativeGenerated}/help-descriptions.inc" --cavalry-version 2.8.1
   RESULT_VARIABLE helpResult OUTPUT_VARIABLE helpOutput ERROR_VARIABLE helpError)
 if(NOT helpResult EQUAL 0)
   message(FATAL_ERROR "Official help projection failed: ${helpError}")
@@ -42,6 +42,19 @@ if(NOT easingResult EQUAL 0)
   message(FATAL_ERROR "Approved easing projection failed: ${easingError}")
 endif()
 get_filename_component(nativeAssetsRoot "${CAVALRY_NATIVE_METADATA_DIR}/.." ABSOLUTE)
+execute_process(COMMAND "${NATIVE_NODE_EXECUTABLE}" "${NATIVE_REPO_ROOT}/tools/build_native_dg_context_menu_table.js"
+  --assets-dir "${nativeAssetsRoot}" --out "${nativeGenerated}/dg-context-menu.inc"
+  RESULT_VARIABLE dgResult ERROR_VARIABLE dgError)
+if(NOT dgResult EQUAL 0)
+  message(FATAL_ERROR "Approved context-menu projection failed: ${dgError}")
+endif()
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+  "${NATIVE_REPO_ROOT}/tools/build_native_dg_context_menu_table.js"
+  "${NATIVE_REPO_ROOT}/tools/generate_embedded_translations.js"
+  "${NATIVE_REPO_ROOT}/tools/native_dg_context_menu_data.js"
+  "${NATIVE_REPO_ROOT}/tools/zh-Hans.ts" "${NATIVE_REPO_ROOT}/tools/zh-Hant.ts" "${NATIVE_REPO_ROOT}/tools/ja_JP.ts"
+  "${nativeAssetsRoot}/Definitions/Translation/appStrings_en-GB.source.json"
+  "${nativeAssetsRoot}/Definitions/Translation/appStrings_ja-JP.translation.json")
 execute_process(COMMAND "${NATIVE_NODE_EXECUTABLE}" "${NATIVE_REPO_ROOT}/tools/native_windows_catalog_warning_guard.js"
   --assets-root "${nativeAssetsRoot}" --out "${nativeGenerated}/catalog-warning-guard.inc"
   RESULT_VARIABLE catalogWarningResult ERROR_VARIABLE catalogWarningError)
@@ -67,6 +80,7 @@ target_compile_definitions(cavalryi18n PRIVATE NATIVE_HELP_DESCRIPTION_TABLE="${
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_HELP_LAYOUT_ROWS="${nativeGenerated}/help-descriptions.inc.layout.inc")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_CATALOG_WARNING_GUARD="${nativeGenerated}/catalog-warning-guard.inc")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_EASING_DISPLAY_TABLE="${nativeGenerated}/easing.inc")
+target_compile_definitions(cavalryi18n PRIVATE NATIVE_DG_CONTEXT_MENU_TABLE="${nativeGenerated}/dg-context-menu.inc")
 target_compile_definitions(cavalryi18n PRIVATE NATIVE_DEMO_READER_TEXTS_TABLE="${nativeGenerated}/demo-texts.inc" NATIVE_DEMO_READER_FILES_TABLE="${nativeGenerated}/demo-files.inc")
 target_compile_definitions(cavalryi18n PRIVATE WIN32_LEAN_AND_MEAN NOMINMAX QT_NO_KEYWORDS)
 qt_add_plugin(cavalryi18n_qpa SHARED CLASS_NAME CavalryWindowsQpaProxy)
@@ -82,6 +96,29 @@ endforeach()
 
 include(CTest)
 if(BUILD_TESTING)
+  add_executable(native_windows_dg_menu_contract dg_menu_contract_test.cpp)
+  target_compile_definitions(native_windows_dg_menu_contract PRIVATE NATIVE_DG_CONTEXT_MENU_TABLE="${nativeGenerated}/dg-context-menu.inc")
+  add_test(NAME native_windows_dg_menu_contract COMMAND native_windows_dg_menu_contract)
+  add_executable(native_windows_viewport_snapshot_contract viewport_snapshot_contract_test.cpp)
+  add_test(NAME native_windows_viewport_snapshot_contract COMMAND native_windows_viewport_snapshot_contract)
+  add_executable(native_windows_scene_dialog_contract scene_dialog_contract_test.cpp)
+  target_link_libraries(native_windows_scene_dialog_contract PRIVATE Qt6::Core)
+  add_test(NAME native_windows_scene_dialog_contract COMMAND "${CMAKE_COMMAND}" -E env --modify "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>" $<TARGET_FILE:native_windows_scene_dialog_contract>)
+  add_executable(native_windows_dependency_node_contract dependency_node_contract_test.cpp)
+  add_test(NAME native_windows_dependency_node_contract COMMAND native_windows_dependency_node_contract)
+  add_executable(native_windows_dependency_node_binary_contract dependency_node_binary_contract_test.cpp)
+  target_link_libraries(native_windows_dependency_node_binary_contract PRIVATE Qt6::Core)
+  get_filename_component(nativeVendorRoot "${nativeAssetsRoot}/.." ABSOLUTE)
+  add_executable(native_windows_demo_binary_contract demo_binary_contract_test.cpp)
+  target_link_libraries(native_windows_demo_binary_contract PRIVATE Qt6::Core)
+  add_test(NAME native_windows_demo_binary_contract COMMAND "${CMAKE_COMMAND}" -E env --modify "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>" $<TARGET_FILE:native_windows_demo_binary_contract> "${nativeVendorRoot}/ExtensionLayer.dll")
+  add_executable(native_windows_dg_menu_binary_contract dg_menu_binary_contract_test.cpp)
+  target_link_libraries(native_windows_dg_menu_binary_contract PRIVATE Qt6::Core)
+  add_test(NAME native_windows_dg_menu_binary_contract COMMAND "${CMAKE_COMMAND}" -E env --modify "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>" $<TARGET_FILE:native_windows_dg_menu_binary_contract> "${nativeVendorRoot}/ExtensionLayer.dll")
+  add_executable(native_windows_scene_dialog_binary_contract scene_dialog_binary_contract_test.cpp)
+  target_link_libraries(native_windows_scene_dialog_binary_contract PRIVATE Qt6::Core)
+  add_test(NAME native_windows_scene_dialog_binary_contract COMMAND "${CMAKE_COMMAND}" -E env --modify "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>" $<TARGET_FILE:native_windows_scene_dialog_binary_contract> "${nativeVendorRoot}/ExtensionLayer.dll")
+  add_test(NAME native_windows_dependency_node_binary_contract COMMAND "${CMAKE_COMMAND}" -E env --modify "PATH=path_list_prepend:$<TARGET_FILE_DIR:Qt6::Core>" $<TARGET_FILE:native_windows_dependency_node_binary_contract> "${nativeVendorRoot}/ExtensionLayer.dll")
   add_test(NAME native_windows_catalog_warning_generator_contract COMMAND "${NATIVE_NODE_EXECUTABLE}" --test "${NATIVE_REPO_ROOT}/tools/native_windows_catalog_warning_guard.test.js")
   add_executable(native_windows_catalog_warning_contract catalog_warning_contract_test.cpp)
   add_test(NAME native_windows_catalog_warning_contract COMMAND native_windows_catalog_warning_contract)

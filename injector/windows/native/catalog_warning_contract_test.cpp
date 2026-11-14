@@ -1,7 +1,7 @@
 /*
- * [INPUT]: Windows真实log_msg布局、17官方catalog fixture与生产warning适配器。
+ * [INPUT]: Windows 2.8.1 log_msg布局、17官方catalog fixture与生产warning适配器。
  * [OUTPUT]: 三语/任意安装根的精确正例及未知producer、英语源、未知路径、坏包和异常单次转发合同。
- * [POS]: 无厂商DLL/无文件的启动warning回归；不把合成payload当作实机日志。
+ * [POS]: 无厂商DLL/无文件的Api启动warning合同；不把合成payload当作实机日志。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "catalog_warning_adapter.h"
@@ -36,6 +36,12 @@ Message message(const std::string &payload,int level=3){
 }
 int main(){
     try{
+        constexpr std::uintptr_t apiBase=0x180000000ULL;
+        const std::uintptr_t approvedFrames[]={apiBase+kWarningProducerReturn};
+        require(approvedWarningCaller(apiBase+kLoggerCallReturn,approvedFrames,1,apiBase),"official warning producer chain rejected");
+        require(!approvedWarningCaller(apiBase+kLoggerCallReturn+1,approvedFrames,1,apiBase),"adjacent logger caller admitted");
+        const std::uintptr_t unrelatedFrames[]={apiBase+kWarningProducerReturn+1};
+        require(!approvedWarningCaller(apiBase+kLoggerCallReturn,unrelatedFrames,1,apiBase),"adjacent producer frame admitted");
         const PackProof proofs[]={{"zh-Hans","zh-Hans","",1},{"zh-Hant","zh-Hant","",1},{"ja_JP","ja","",1}};
         for(const auto &proof:proofs)for(const auto root:{"D:\\cavalry","E:\\Apps\\Cavalry 2.8","E:\\动画\\Cavalry"})for(const auto catalog:catalogs){
             const auto text=warning(root,catalog,proof.locale);auto value=message(text);const auto before=value;
