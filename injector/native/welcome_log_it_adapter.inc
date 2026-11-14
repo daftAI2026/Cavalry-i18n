@@ -52,7 +52,7 @@ void forward(Original original, void *logger, const void *message,
     contract::LogMessageAbi translated = source;
     translated.payload = projected.data();
     translated.payloadSize = projectedSize;
-    // -- 目标spdlog 1.13在原调用内消费影子payload；不得跨调用保存 ----------
+    // -- 原spdlog调用在本次调用内消费影子payload；不得跨调用保存 --------
     original(logger, &translated, logEnabled, tracebackEnabled);
 }
 

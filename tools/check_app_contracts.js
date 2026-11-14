@@ -5381,8 +5381,8 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
   assert.match(
     nativeMacInputPreparer,
-    /short_version" == '2\.8\.0' && "\$bundle_version" == '2\.8\.0'/,
-    'the macOS input helper should verify the official 2.8.0 target'
+    /short_version" == '2\.8\.1' && "\$bundle_version" == '2\.8\.1'/,
+    'the macOS input helper should verify the official 2.8.1 target'
   );
   assert.match(nativeMacInputPreparer, /aarch64-apple-darwin/);
   assert.match(nativeMacInputPreparer, /x86_64-apple-darwin/);

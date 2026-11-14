@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- 适配 Cavalry 2.8.1 的 macOS Apple Silicon 版本，增补简体中文、繁体中文与日文原生语言资源；Intel 与 Windows 的 2.8.1 适配尚未完成。
+
+### Fixed
+- 沿用 2.8.0 的字体与标题方案，修复 2.8.1 时间轴和依赖关系图的中日文字体显示、长节点名称省略，以及项目、场景标题的版本差异；用户名称保持原样。
+- 补齐画布右键菜单中的五项译文，并修复 2.8.1 欢迎信息和打开工程文件窗口的固定提示译文。
+
 ## [1.1.2] - 2026-10-20
 
 ### Fixed

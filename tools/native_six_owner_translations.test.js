@@ -12,7 +12,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
-const { assertOfficialTarget } = require('./native_official_target');
+const { officialTargetSha256 } = require('./native_official_target');
 const REPO_ROOT = path.resolve(__dirname, '..');
 const APPROVAL_SHA256 = '5d6bcbc40285ff92336bb30347e255fe94d890de140f1d69ec25d66ace215196';
 const SPECS = Object.freeze({
@@ -112,9 +112,9 @@ function assertSourceBinding(modules) {
   assert.equal(sha(canonical.map(row => row.key)), SOURCE.sourceKeysetSha256);
   assert.equal(sha(canonical.map(row => [row.key, row.source])), SOURCE.sourcePairsSha256);
   assert.equal(sha(canonical.map(identity)), SOURCE.identityAndNotesSha256);
-  const targetBytes = fs.readFileSync(path.join(REPO_ROOT, 'tools/cavalry_native_target.json'));
-  const { target, officialTargetSha256 } = assertOfficialTarget(targetBytes);
-  assert.equal(officialTargetSha256, SOURCE.manifestSha256);
+  const targetBytes = fs.readFileSync(path.join(REPO_ROOT, 'tools/fixtures/cavalry_native_target_2_8_0.json'));
+  const target = JSON.parse(targetBytes);
+  assert.equal(officialTargetSha256(targetBytes), SOURCE.manifestSha256);
   const catalog = target.catalogs.find(row => row.id === 'Definitions/Translation/nodeStrings');
   assert.equal(catalog.sourceSha256, SOURCE.sourceCatalogSha256);
   assert.equal(catalog.japaneseSha256, SOURCE.vendorJapaneseSha256);

@@ -786,15 +786,3 @@ extern "C" viewport_blob::BlobResultAbi viewport_blob::viewportBlobDispatch(
 #include "easing_menu_runtime.inc"
 #include "save_scene_caption_runtime.inc"
 
-extern "C" __attribute__((noinline, visibility("hidden")))
-void nativeWelcomeLogItDispatcher(void *logger, const void *message,
-                                  bool logEnabled, bool tracebackEnabled,
-                                  std::uintptr_t callerPc)
-{
-    const welcome_log_it::Original original = &welcomeLogItTarget;
-    welcome_log_it::forward(
-        original, logger, message, logEnabled, tracebackEnabled, callerPc,
-        nativeWelcomeLogItExpectedReturnPc.load(std::memory_order_acquire),
-        gLocale.value());
-}
-

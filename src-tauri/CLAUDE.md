@@ -13,8 +13,8 @@ zh-Hans.lproj/InfoPlist.strings: macOS App Management 简体中文用途说明�
 zh-Hant.lproj/InfoPlist.strings: macOS App Management 繁体中文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/zh-Hant.lproj`。
 ja.lproj/InfoPlist.strings: macOS App Management 日文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/ja.lproj`。
 tauri.windows.conf.json: Windows 合并配置，以完整 main-window override 关闭系统 caption/native shadow，启用 transparent compositor 表面并继承共享首帧显露/页面完成兜底；Rust 初始化脚本在 DOMContentLoaded 同步平台态后请求首帧 show/focus；产品本体保持共享400×504/360px内容几何（末尾40px为footer，内部404px控件布局不变）；420×524 仅为其四侧各附加 10px alpha 阴影画布且不参与视觉对齐，最大化时由 renderer 状态机归零留白/圆角/阴影；在 dev/bundle 前构建 generic + QPA；resources 只映射四个 runtime `languages/{en,zh-Hans,zh-Hant,ja_JP}` 子目录到原有 `languages/<locale>` 路径，不打包 `languages/native` 构建期数据；绑定四语双语义卸载 hook 与 NSIS 消息表，独占 ico/双 DLL，禁止携带 macOS dylib。
-tauri.native-preview.conf.json: macOS未发布开发预览覆盖；独立identifier/productName，关闭旧injector前置命令，数组替换resources仅带target/native-language-packs，编译由显式环境开关启用；仅显式ARM候选支持release优化；预览identifier/state与后端updater禁用保持。
-tauri.native-production-2.8.conf.json: ARM生产资源覆盖；正式identifier，取消旧injector构建钩子，仅带native语言包。单独加载时禁用更新；必须后叠release-2.8覆盖才能启用统一latest.json。
+tauri.native-preview.conf.json: macOS未发布开发预览覆盖；独立identifier/productName，关闭旧injector前置命令，数组替换resources仅带当前2.8.1 target/native-language-packs，编译由显式环境开关启用；仅显式ARM候选支持release优化；预览identifier/state与后端updater禁用保持。
+tauri.native-production-2.8.conf.json: 当前2.8.1 macOS生产资源覆盖；正式identifier，取消旧injector构建钩子，仅带native语言包。单独加载时禁用更新；必须后叠release-2.8覆盖才能启用统一latest.json。
 tauri.native-windows-2.8.conf.json: 在production覆盖后映射native包及2.8窄generic/QPA到固定相对资源路径；安装根仍动态发现，不带第二套Qt。
 tauri.updater-artifacts.conf.json: updater 产物覆盖；仅打开 Tauri v2 `createUpdaterArtifacts`，必须叠加已含最终 updater 公钥/endpoint 的共享配置并由受保护私钥环境执行，只允许 tag 发布或受保护的无发布 signing smoke 加载，普通本地/PR 构建不得加载。
 tauri.release-2.8.conf.json: 2.8生产统一latest.json endpoint覆盖，继承updater公钥。ARM本地production与tag共用配置；三平台tag仍受implementation-not-ready阻断，本地构建不授发布。
@@ -35,5 +35,3 @@ Tauri 是唯一桌面壳；renderer 文件仍是 UI 真相源。Rust command 返
 非English同源profile在canonical回执校验后报告真实恢复阶段，再进入首次receipt写入；不加IO或动画延时。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
-
-2.8.1候选：`tauri.native-2.8.1-candidate.conf.json`绑定独立identifier与完整281资源；显式Development281模式选择281 target，默认生产仍为280。

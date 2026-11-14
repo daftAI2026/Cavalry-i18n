@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖只读2.8.1 Frameworks、Qt 6.9.2头、批准源及Demo/Welcome ABI。
-# [OUTPUT]: 失败时报告ABI实值与工具链；通过后编译并核vendor-free、Demo源、ABI及dyld合同。
+# [INPUT]: 依赖只读2.8.1 Frameworks、Qt 6.9.2头、批准源及Demo/Welcome/menu ABI。
+# [OUTPUT]: 失败时报告ABI实值与工具链；通过后编译并核vendor-free、source-bound表、ABI及dyld合同。
 # [POS]: 显式候选入口；不连接默认npm build，不签名、安装或启动App。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -161,9 +161,13 @@ HELP_LAYOUT_TEST_BIN="$OUT_DIR/help_popup_layout_contract_test"
 GUIDE_BODY_TEST_BIN="$OUT_DIR/guide_body_contract_test"
 EASING_TABLE="$OUT_DIR/easing-display-table.inc"
 EASING_TEST_BIN="$OUT_DIR/easing_menu_contract_test"
+DG_CONTEXT_MENU_TABLE="$OUT_DIR/dg-context-menu-table.inc"
+DG_CONTEXT_MENU_TEST_BIN="$OUT_DIR/dg_context_menu_contract_test"
 WELCOME_TEST_BIN="$OUT_DIR/welcome_log_it_contract_test"
 WELCOME_VENEER_TEST_BIN="$OUT_DIR/welcome_log_it_veneer_contract_test"
+WELCOME_ADMISSION_TEST_BIN="$OUT_DIR/welcome_log_it_runtime_admission_test"
 SAVE_CAPTION_TEST_BIN="$OUT_DIR/save_scene_caption_contract_test"
+SAVE_CAPTION_281_TEST_BIN="$OUT_DIR/save_scene_caption_281_contract_test"
 DEMO_TEXT_TABLE="$OUT_DIR/demo-reader-texts.inc"
 DEMO_FILES_TABLE="$OUT_DIR/demo-reader-files.inc"
 DEMO_TEST_BIN="$OUT_DIR/demo_reader_contract_test"
@@ -177,6 +181,11 @@ node "$REPO_ROOT/tools/build_native_help_description_table.js" \
   --out "$HELP_TABLE" >"$OUT_DIR/help-description-table-command.log"
 node "$REPO_ROOT/tools/build_native_easing_display_table.js" \
   --out "$EASING_TABLE" >"$OUT_DIR/easing-display-table-command.log"
+node "$REPO_ROOT/tools/build_native_dg_context_menu_table.js" \
+  --assets-dir "$(cd "$FRAMEWORKS_DIR/../assets" && pwd -P)" \
+  --out "$DG_CONTEXT_MENU_TABLE" >"$OUT_DIR/dg-context-menu-table-command.log"
+node --test "$REPO_ROOT/tools/native_dg_context_menu.test.js" \
+  >"$OUT_DIR/dg-context-menu-source-contract.log"
 node "$REPO_ROOT/tools/generate_demo_reader_tables.js" \
   --source "$REPO_ROOT/languages/native/official_demo_scripts.js" \
   --presets-root "$(cd "$(dirname "$FRAMEWORKS_DIR")/assets/Presets" && pwd -P)" \
@@ -198,6 +207,7 @@ node "$REPO_ROOT/tools/generate_demo_reader_tables.js" \
     "-DNATIVE_HELP_DESCRIPTION_TABLE=\"$HELP_TABLE\"" \
     "-DNATIVE_HELP_LAYOUT_ROWS=\"$HELP_LAYOUT_TABLE\"" \
     "-DNATIVE_EASING_DISPLAY_TABLE=\"$EASING_TABLE\"" \
+    "-DNATIVE_DG_CONTEXT_MENU_TABLE=\"$DG_CONTEXT_MENU_TABLE\"" \
     "-DNATIVE_DEMO_READER_TEXTS_TABLE=\"$DEMO_TEXT_TABLE\"" \
     "-DNATIVE_DEMO_READER_FILES_TABLE=\"$DEMO_FILES_TABLE\"" \
     "$NATIVE_DIR/native_font_candidate.mm" \
@@ -250,6 +260,19 @@ xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -o "$EASING_TEST_BIN"
 "$EASING_TEST_BIN"
 echo "PASS: Easing exact caller/source/locale and single-forwarding contract test"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -include arm_acle.h \
+  -I "$NATIVE_DIR" -I "$QT_HEADERS" -I "$QT_HEADERS/QtCore" -I "$QT_HEADERS/QtGui" \
+  "-DNATIVE_DG_CONTEXT_MENU_TABLE=\"$DG_CONTEXT_MENU_TABLE\"" \
+  -F "$FRAMEWORKS_DIR" -framework QtCore -framework QtGui \
+  -Wl,-rpath,"$FRAMEWORKS_DIR/QtCore.framework/Versions/A" \
+  -Wl,-rpath,"$FRAMEWORKS_DIR/QtGui.framework/Versions/A" \
+  "$NATIVE_DIR/dg_context_menu_contract_test.cpp" \
+  -o "$DG_CONTEXT_MENU_TEST_BIN"
+QT_QPA_PLATFORM=cocoa \
+QT_QPA_PLATFORM_PLUGIN_PATH="$FRAMEWORKS_DIR/platforms" \
+"$DG_CONTEXT_MENU_TEST_BIN"
+echo "PASS: DG/TransformTool exact two-frame/source/locale and single-forwarding contract test"
 xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -O1 -Wall -Wextra -Werror \
   -include arm_acle.h -I "$NATIVE_DIR" -I "$QT_HEADERS" \
   -I "$QT_HEADERS/QtCore" -I "$QT_HEADERS/QtGui" -I "$QT_HEADERS/QtWidgets" \
@@ -259,6 +282,16 @@ xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -O1 -Wall -Wextra -Werror \
   -o "$SAVE_CAPTION_TEST_BIN"
 "$SAVE_CAPTION_TEST_BIN"
 echo "PASS: Save Scene QString return/ref/lifetime and exact caller/source ABI contract"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -include arm_acle.h -DCAVALRY_NATIVE_TARGET_281 \
+  -I "$NATIVE_DIR" -I "$QT_HEADERS" \
+  -I "$QT_HEADERS/QtCore" -I "$QT_HEADERS/QtGui" -I "$QT_HEADERS/QtWidgets" \
+  -F "$FRAMEWORKS_DIR" -framework QtCore \
+  -Wl,-rpath,"$FRAMEWORKS_DIR/QtCore.framework/Versions/A" \
+  "$NATIVE_DIR/save_scene_caption_contract_test.cpp" \
+  -o "$SAVE_CAPTION_281_TEST_BIN"
+"$SAVE_CAPTION_281_TEST_BIN"
+echo "PASS: 281 Load .cv exact source/caller, three TS translations and single-forwarding contract"
 xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
   -I "$NATIVE_DIR" "$NATIVE_DIR/demo_reader_contract_test.cpp" \
   -o "$DEMO_TEST_BIN"
@@ -275,6 +308,12 @@ xcrun --sdk macosx clang++ -std=c++17 -O0 -g -arch arm64 \
   "$NATIVE_DIR/welcome_log_it_veneer.S" -o "$WELCOME_VENEER_TEST_BIN"
 "$WELCOME_VENEER_TEST_BIN"
 echo "PASS: Welcome exact payload/locale/single-forward and unknown-caller veneer contracts"
+xcrun --sdk macosx clang++ -std=c++17 -arch arm64 -Wall -Wextra -Werror \
+  -DCAVALRY_NATIVE_TARGET_281 -I "$NATIVE_DIR" \
+  "$NATIVE_DIR/welcome_log_it_runtime_admission_test.cpp" \
+  -o "$WELCOME_ADMISSION_TEST_BIN"
+"$WELCOME_ADMISSION_TEST_BIN"
+echo "PASS: Welcome 2.8.1 two-image admission and async return-PC publication"
 bash "$NATIVE_DIR/welcome_dyld_fixture.sh" green \
   "$NATIVE_DIR/welcome_log_it_veneer.S" \
   "$OUT_DIR/welcome-dyld-fixture-green"
@@ -335,6 +374,7 @@ PYTHONDONTWRITEBYTECODE=1 python3 "$NATIVE_DIR/candidate_static_contract_test.py
   "$REPO_ROOT" "$FRAMEWORKS_DIR" "$DYLIB"
 python3 "$NATIVE_DIR/check_candidate_contract.py" \
   "$REPO_ROOT" "$OUT_DIR" "$FRAMEWORKS_DIR" "$DYLIB"
+python3 "$NATIVE_DIR/check_dg_context_menu_contract.py" "$FRAMEWORKS_DIR"
 python3 "$NATIVE_DIR/check_help_description_contract.py" \
   "$REPO_ROOT" "$OUT_DIR" "$FRAMEWORKS_DIR" "$DYLIB"
 python3 "$NATIVE_DIR/check_help_popup_layout_contract.py" \

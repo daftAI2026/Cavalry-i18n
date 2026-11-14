@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖构建目标、Cargo profile、preview/candidate开关及2.8生产profile。
- * [OUTPUT]: 裁决默认构建、开发预览、ARM 2.8.1候选或显式2.8生产模式。
+ * [OUTPUT]: 裁决默认构建、开发预览或显式2.8生产模式；production消费当前2.8.1目标。
  * [POS]: build.rs纯构建门；production接受Mac双架构及Windows x64 release，preview仍限原Mac范围。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,7 +10,6 @@ pub(crate) enum NativeBuildMode {
     DebugPreview,
     ReleaseCandidate,
     Production,
-    Development281,
 }
 
 impl NativeBuildMode {
@@ -20,7 +19,6 @@ impl NativeBuildMode {
             Self::DebugPreview => "debug-preview",
             Self::ReleaseCandidate => "release-candidate",
             Self::Production => "production-2.8",
-            Self::Development281 => "development-2.8.1",
         }
     }
 }
@@ -34,17 +32,6 @@ pub(crate) fn select_native_build_mode(
     production_profile: Option<&str>,
 ) -> Result<NativeBuildMode, &'static str> {
     if let Some(profile_name) = production_profile {
-        if profile_name == "development-2.8.1" {
-            if target_os != "macos"
-                || target_arch != "aarch64"
-                || !matches!(profile, "debug" | "release")
-                || preview.is_some()
-                || candidate.is_some()
-            {
-                return Err("2.8.1 candidate requires macOS arm64 with its own build profile");
-            }
-            return Ok(NativeBuildMode::Development281);
-        }
         if profile_name != "production-2.8" {
             return Err("unsupported native production profile");
         }

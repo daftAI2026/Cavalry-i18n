@@ -477,7 +477,7 @@ test('2.8 macOS production aliases share a target-neutral producer and keep nati
     'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json',
   ]);
   assert.doesNotMatch(targetNeutralCommand, /build:injector|native-preview|6\.6\.3/);
-  assert.match(localSop, /officialCavalry|官方Cavalry 2\.8\.0\.app/);
+  assert.match(localSop, /officialCavalry|官方Cavalry 2\.8\.1\.app/);
   assert.match(localSop, /Qt `6\.9\.2`/);
   assert.match(localSop, /同源码已验.*arm64/);
   assert.match(localSop, /build:native-resources -- --assets-root[\s\S]*--profile production-2\.8/);
@@ -1027,9 +1027,9 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     `${releaseConfig.updater.downloadBaseUrl}/latest.json`,
     'all production configurations must share the latest.json endpoint'
   );
-  assert.equal(release28Config.targetCavalryVersion, '2.8.0');
-  assert.equal(release28Config.releaseTagPrefix, 'cavalry-2.8.0-p');
-  assert.equal(release28Config.releaseTagPattern, '^cavalry-2\\.8\\.0-p[0-9]+$');
+  assert.equal(release28Config.targetCavalryVersion, '2.8.1');
+  assert.equal(release28Config.releaseTagPrefix, 'cavalry-2.8.1-p');
+  assert.equal(release28Config.releaseTagPattern, '^cavalry-2\\.8\\.1-p[0-9]+$');
   assert.equal(release28Config.updater.manifestAssetName, 'latest.json');
   assert.equal(Object.hasOwn(release28Config.updater, 'legacyManifestAssetName'), false);
   assert.equal(
@@ -1124,7 +1124,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.doesNotMatch(preflightJob[1], /cavalry-2\.7\.2-p12\) profile=/, 'the frozen p12 feed must not route back into packaging');
   assert.match(
     preflightJob[1],
-    /cavalry-2\.8\.0-p\[0-9\]\*\) profile='release-2\.8\.config\.json'/
+    /cavalry-2\.8\.1-p\[0-9\]\*\) profile='release-2\.8\.config\.json'/
   );
   assert.match(
     preflightJob[1],
@@ -1229,9 +1229,13 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(localSop, /统一 `latest\.json` 更新入口/);
   assert.match(localSop, /p12终版只作历史下载/);
   assert.doesNotMatch(localSop, /当前发布器只读复核p12|当前2\.7只准p12只读回读/);
-  assert.match(localSop, /workflow按所选2\.8\.0 profile向tag打包命令传统一endpoint overlay/);
-  assert.match(localSop, /Intel的2\.8\.0 x86_64及Windows native本地构建入口已接通/);
-  assert.doesNotMatch(localSop, /Windows生产runtime仍未接通/);
+  assert.match(localSop, /workflow按所选2\.8\.1 profile向tag打包命令传统一endpoint overlay/);
+  assert.match(localSop, /Intel仍需281 ABI\/build验证/);
+  assert.match(localSop, /Windows仍使用未迁移的2\.8\.0输入和native路径/);
+  assert.match(localSop, /它们的281 runtime与验收均未闭合/);
+  assert.match(localSop, /当前共享native resource target已锁2\.8\.1/);
+  assert.match(localSop, /因2\.8\.0资产hash不匹配而失败/);
+  assert.doesNotMatch(localSop, /Intel的2\.8\.1 x86_64及Windows native本地构建入口已接通/);
   assert.match(localSop, /8\.1 Windows 2\.8\.0默认本地构建/);
   assert.match(localSop, /windows_native_build\.js/);
   assert.deepEqual(WINDOWS_PRODUCTION_CONFIGS.slice(1, 3), [
@@ -1288,17 +1292,17 @@ test('release metadata script renders GitHub release fields from the patch tag',
   assert.match(invalid.stderr, /does not match/);
 
   const explicit28 = spawnSync(process.execPath, [
-    'tools/release_metadata.js', '--profile', 'release-2.8.config.json', '--tag', 'cavalry-2.8.0-p17',
+    'tools/release_metadata.js', '--profile', 'release-2.8.config.json', '--tag', 'cavalry-2.8.1-p17',
   ], { cwd: repoRoot, encoding: 'utf8' });
   assert.equal(explicit28.status, 0, explicit28.stderr || explicit28.stdout);
   const metadata28 = JSON.parse(explicit28.stdout);
-  assert.equal(metadata28.TARGET_CAVALRY_VERSION, '2.8.0');
+  assert.equal(metadata28.TARGET_CAVALRY_VERSION, '2.8.1');
   assert.equal(metadata28.INTERNAL_APP_VERSION, readJson('package.json').version);
   assert.equal(metadata28.RELEASE_UPDATER_MANIFEST_NAME, 'latest.json');
   assert.equal(Object.hasOwn(metadata28, 'RELEASE_UPDATER_LEGACY_MANIFEST_NAME'), false);
   assert.equal(
     metadata28.RELEASE_UPDATER_ASSET_DOWNLOAD_BASE_URL,
-    'https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.0-p17'
+    'https://github.com/daftAI2026/Cavalry-i18n/releases/download/cavalry-2.8.1-p17'
   );
 });
 
@@ -1655,7 +1659,7 @@ test('CI selects evidence by changed-path risk without skipping required workflo
     { event: 'pull_request', ref: 'refs/pull/4/merge', build: true, aggregate: true },
     { event: 'push', ref: 'refs/heads/main', build: true, aggregate: true },
     { event: 'push', ref: 'refs/heads/feature', build: true, aggregate: false },
-    { event: 'push', ref: 'refs/tags/cavalry-2.8.0-p4', build: true, aggregate: false },
+    { event: 'push', ref: 'refs/tags/cavalry-2.8.1-p4', build: true, aggregate: false },
   ];
   // ---- 直接执行 YAML 条件，覆盖审计成功与失败，不复制条件实现 ----
   for (const { event, ref, build, aggregate } of aggregateCases) {

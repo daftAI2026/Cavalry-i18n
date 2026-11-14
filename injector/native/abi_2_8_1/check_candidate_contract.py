@@ -13,6 +13,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import xml.etree.ElementTree as ET
 
 from getpath_mesh_source_contract import verify_mesh_getpath_contract
 from getpath_toolhelp_source_contract import verify_toolhelp_source_contract
@@ -130,7 +131,7 @@ def cpp_hex(header: str, name: str) -> int:
 
 def cpp_byte_array(header: str, name: str) -> bytes:
     match = re.search(
-        rf'{re.escape(name)}\s*=\s*\{{([^}}]+)\}}', header, re.DOTALL)
+        rf'{re.escape(name)}\s*(?:=\s*)?\{{([^}}]+)\}}', header, re.DOTALL)
     if match is None:
         raise SystemExit(f"ABI头缺少固定机器码: {name}")
     return bytes(int(value, 16) for value in
@@ -160,7 +161,7 @@ def nm_symbol_offset(image: pathlib.Path, symbol: str) -> int | None:
 
 
 def arm64_macho_bytes_at(
-    image: pathlib.Path, offset: int, length: int, out_dir: pathlib.Path
+    image: pathlib.Path, offset: int, length: int, out_dir: pathlib.Path,
 ) -> bytes:
     architectures = run("xcrun", "lipo", "-archs", str(image)).split()
     require("arm64" in architectures, f"映像缺少arm64 slice: {image.name}")
@@ -200,7 +201,7 @@ def arm64_macho_bytes_at(
                 cursor += command_size
             require(text_segment is not None and
                     text_segment[0] == 0 and text_segment[2] == 0,
-                    "Extension __TEXT必须从映像偏移0映射")
+                    "dylib __TEXT必须从映像偏移0映射")
             require(offset + length <= text_segment[1] and
                     offset + length <= text_segment[3] and
                     offset + length <= file_size,
@@ -235,6 +236,226 @@ def verify_font_factory_contract(
                 f"共享字体入口 {stem} 与2.8.1合同不同: "
                 f"{image_name}+0x{offset:x}, expected={expected.hex()}, "
                 f"actual={actual.hex()}")
+
+
+def ts_translation(root: pathlib.Path, filename: str, source: str) -> str:
+    tree = ET.parse(root / "tools" / filename)
+    matches = []
+    for context in tree.getroot().findall("context"):
+        name = context.findtext("name", default="")
+        if name != "MenuBarManager":
+            continue
+        for message in context.findall("message"):
+            if message.findtext("source", default="") == source:
+                matches.append(message.findtext("translation", default=""))
+    require(len(matches) == 1 and matches[0],
+            f"{filename}必须有唯一非空MenuBarManager source: {source}")
+    return matches[0]
+
+
+def verify_open_scene_caption_contract(
+    root: pathlib.Path, out_dir: pathlib.Path, frameworks: pathlib.Path,
+    candidate: pathlib.Path | None = None,
+) -> None:
+    source = root / "injector/native"
+    profile = source / "abi_2_8_1/save_scene_caption_abi_contract.h"
+    contract = profile.read_text()
+    arm_contract = contract.rsplit("#else", 1)[1]
+    policy = (source / "save_scene_caption_policy.h").read_text()
+    runtime = (source / "save_scene_caption_runtime.inc").read_text()
+    extension = frameworks / "libExtensionLayer.dylib"
+    widgets = frameworks / "QtWidgets.framework/Versions/A/QtWidgets"
+    expected_translations = {
+        "zh-Hans.ts": "加载工程文件",
+        "zh-Hant.ts": "載入專案檔案",
+        "ja_JP.ts": ".cv を読み込み",
+    }
+    for filename, expected in expected_translations.items():
+        actual = ts_translation(root, filename, "Load .cv")
+        require(actual == expected,
+                f"Load .cv {filename}源码翻译变更: {actual!r}")
+        require(f'return "{expected}";' in policy,
+                f"281 Load .cv策略值须复用{filename} source translation")
+
+    require('source != QStringLiteral("Load .cv")' in policy and
+            "callerReturnPc == expectedReturnPc" in policy and
+            "forwardOpenCaption" in runtime and
+            "gOpenSceneCaptionContractReady" in runtime and
+            "matchesCode(extension, save_caption_contract::kLoadCvSourceWindowOffset" in runtime and
+            "matchesCode(extension, save_caption_contract::kOpenFileNameCallWindowOffset" in runtime,
+            "Open caption必须由独立281精确caller/source gate投影")
+
+    extension_uuid = cpp_string(arm_contract, "kExtensionUuid")
+    widgets_uuid = cpp_string(arm_contract, "kQtWidgetsUuid")
+    for image, expected in ((extension, extension_uuid), (widgets, widgets_uuid)):
+        report = run("xcrun", "dwarfdump", "--uuid", str(image))
+        require(re.search(rf"(?m)^UUID: {re.escape(expected)} \(arm64\)(?:\s|$)",
+                          report) is not None,
+                f"Load .cv ABI输入arm64 UUID不符: {image.name}")
+
+    choose_symbol = cpp_string(contract, "kChooseSceneOpenSymbol")
+    present_symbol = cpp_string(contract, "kPresentOpenFileSymbol")
+    open_symbol = cpp_string(contract, "kGetOpenFileNameSymbol")
+    require(nm_symbol_offset(extension, choose_symbol) ==
+            cpp_hex(contract, "kChooseSceneOpenOffset"),
+            "chooseSceneOpen符号偏移与Load .cv source合同不同")
+    require(nm_symbol_offset(extension, present_symbol) ==
+            cpp_hex(contract, "kPresentOpenFileOffset"),
+            "presentOpenFile符号偏移与Open dialog合同不同")
+    require(nm_symbol_offset(widgets, open_symbol) ==
+            cpp_hex(contract, "kOpenFileNameQtWidgetsExportOffset"),
+            "QtWidgets getOpenFileName导出偏移不同")
+
+    source_offset = cpp_hex(contract, "kLoadCvSourceWindowOffset")
+    source_bytes = cpp_byte_array(contract, "kLoadCvSourceWindowBytes")
+    actual_source = arm64_macho_bytes_at(
+        extension, source_offset, len(source_bytes), out_dir)
+    producer_call = cpp_hex(contract, "kChooseSceneOpenProducerCallOffset")
+    producer_return = cpp_hex(contract, "kChooseSceneOpenProducerReturnOffset")
+    producer_instruction = actual_source[
+        producer_call - source_offset:producer_return - source_offset]
+    require(actual_source == source_bytes and
+            producer_return == producer_call + 4 and
+            arm64_bl_target(producer_call, producer_instruction) ==
+                cpp_hex(contract, "kPresentOpenFileOffset"),
+            "官方chooseSceneOpen必须构造固定Load .cv并调用presentOpenFile")
+
+    open_window_offset = cpp_hex(contract, "kOpenFileNameCallWindowOffset")
+    open_window = cpp_byte_array(contract, "kOpenFileNameCallWindowBytes")
+    actual_open_window = arm64_macho_bytes_at(
+        extension, open_window_offset, len(open_window), out_dir)
+    open_call = cpp_hex(contract, "kOpenFileNameCallOffset")
+    open_return = cpp_hex(contract, "kOpenFileNameReturnOffset")
+    call_instruction = actual_open_window[
+        open_call - open_window_offset:open_return - open_window_offset]
+    require(actual_open_window == open_window and open_return == open_call + 4 and
+            arm64_bl_target(open_call, call_instruction) ==
+                cpp_hex(contract, "kOpenFileNameImportStubOffset"),
+            "officialpresentOpenFile必须在精确callsite转发Qt getOpenFileName")
+
+    import_index = cpp_hex(contract, "kOpenFileNameImportIndex")
+    got_offset = cpp_hex(contract, "kOpenFileNameGotOffset")
+    imports = run("xcrun", "dyld_info", "-arch", "arm64", "-imports",
+                  str(extension))
+    fixups = run("xcrun", "dyld_info", "-arch", "arm64", "-fixups",
+                 str(extension))
+    require(re.search(
+        rf"(?mi)^\s*0x0*{import_index:x}\s+{re.escape(open_symbol)}"
+        r"\s+\(from QtWidgets\)$", imports) is not None,
+        "Extension getOpenFileName必须来自QtWidgets的固定two-level import")
+    require(re.search(
+        rf"(?mi)^\s*__DATA_CONST\s+__got\s+0x0*{got_offset:x}\s+"
+        rf"bind\s+QtWidgets/{re.escape(open_symbol)}$", fixups) is not None,
+        "Extension getOpenFileName GOT必须绑定同bundle QtWidgets export")
+    require(cpp_hex(contract, "kOpenFileNameImportStubOffset") == 0x00d1d0c8,
+            "getOpenFileName lazy import stub偏移不同")
+
+    if candidate is not None:
+        candidate_imports = run(
+            "xcrun", "dyld_info", "-arch", "arm64", "-imports", str(candidate))
+        candidate_fixups = run(
+            "xcrun", "dyld_info", "-arch", "arm64", "-fixups", str(candidate))
+        candidate_load_commands = run("xcrun", "otool", "-l", str(candidate))
+        candidate_exports = run("xcrun", "nm", "-gU", str(candidate))
+        require(re.search(rf"{re.escape(open_symbol)}\s+\(from QtWidgets\)",
+                          candidate_imports) is not None and
+                re.search(rf"bind\s+QtWidgets/{re.escape(open_symbol)}",
+                          candidate_fixups) is not None and
+                "sectname __interpose" in candidate_load_commands and
+                "_nativeOpenSceneDialogInterpose" in candidate_exports,
+                "281 candidate必须保留QtWidgets getOpenFileName import/interpose")
+
+
+def verify_welcome_log_abi(
+    frameworks: pathlib.Path, out_dir: pathlib.Path,
+    candidate: pathlib.Path, contract: str,
+) -> None:
+    extension = frameworks / "libExtensionLayer.dylib"
+    spdlog = frameworks / "libspdlog.1.15.dylib"
+    require(extension.is_file() and spdlog.is_file(),
+            "Welcome ABI需要同bundle Extension与spdlog映像")
+
+    extension_uuid = cpp_string(contract, "kExtensionUuid")
+    spdlog_uuid = cpp_string(contract, "kSpdlogUuid")
+    for image, expected_uuid in ((extension, extension_uuid),
+                                 (spdlog, spdlog_uuid)):
+        report = run("xcrun", "dwarfdump", "--uuid", str(image))
+        require(re.search(rf"(?m)^UUID: {re.escape(expected_uuid)} \(arm64\)(?:\s|$)",
+                          report) is not None,
+                f"Welcome输入映像arm64 UUID错误: {image.name}")
+
+    log_symbol = cpp_string(contract, "kLogItSymbol")
+    log_offset = cpp_hex(contract, "kLogItOffset")
+    require(nm_symbol_offset(spdlog, log_symbol) == log_offset,
+            "spdlog 1.15 log_it_导出偏移与ABI头不同")
+
+    producer_symbol = cpp_string(contract, "kExtensionAsyncWelcomeSymbol")
+    producer_offset = cpp_hex(contract, "kExtensionAsyncWelcomeSymbolOffset")
+    require(nm_symbol_offset(extension, producer_symbol) == producer_offset,
+            "Welcome async producer符号/入口偏移不同")
+
+    source_ref_offset = cpp_hex(contract, "kExtensionAsyncWelcomeSourceRefOffset")
+    source_ref_bytes = cpp_byte_array(
+        contract, "kExtensionAsyncWelcomeSourceRefBytes")
+    call_setup_offset = cpp_hex(contract, "kExtensionAsyncWelcomeCallSetupOffset")
+    call_setup_bytes = cpp_byte_array(
+        contract, "kExtensionAsyncWelcomeCallSetupBytes")
+    source_offset = cpp_hex(contract, "kExtensionWelcomeSourceOffset")
+    source_bytes = cpp_byte_array(contract, "kExtensionWelcomeSourceBytes")
+    require(source_bytes == b"Welcome to Cavalry.\0",
+            "Welcome async producer必须引用批准的裸Welcome源文")
+
+    actual_source_ref = arm64_macho_bytes_at(
+        extension, source_ref_offset, len(source_ref_bytes), out_dir)
+    actual_call_setup = arm64_macho_bytes_at(
+        extension, call_setup_offset, len(call_setup_bytes), out_dir)
+    actual_source = arm64_macho_bytes_at(
+        extension, source_offset, len(source_bytes), out_dir)
+    require(actual_source_ref == source_ref_bytes and
+            actual_call_setup == call_setup_bytes and
+            actual_source == source_bytes,
+            "Welcome async producer字面量引用/调用窗不符: "
+            f"source-ref={actual_source_ref.hex()}, "
+            f"call={actual_call_setup.hex()}, source={actual_source.hex()}")
+
+    call_offset = call_setup_offset + len(call_setup_bytes) - 4
+    stub_offset = cpp_hex(contract, "kExtensionStubOffset")
+    require(cpp_hex(contract, "kExtensionCallOffset") == call_offset and
+            cpp_hex(contract, "kExtensionReturnOffset") == call_offset + 4 and
+            arm64_bl_target(call_offset, actual_call_setup[-4:]) == stub_offset,
+            "Welcome async返回PC必须紧随实际BL且调用指定log_it_ stub")
+
+    extension_imports = run("xcrun", "dyld_info", "-arch", "arm64",
+                            "-imports", str(extension))
+    extension_fixups = run("xcrun", "dyld_info", "-arch", "arm64",
+                           "-fixups", str(extension))
+    require(re.search(rf"(?m)^\s*0x[0-9a-fA-F]+\s+{re.escape(log_symbol)}"
+                      r"\s+\(from libspdlog\.1\.15\)$",
+                      extension_imports) is not None,
+            "Extension必须two-level导入目标spdlog 1.15 log_it_")
+
+    extension_got = cpp_hex(contract, "kExtensionGotOffset")
+    extension_got_pattern = (
+        rf"(?m)^\s*__DATA_CONST\s+__got\s+0x0*{extension_got:x}\s+"
+        rf"bind\s+libspdlog\.1\.15/{re.escape(log_symbol)}$")
+    require(re.search(extension_got_pattern, extension_fixups,
+                      re.IGNORECASE) is not None,
+            "Extension Welcome GOT未绑定目标spdlog 1.15 log_it_")
+
+    candidate_imports = run("xcrun", "dyld_info", "-arch", "arm64",
+                            "-imports", str(candidate))
+    candidate_fixups = run("xcrun", "dyld_info", "-arch", "arm64",
+                           "-fixups", str(candidate))
+    candidate_load_commands = run("xcrun", "otool", "-l", str(candidate))
+    require(re.search(rf"(?m)^\s*(?:0x[0-9a-fA-F]+\s+)?{re.escape(log_symbol)}"
+                      r"\s+\(from libspdlog\.1\.15\)$",
+                      candidate_imports) is not None and
+            re.search(rf"bind\s+libspdlog\.1\.15/{re.escape(log_symbol)}",
+                      candidate_fixups) is not None and
+            "sectname __interpose" in candidate_load_commands and
+            "_nativeWelcomeLogItVeneer" in run(
+                "xcrun", "nm", "-gU", str(candidate)),
+            "候选必须保留spdlog原导入和Welcome dyld interpose veneer")
 
 
 def main() -> None:
@@ -273,6 +494,8 @@ def main() -> None:
     node_adapter = (source / "dependency_node_font_adapter.inc").read_text()
     skia_dispatch = (source / "skia_text_dispatch_281.inc").read_text()
     fast_abi = (source / "fast_search_unicode_abi_contract.h").read_text()
+    welcome_abi = (source / "abi_2_8_1" /
+                   "welcome_log_it_abi_contract.h").read_text()
     fast_policy = (source / "fast_search_unicode_policy.h").read_text()
     fast_adapter = (source / "fast_search_unicode_adapter.mm").read_text()
     fast_test = (source / "fast_search_unicode_contract_test.cpp").read_text()
@@ -357,6 +580,8 @@ def main() -> None:
                 f"{filename} arm64 UUID与候选ABI合同不匹配")
 
     verify_font_factory_contract(frameworks, out_dir, getpath_abi, font_abi)
+    verify_open_scene_caption_contract(root, out_dir, frameworks, candidate)
+    verify_welcome_log_abi(frameworks, out_dir, candidate, welcome_abi)
 
     archs = run("xcrun", "lipo", "-archs", str(candidate)).split()
     require(archs == ["arm64"], f"candidate架构必须只有arm64: {archs}")
@@ -368,6 +593,7 @@ def main() -> None:
         "_getPathFontVeneer", "_getPathFontDispatch",
         "_nativeActiveLocaleInterpose",
         "_nativeTitleVformatInterpose",
+        "_nativeOpenSceneDialogInterpose",
         "_fastSearchUnicodeConstructorInterpose",
         "_nativeHelpLayoutActivateInterpose",
     }
@@ -927,6 +1153,7 @@ def main() -> None:
         "PASS: Extension Fast option/call bytes and C1 import-stub branch match",
         "PASS: runtime original-entry and Extension GOT gates",
         "PASS: six shared font factory symbols and entry bytes match runtime headers",
+        "PASS: one exact async Welcome producer, source string, log_it_ stub, Extension GOT, and interpose target match",
         "PASS: native getter once/exception and GetPath unknown-owner source gates",
         "PASS: exact FPS direct caller bytes and two-return owner contract",
         "PASS: exact GraphEditor caller bytes, direct frame owner and three full strings",

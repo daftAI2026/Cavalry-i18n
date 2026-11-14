@@ -24,7 +24,7 @@ test('optimized ARM candidate command retains preview configuration and no updat
   assert.notEqual(preview.bundle.createUpdaterArtifacts, true);
   assert.doesNotMatch(scripts['tauri:build'], /NATIVE_RELEASE_CANDIDATE|native-preview/);
 });
-test('2.8 production overlay binds native resources and shares the latest.json endpoint', () => {
+test('2.8.1 production overlay binds native resources and shares the latest.json endpoint', () => {
   const fs = require('node:fs');
   const path = require('node:path');
   const root = path.join(__dirname, '..');
@@ -38,6 +38,8 @@ test('2.8 production overlay binds native resources and shares the latest.json e
   assert.deepEqual(production.plugins.updater.endpoints, [], 'production overlay alone must keep updating disabled until the release endpoint is supplied');
   assert.deepEqual(endpoint.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json']);
   assert.deepEqual(legacy.plugins.updater.endpoints, ['https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json']);
+  const release = require('../release-2.8.config.json');
+  assert.equal(release.targetCavalryVersion, '2.8.1');
 });
 function fixture() {
   const pairs = [{ id: 'Definitions/Translation/appStrings',
@@ -64,7 +66,7 @@ test('native build emits one-language display-only previews with honest fallback
   const { manifest, packs } = buildNativeResourceBundle(pairs, approved);
   assert.equal(manifest.schemaVersion, 1);
   assert.equal(manifest.kind, 'development-preview');
-  assert.equal(manifest.cavalryVersion, '2.8.0');
+  assert.equal(manifest.cavalryVersion, '2.8.1');
   assert.equal(manifest.approvedUIKeys, 1);
   assert.equal(manifest.nativeKeys, 4);
   assert.equal(manifest.supplementalKeys, 0);
@@ -83,7 +85,7 @@ test('native build emits one-language display-only previews with honest fallback
   assert.deepEqual(JSON.parse(packs.ja_JP)[0].value.vendor, { 'UI-text': '完了' });
 });
 
-test('2.8.1 candidate uses the existing pack shape and requires complete translations', () => {
+test('the default preview profile uses the current 2.8.1 target and existing pack shape', () => {
   const { pairs } = fixture();
   const { collectNativeCatalog } = require('./native_language_pack');
   const rows = collectNativeCatalog(pairs[0].id, pairs[0].source, pairs[0].japanese).entries;
@@ -91,15 +93,14 @@ test('2.8.1 candidate uses the existing pack shape and requires complete transla
     ...row, translations: Object.fromEntries(['zh-Hans', 'zh-Hant', 'ja_JP'].map(language =>
       [language, { decision: 'preserve', text: row.source }])),
   }));
-  const built = buildNativeResourceBundle(pairs, approved, undefined, [], [], 'development-2.8.1');
+  const built = buildNativeResourceBundle(pairs, approved);
   assert.equal(built.manifest.cavalryVersion, '2.8.1');
   assert.equal(built.manifest.kind, 'development-preview');
   assert.equal(built.manifest.complete, true);
   assert.equal(JSON.parse(built.packs['zh-Hans'])[0].language, 'zh-Hans');
   const { validateResourceProfile } = require('./native_resource_bundle');
-  assert.equal(validateResourceProfile(built.manifest, 'development-2.8.1'), true);
-  assert.throws(() => validateResourceProfile(built.manifest, 'development-preview'), /version differs/);
-  assert.throws(() => buildNativeResourceBundle(pairs, [], undefined, [], [], 'development-2.8.1'), /complete translations/);
+  assert.equal(validateResourceProfile(built.manifest, 'development-preview'), true);
+  assert.throws(() => validateResourceProfile({ ...built.manifest, cavalryVersion: '2.8.0' }, 'development-preview'), /version differs/);
 });
 test('production resource profile rejects incomplete packs and binds the explicit profile', () => {
   const { pairs, approved } = fixture();

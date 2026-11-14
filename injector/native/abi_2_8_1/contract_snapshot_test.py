@@ -39,12 +39,12 @@ PROFILE_SNAPSHOTS = {
     "help_description_abi_contract.h": "d46a09a73f393652ce0661f2d8659705bc76725c2cb7c91ac233e163a13d92eb",
     "help_popup_layout_abi_contract.h": "1ba670629385e3740a3e493a0506c000ea73a14baba22988790db8969f941111",
     "native_locale_abi_contract.h": "5619e9940fceab4d53f416117df5627ae673a86eb61dc94d64c4ee39b89a7e1d",
-    "save_scene_caption_abi_contract.h": "b5cef76b377c80b0b5f5751cb6aca9a2c43a53e37ec88bc7bbf23245a7277f88",
+    "save_scene_caption_abi_contract.h": "b9d326188dae460d3e2b4f49b443f4455389008f8269d4fd402f3bbe83b47ffd",
     "timeline_owner_observer_contract.h": "9c063e0999e56659c8b524760c6817d1478077ea188c333984a1130bafa20da3",
     "timeline_system_fallback_contract.h": "a3860b5331f4c289f1614eb2b3e70f34fd895a1bace7eb4eea788b3176a88d3f",
     "title_format_abi_contract.h": "d252e610a826e68af538e55da14c756ead5d3e1264f1702688fac142d5c229fc",
     "viewport_owner_snapshot.h": "660b47463017fa4bddae681f0d5cef3ff3cef7b35378c693b0e2fa8e0a8c8726",
-    "welcome_log_it_abi_contract.h": "b0dade3534658210c933e8fd886b9eaecba922abfcb2c58d183144af7be088cc",
+    "welcome_log_it_abi_contract.h": "fd690475f4cbce805ad956c09769948b976180dada7bb283218025be0ad9f46c",
     "dependency_node_font_abi_contract.h": "72d05fac9494848779a4401c47d9db5e96f7b0ea7790874ce6ba8cacc03d9203",
 }
 

@@ -1,35 +1,33 @@
 <!--
-[INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8 arm64/x86_64 Frameworks。
-[OUTPUT]: 说明已验证ARM候选边界与x86_64 ABI/build路径及其验收边界。
-[POS]: Cavalry 2.8原生候选源码入口；9c352155已部署到owned测试App，x86_64包已构建，Intel实机显示另验。
+[INPUT]: 依赖当前2.8.1 arm64源码、Qt 6.9.2公开头与官方Frameworks；保留2.8.0历史组件记录。
+[OUTPUT]: 说明当前macOS arm64构建入口，以及历史实现与平台验收边界。
+[POS]: 当前原生运行时源码入口；Intel与Windows的2.8.1迁移和验收另行完成。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 # Cavalry 2.8 native candidate
 
-The explicit 2.8.1 arm64 target is built with:
+The current macOS arm64 target is Cavalry 2.8.1:
 
 ```sh
 CAVALRY_QT_PREFIX=<Qt-6.9.2-public-headers> \
-  python3 injector/native/build_candidate_2_8_1.py <Cavalry-2.8.1.app/Contents/Frameworks>
+  bash injector/native/build_candidate.sh <Cavalry-2.8.1.app/Contents/Frameworks>
 ```
 
-This entry composes the shared implementation with `abi_2_8_1` inputs in a
-temporary source tree. The default 2.8.0 builder, title adapter and Viewport
-dispatcher retain their existing implementation. Only the explicit 2.8.1
-arm64 target enables the NodeView two-header route. The profile snapshot test
-checks that all 14 default ABI headers retain their original contents.
-Build success does not establish live display or Windows acceptance.
+The default entry delegates to `build_candidate_2_8_1.py`, which composes the
+shared implementation with `abi_2_8_1` inputs in a temporary source tree.
+The profile snapshot test preserves the 14 historical default ABI headers.
+Production Tauri packaging embeds the explicitly supplied, validated runtime
+through the existing `production-2.8` profile. Build success does not establish
+live display, Intel support, Windows support, or a published release.
 
 ## Scope
 
-This module documents the Cavalry 2.8 macOS arm64 candidate and the x86_64 implementation.
-It does not enter the Cavalry 2.7 build or release path.
-The default shipped product does not consume it.
-The explicit macOS native debug preview can embed the verified artifact at build time.
-Its coordinator installs that artifact into a selected Cavalry 2.8 copy.
-The candidate directory itself does not sign, install, or start an app.
-The frozen source keeps one blank line at the end of `native_font_candidate.mm`.
-`git diff --check` reports that inherited line; keep it to preserve source identity.
+Current macOS arm64 builds target 2.8.1 only. Users of 2.8.0 use historical
+releases. The Intel implementation and the detailed offsets and acceptance
+records below describe the 2.8.0 baseline; they do not establish 2.8.1 support.
+Current 2.8.1 ABI inputs live in `abi_2_8_1`.
+This directory does not sign, install, or start Cavalry; the Switcher owns that
+transaction. The historical 2.7 build and release path stays separate.
 
 The candidate reuses the existing Mach-O parser and UTF-8 glyph policy.
 It verifies the native getter and four direct Skia targets.
@@ -172,10 +170,22 @@ It leaves the selected directory, filter, selected-filter pointer, options,
 return value and every other caption unchanged. It does not translate the
 native panel's Save/Cancel controls.
 
+The explicit 2.8.1 arm64 profile also covers the fixed Open-panel caption.
+`chooseSceneOpen` constructs `Load .cv` at Extension offset `0x626704` and
+calls `presentOpenFile` at `0x626760`; that helper passes the caption to
+`QFileDialog::getOpenFileName` at `0x6c1220` (return PC `0x6c1224`). The
+profile verifies the exact source-construction and argument/call windows,
+QtWidgets 6.9.2 export, and Extension two-level import. Only that return PC
+with caption `Load .cv` is projected to the existing three TS translations.
+Directory, filter, selected-filter pointer, options and returned `QString`
+remain unchanged, as do every other caller and caption.
+
 The QtCore-only contract exercises the real Qt `QString` type without loading
 Cavalry or opening a dialog. It verifies the returned `QString`, const-reference
 arguments, translated temporary lifetime, one original call, and exact caller
-and source gates. A contract pass is not live UI evidence.
+and source gates. The 281 candidate runs this Save test in both the default
+2.8.0 contract mode and the 2.8.1 profile mode. A contract pass is not live UI
+evidence.
 
 ## Help description boundary
 
@@ -390,7 +400,7 @@ It generates separate 384-main and 17-def help tables plus a 401-root layout
 table from official MetaData.
 It generates the 20-label Easing display table outside the repository.
 It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Easing,
-Save Scene caption, Welcome,
+Save/281 Load .cv caption, Welcome,
 Fast C1 policy, help shadow, and hidden Qt layout tests.
 It also runs the vendor-free dyld constructor-order fixture against the new veneer.
 It links the real help veneer to a vendor-free register probe.

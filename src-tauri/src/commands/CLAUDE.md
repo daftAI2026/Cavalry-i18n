@@ -3,9 +3,9 @@
 
 成员清单
 native_windows.rs: Windows2.8宿主/OS根/写者准入；Apply写入前共用State持久化已验选择。卸载先解析目标，再恢复profile及原厂QPA；缺状态零profile写入，宿主已移除仍幂等恢复profile。
-native_resources.rs: 按编译期BuildMode绑定manifest kind；production-2.8要求三语完整10848键。status核文件长度，apply只校验所选payload摘要；不扫描定义或写profile。
+native_resources.rs: 按编译期BuildMode绑定manifest kind；production-2.8消费当前2.8.1 target并要求三语完整10843键。status核文件长度，apply只校验所选payload摘要；不扫描定义或写profile。
 native_resources_tests.rs: 显式模式的资源读取合同；生产完整包正例、错误kind/缺译反例与原preview合同共用真实loader，不依赖测试二进制的编译模式。
-native_runtime.rs: 显式native动作协调runtime与profile；NRT恢复先于路由，profile错误code不变；非English同源候选先读bounded owner hint与approved SHA，再用observe_install核canonical 2.8.0身份；匹配时只走canonical profile事务，不读baseline/槽/签名、不写App、不授App写恢复权；同源路由由native_user报告receipt恢复检查并在新receipt写前启动Apply；English、缺hint、坏hint、源不匹配与非2.8候选保留原完整owner准入；独立restart不变。
+native_runtime.rs: 显式native动作协调runtime与profile；NRT恢复先于路由，profile错误code不变；非English同源候选先读bounded owner hint与approved SHA，再用observe_install核canonical 2.8.1身份；匹配时只走canonical profile事务，不读baseline/槽/签名、不写App、不授App写恢复权；同源路由由native_user报告receipt恢复检查并在新receipt写前启动Apply；English、缺hint、坏hint、源不匹配与非2.8.1候选保留原完整owner准入；独立restart不变。
 native_runtime_profile_route_tests.rs: 用临时2.8 bundle/owner/profile证明同源hint只准profile快路；精确断言成功Verify→Ensure→Apply，坏receipt或漂移在Ensure以error结束；故意缺vendor baseline与Extension以证明未调用整包owner；覆盖English、未知/坏owner、源漂移/缺失、错误版本和NRT失败；取得bundle guard的用例使用共享test-only串行器；不接真实App/profile。
 native_runtime_source.rs: 只读build.rs嵌入的当前目标native runtime；preview与production按当前Rust目标校验thin dylib，运行时不接受环境或路径，不载旧2.7 dylib。
 native_official.rs: 固定Developer-ID requirement、canonical bundle/可显示版本/原厂executable的5秒OS验签只证明vendor_origin；最终Official显示还需native_user证明内置locale与无Switcher覆盖，不授予恢复或写入许可。另提供独立typed baseline源桥，要求canonical root、2.8 target与固定OS验签共同通过；不改变Official显示门。内置policy id与target摘要给baseline loader独立复核，不从manifest自报。
@@ -35,5 +35,3 @@ update.rs: Switcher自更新；preview禁用，production仅允许正式identifi
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
-
-`native_resources.rs`仅在编译期cavalry_native_281选择独立281 target；默认280资源与事务路径保留。

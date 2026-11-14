@@ -20,7 +20,7 @@ ABI合同默认保持950e713的2.8.0完整内容；仅定义`CAVALRY_NATIVE_TARG
 abi_2_8_1/: Cavalry 2.8.1 arm64合同快照；SetSize使用已复核`0x6f`字节，title合同只含arm64 fmt11，不定义Intel合同。
 abi_2_8_1/contract_snapshot_test.py: 校验14个2.8.0默认头的SHA快照、15个281 profile头及标题/SetSize边界；不调用vendor。
 dependency_node_font_abi_contract.h: 仅在281 arm64显式配置下转入profile；280没有NodeView字体准入合同。
-native_font_candidate.mm: 定位同bundle Frameworks；接通Graph空态、Demo、字体、标题、帮助、Guide、Easing与Welcome，并装配双保存caption。
+native_font_candidate.mm: 定位同bundle Frameworks；接通Graph空态、Demo、字体、标题、帮助、Guide、Easing与Welcome，并装配Save caption及281固定Open caption。
 candidate_contract_test.cpp: 验证FPS/Graph直连帧、Graph三语精确门、旧owner透传与75项lane。
 guide_body_abi_contract.h: 锁定唯一Guide正文caller、尾跳callee、双映像UUID与Qt setter符号。
 guide_body_policy.h: 仅把精确Keep going source映射到三语固定短文案；英文与未知输入透传。
@@ -30,23 +30,23 @@ easing_menu_abi_contract.h: 锁定addEasingMenu的addAction调用窗、Extension
 easing_menu_policy.h: 仅按完整源标签选择三语预设显示文本；拒绝歧义与未知输入。
 easing_menu_runtime.inc: 同TU复用gLocale；精确caller才改QAction显示文本，再单次调用原addAction。
 easing_menu_contract_test.cpp: vendor-free验证20项表形状、精确匹配、短路、单次转发与异常。
-save_scene_caption_abi_contract.h: 锁定2.8 QFileDialog调用窗、QString返回槽与QtWidgets导出。
-save_scene_caption_policy.h: 仅按精确caller及Save Scene/Save as .cv原文投影三语caption。
-save_scene_caption_runtime.inc: 绑定同bundle QtWidgets；其它caller原参单次转发。
-save_scene_caption_contract_test.cpp: QtCore-only合同验证两种原文、三语映射、QString返回、引用寿命与透传。
+save_scene_caption_abi_contract.h: 锁定Save调用窗；281额外锁定chooseSceneOpen的Load .cv source、getOpenFileName调用及QtWidgets导入。
+save_scene_caption_policy.h: Save按精确caller映射两种caption；281仅把精确Open caller的Load .cv source投影三语。
+save_scene_caption_runtime.inc: 绑定同bundle QtWidgets；281 Open gate独立于Save gate，未知caller与参数原样单次转发。
+save_scene_caption_contract_test.cpp: QtCore-only验证Save/281 Open翻译源、QString返回、参数引用、单次转发与透传。
 candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，并拒绝混合FAT UUID。
 macho_bindings.py: 读取候选LLVM Bind/Lazy bind表；按精确符号、库与section校验GOT/interpose槽。
 macho_bindings_test.py: 离线验证LLVM列解析、错库、缺slot、flat反例与多合同汇总。
 check_help_popup_layout_contract_test.py: 验证arm Popup checker接受arm alias并拒绝x86/generic alias。
 native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证两构建器按dwarfdump第三字段选UUID；不调用vendor。
-check_candidate_contract.py: 核GetPath/FPS来源、ABI与候选LLVM two-level绑定；一次汇总所有必需槽错误。
-build_candidate.sh: 核Core/Extension/spdlog ABI；拒绝时打印实值与工具链身份；通过后生成Demo表、编译arm64候选并运行ABI合同。
+check_candidate_contract.py: 核GetPath/FPS、281 Load .cv source/caller/QtWidgets import与三语TS来源、Welcome producer及候选two-level绑定。
+build_candidate.sh: 当前2.8.1 ARM默认入口，调用已验build_candidate_2_8_1.py在隔离树编译并运行完整vendor/夹具门；2.8.0仅历史release。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
 demo_reader_policy.h: 跨平台纯策略只替换审批位置的JS字面量，optional单次转发不依赖Mach-O ABI；未知locale与源结果保持不变。
 demo_reader_source_identity.h: 验证实际原厂脚本SHA，macOS用CommonCrypto、Windows复用宿主Qt摘要；不读路径或语言状态。
 demo_reader_runtime.inc: 绑定同bundle Core/Extension与Presets路径；只为唯一菜单caller发布翻译门。
 demo_reader_contract_test.cpp: vendor-free验证optional ABI、单次原调用、源门、未知caller与异常边界。
-README.md: 说明字体/FPS/Graph/Demo/标题/双保存caption/帮助/Guide/Fast/Easing/Welcome与225槽边界；实机状态见总账。
+README.md: 说明字体/FPS/Graph/Demo/标题/Save caption/281 Load .cv/帮助/Guide/Fast/Easing/Welcome与225槽边界；实机状态见总账。
 fast_search_unicode_adapter.mm: 以可执行路径定位同bundle；仅固定Fast C1调用改Unicode选项。
 fast_search_unicode_abi_contract.h: 锁定Qt 6.9.2符号、Extension UUID、调用字节、正则与选项。
 fast_search_unicode_policy.h: 短路校验caller、原选项与pattern；保留单次原C1透传。
@@ -101,14 +101,15 @@ viewport_blob_abi.h: 声明 TextBlob 非平凡结果槽及原函数/dispatcher A
 viewport_blob_veneer.S: 保留 x0-x3/x8，并传递调用者 x29/x30。
 viewport_font_adapter.inc: 验证 Viewport owner 后把完整名称交给共享字体核心。
 viewport_owner_snapshot.h: 单读并核验线程栈帧记录；复制有限完整的Viewport名称容器。
-welcome_log_it_abi_contract.h: 锁定Extension/spdlog UUID、唯一返回PC、导出地址与message payload偏移。
+welcome_log_it_abi_contract.h: 默认锁定280单一Extension返回PC；281 profile核Extension async producer、Extension/spdlog UUID、单一GOT与message payload偏移。
 welcome_log_it_policy.h: 仅匹配裸Welcome或两种精确节日suffix；三语替换前缀并保留suffix。
-welcome_log_it_adapter.inc: 先核caller再复制message字节；未知输入原参单次转发。
-welcome_log_it_runtime.inc: 核同bundle spdlog原导出与GOT；ABI完整后才发布唯一Welcome caller PC。
-welcome_log_it_veneer.S: 构造前门值为零；未知caller直跳同映像原导入桩，精确caller进入dispatcher。
-welcome_log_it_contract_test.cpp: 验证三语、完整suffix、同前缀用户文案、单次转发与异常传播。
+welcome_log_it_adapter.inc: 唯一caller匹配后才读取message并投影；未知LR不读message且原参单次转发。
+welcome_log_it_runtime.inc: 核同bundle Extension/spdlog映像、async producer源码/调用窗与Extension GOT；ABI完整后才发布唯一返回PC。
+welcome_log_it_veneer.S: 构造前门值为零；只比较唯一返回PC，未知caller直跳同映像原导入桩。
+welcome_log_it_contract_test.cpp: 验证三语、完整suffix、未知caller不读message、单次转发与异常传播。
 welcome_log_it_veneer_contract_test.cpp: 验证未知LR直跳旧导入且不读坏message；精确LR只分流一次。
-welcome_log_it_veneer_probe.S: 提供两种合成LR调用点，供arm64 veneer合同调用。
+welcome_log_it_veneer_probe.S: 提供未知与一个合成精确LR调用点，供arm64 veneer合同调用。
+welcome_log_it_runtime_admission_test.cpp: 拒绝主程序image loader、仅接受Extension/spdlog stub，验证async返回PC发布。
 welcome_dyld_fixture_contract.h: 声明vendor-free dyld fixture共享快照与构造器状态。
 welcome_dyld_fixture_support.cpp: 记录原调用寄存器、errno、dispatcher次数与加载阶段。
 welcome_dyld_fixture_spdlog.S: 模拟原log_it_导出；捕获入口寄存器且不读取message。
@@ -175,3 +176,8 @@ skia_text_dispatch_281.inc: 仅供CAVALRY_NATIVE_TARGET_281 arm64使用；把两
 build_candidate_2_8_1.py：在临时源树使用abi_2_8_1合同与测试构建显式arm64候选；fmt11标题只核C字符串指针，不要求未初始化的第二word；不覆盖280原源或安装App。
 build_candidate_2_8_1_test.py：核281 fmt/Viewport/TextBlob输入；编译实际选中的标题suffix判断，验证281允许非零第二word、未知/空指针仍拒绝，280零值合同与原源保留。
 check_dependency_node_font_contract.py：对281 NodeView两header定位的符号与调用窗做只读vendor校验。
+dg_context_menu_abi_contract.h: 仅281 arm64锁定ToolMenu及五个TransformTool菜单helper的符号、frame prologue与调用字节。
+dg_context_menu_policy.h: 双层owner/source精确匹配构建器从批准源生成的五条三语菜单文本；未知locale与源原样透传。
+dg_context_menu_contract_test.cpp: Vendor-free验证五项source/caller/locale门、三语值与单次转发。
+check_dg_context_menu_contract.py: 只读验证281 Extension UUID、五个helper直接调用及frame/导入字节；不启动App。
+easing_menu_runtime.inc（281增量）: 复用既有QWidget::addAction单一interpose；Easing原分支不变，五个TransformTool项加独立ABI/双frame/source门。

@@ -33,8 +33,8 @@ const x86SourceManifestFixture = read('injector/native/native_source_manifest_x8
 
 const pins = Object.freeze({
   dmgUrl: 'https://cavalry.studio/downloads/latest/Cavalry.dmg',
-  dmgBytes: '256757556',
-  dmgSha256: 'f7b732f57a411c577c9dc72180bd06609076d6e1b07a0c195851c12f0a57efe9',
+  dmgBytes: '257424425',
+  dmgSha256: 'fcf372238c9983ebdecf6ff68858ed647323b6297c8008ad2befdcb7aae09271',
   qtUrl: 'https://download.qt.io/online/qtsdkrepository/mac_x64/desktop/qt6_692/qt6_692/qt.qt6.692.clang_64/6.9.2-0-202508181146qtbase-MacOS-MacOS_15-Clang-MacOS-MacOS_15-X86_64-ARM64.7z',
   qtBytes: '34027496',
   qtSha256: 'd2a2a80de2e049dab5521318cc359ce2a02d1f3bc5235804de158b7342201e11',
@@ -83,9 +83,9 @@ for (const name of ['Checkout release tag history', 'Set up pinned Node.js for r
     .replace("startsWith(github.ref, 'refs/tags/cavalry-')", "ref.startsWith('refs/tags/cavalry-')")
     .replaceAll('github.event_name', 'event').replaceAll('inputs.package_scope', 'scope')};`);
   for (const [ref, event, scope, expected] of [
-    ['refs/tags/cavalry-2.8.0-p1', 'push', '', true],
-    ['refs/heads/feat/cavalry-2.8.0', 'workflow_dispatch', 'macos-2.8-preflight', true],
-    ['refs/heads/feat/cavalry-2.8.0', 'workflow_dispatch', 'none', false],
+    ['refs/tags/cavalry-2.8.1-p1', 'push', '', true],
+    ['refs/heads/feat/cavalry-2.8.1', 'workflow_dispatch', 'macos-2.8-preflight', true],
+    ['refs/heads/feat/cavalry-2.8.1', 'workflow_dispatch', 'none', false],
     ['refs/heads/main', 'push', '', false],
     ['refs/pull/1/merge', 'pull_request', '', false],
   ]) assert.equal(evaluate(ref, event, scope), expected, `${name}: ${event}/${scope}`);
@@ -93,7 +93,8 @@ for (const name of ['Checkout release tag history', 'Set up pinned Node.js for r
 
 // -- 发布边界：2.7仅历史，2.8复用三平台生产闭包 -------------------
 assert.match(preflight, /cavalry-2\.7\.2-p\[0-9\].*historical only; repackaging is forbidden/);
-assert.match(preflight, /cavalry-2\.8\.0-p\[0-9\].*release-2\.8\.config\.json/);
+assert.match(preflight, /cavalry-2\.8\.1-p\[0-9\].*release-2\.8\.config\.json/);
+assert.match(preflight, /cavalry-2\.8\.0-p\[0-9\].*historical only; repackaging is forbidden/);
 assert.doesNotMatch(preflight, /implementation-not-ready/, 'approved 2.8 tags must reach the real production jobs');
 assert.match(preflight, /git merge-base --is-ancestor/, 'tag ancestry remains required');
 const packageCondition = require('yaml').parse(workflow).jobs.package_macos.if;
@@ -243,7 +244,7 @@ assert.match(qtPreparer, /EXPECTED_BYTES = 34_027_496/);
 assert.match(qtPreparer, /d2a2a80de2e049dab5521318cc359ce2a02d1f3bc5235804de158b7342201e11/);
 assert.match(qtPreparer, /MODULES = \("QtCore", "QtGui", "QtWidgets"\)/);
 assert.match(qtPreparer, /runtimeLibrariesCopied": False/);
-assert.match(resourceProducer, /--assets-root <official Contents\/assets>/);
+assert.match(resourceProducer, /--assets-root <official 2\.8\.1 Contents\/assets>/);
 assert.match(resourceProducer, /production-2\.8/);
 assert.match(buildScript, /CAVALRY_I18N_NATIVE_INJECTOR_FILE/);
 assert.match(buildScript, /production-2\.8/);
@@ -323,7 +324,7 @@ function scenario(options = {}) {
     printf 'mock-device on %s (hfs, local, read-only)\\n' "$mountpoint"
   fi
   `);
-  writeExecutable(path.join(bin, 'PlistBuddy'), `printf '%s\\n' '${options.appVersion || '2.8.0'}'`);
+  writeExecutable(path.join(bin, 'PlistBuddy'), `printf '%s\\n' '${options.appVersion || '2.8.1'}'`);
   writeExecutable(path.join(bin, 'npm'), `printf '%s\\n' "$*" >> "$MOCK_LOG_ROOT/npm.args"`);
   writeExecutable(path.join(temp, 'python'), `
   [ "$1" = 'tools/prepare_native_qt_headers.py' ] || exit 21

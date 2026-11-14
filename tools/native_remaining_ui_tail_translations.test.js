@@ -11,7 +11,7 @@ const { test } = require('node:test');
 const { LOCALES, hash, assertAdditionalPartition, assertFiniteRepairs } = require('./native_remaining_ui_contract');
 const { APPROVED_MODULES, approvedEntries } = require('../languages/native/approved_modules');
 const DEMO_MENU_DNT_KEY_SET = new Set(require('../languages/native/official_demo_menus').DEMO_MENU_DNT_KEYS);
-const TARGET = require('./cavalry_native_target.json');
+const TARGET = require('./fixtures/cavalry_native_target_2_8_0.json');
 const { BACKGROUND_RENDERING_GAP_COUNT } = require('./native_schema_gap_sources');
 const { NODE_A_FIFTH_REPAIRS, NODE_B_FIFTH_REPAIRS, NODE_B_SIXTH_REPAIRS, NODE_A_SIXTH_REPAIRS, NODE_B_FOURTH_REPAIRS } = require('./native_remaining_ui_final_repair_cases');
 

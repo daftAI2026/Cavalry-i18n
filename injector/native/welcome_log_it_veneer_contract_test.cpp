@@ -120,6 +120,6 @@ int main()
                &welcomeProbeExactReturn),
            "exact caller PC reaches dispatcher unchanged");
 
-    std::puts("PASS: arm64 unknown callers tail-jump without payload access; exact caller dispatches once.");
+    std::puts("PASS: arm64 unknown callers tail-jump without payload access; exact Welcome callers dispatch once.");
     return 0;
 }

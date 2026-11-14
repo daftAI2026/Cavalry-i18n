@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 packaged_native_resources 的纯校验接口与临时manifest/payload fixture。
- * [OUTPUT]: 锁定2.8架构中立资源树与arm64/x86_64目标runtime嵌入校验。
+ * [OUTPUT]: 锁定2.8.1架构中立资源树与arm64/x86_64目标runtime嵌入校验。
  * [POS]: tools packaged检查的离线合同；不启动Tauri、不读App或用户状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,7 +41,7 @@ function writePackTree(root, { kind = 'production-2.8', complete = true } = {}) 
   const manifest = {
     schemaVersion: 1,
     kind,
-    cavalryVersion: '2.8.0',
+    cavalryVersion: '2.8.1',
     nativeKeys: complete ? 1 : 2,
     complete,
     packs,

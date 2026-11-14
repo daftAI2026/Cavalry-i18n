@@ -1,15 +1,15 @@
 /**
- * [INPUT]: Cavalry 2.8.1 target-locked UI source/notes/vendor Japanese and AGY CLI translations; 2.8.0 approvals remain the reuse base.
+ * [INPUT]: Cavalry 2.8.1 default-target UI source/notes/vendor Japanese and AGY CLI translations; 2.8.0 approvals remain the reuse base.
  * [OUTPUT]: Provides 33 source-bound tri-locale updates/additions and 12 source-bound removed-key records for the 2.8.1 selector.
- * [POS]: Version-specific native approval delta; selected only by approvedEntries('2.8.1'), never by the 2.8.0 default.
+ * [POS]: Current production approval delta; selected by approvedEntries('2.8.1'), with 2.8.0 approvals retained as historical source data.
  * [PROTOCOL]: AGY生成后由主代理对照source/notes/术语复核；独立外部审校和实屏另验。变更时检查CLAUDE.md。
  */
 'use strict';
 module.exports = {
   "provenance": {
     "cavalryVersion": "2.8.1",
-    "targetPath": "tools/cavalry_native_target_2_8_1.json",
-    "targetSha256": "e606fc03915d5763bfcf08bab6a61e6787fb53cec31415d124bc2b9c07cc9ac8",
+    "targetPath": "tools/cavalry_native_target.json",
+    "targetSha256": "8b2090aa6d0d3fc84d901f781be3b7c8184d784ec65cbb37f51c14b9958e87b0",
     "sourceCatalogs": [
       {
         "catalogId": "Definitions/Translation/appStrings",

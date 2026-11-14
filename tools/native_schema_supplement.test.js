@@ -61,7 +61,7 @@ test('source supplement rejects duplicate or missing owner/parent/schema/UI iden
 });
 test('source supplement verifies pinned bytes and rejects official-key collisions', () => {
   assert.match(supplement.SOURCE_SHA256, /^[a-f0-9]{64}$/);
-  const target = JSON.parse(fs.readFileSync(`${__dirname}/cavalry_native_target.json`, 'utf8'));
+  const target = JSON.parse(fs.readFileSync(`${__dirname}/fixtures/cavalry_native_target_2_8_0.json`, 'utf8'));
   assert.equal(target.nativeKeys, 10473);
   assert.equal(target.supplementalKeys, 373);
   assert.deepEqual(target.sourceFiles, [{ path: supplement.SOURCE_PATH, sha256: supplement.SOURCE_SHA256 }]);
