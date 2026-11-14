@@ -79,25 +79,6 @@ bool readTitleSourceStringSnapshots(
         readSelf(sceneSource, sizeof(*scene), scene);
 }
 
-bool titleVformatCallBoundaryMatches(const LoadedImage &extension) noexcept
-{
-#if defined(__aarch64__)
-    void *loadedVformat = nullptr;
-    if (!readSelf(imageAddress(extension, title_contract::kVformatGotOffset),
-                  sizeof(loadedVformat), &loadedVformat) ||
-        !native_locale_contract::extensionGotTargetsInterposer(
-            loadedVformat, reinterpret_cast<const void *>(
-                &nativeTitleVformatInterpose))) return false;
-    return matchesCode(extension, title_contract::kVformatCallOffset,
-                       title_contract::kVformatCallBytes) &&
-        matchesCode(extension, title_contract::kVformatImportStubOffset,
-                    title_contract::kVformatImportStubBytes);
-#else
-    (void)extension;
-    return true;
-#endif
-}
-
 bool verifyTitleFormatContract() noexcept
 {
     std::array<char, PATH_MAX> extensionPath{};
@@ -106,7 +87,7 @@ bool verifyTitleFormatContract() noexcept
     LoadedImage fmt{};
     if (!appFrameworkPath("libExtensionLayer.dylib", extensionPath.data(),
                           extensionPath.size()) ||
-        !appFrameworkPath(title_contract::kFmtImageName, fmtPath.data(), fmtPath.size()) ||
+        !appFrameworkPath("libfmt.10.dylib", fmtPath.data(), fmtPath.size()) ||
         !findLoadedImageExactPath(extensionPath.data(), &extension) ||
         !findLoadedImageExactPath(fmtPath.data(), &fmt)) return false;
 
@@ -114,8 +95,6 @@ bool verifyTitleFormatContract() noexcept
     gFmtImage = fmt;
     void *vformat = findMachOSymbol(fmt, title_contract::kVformatSymbol);
     if (vformat != imageAddress(fmt, title_contract::kVformatOffset)) return false;
-
-    if (!titleVformatCallBoundaryMatches(extension)) return false;
 
     NativeTitleVformat original = reinterpret_cast<NativeTitleVformat>(vformat);
     gOriginalTitleVformat.store(original, std::memory_order_release);

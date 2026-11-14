@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 Windows NSIS smoke 源码、Node 测试器与临时 native bundle fixture。
- * [OUTPUT]: 锁定 smoke 使用 production-2.8 三语包，并拒绝manifest或payload漂移。
+ * [INPUT]: 依赖 Windows NSIS smoke、Windows 目标版本配置及临时 native bundle fixture。
+ * [OUTPUT]: 锁定当前 Windows 目标的 production-2.8 三语包，拒绝旧版本及字节漂移。
  * [POS]: tools 的 Windows 安装产物静态合同；不安装软件，不依赖真实构建输出。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -51,7 +51,7 @@ function writeProductionFixture(root) {
   const manifest = {
     schemaVersion: 1,
     kind: 'production-2.8',
-    cavalryVersion: '2.8.0',
+    cavalryVersion: require('./cavalry_native_windows_target.json').cavalryVersion,
     targetSha256: 'a'.repeat(64),
     inputSha256: 'b'.repeat(64),
     approvedUIKeys: 1,
@@ -76,7 +76,8 @@ test('Windows install smoke binds installed resources to current production-2.8 
   assert.match(verifier, /Join-Path \$InstallRoot 'target\\native-language-packs'/);
   assert.match(verifier, /Join-Path \$SourceRoot 'manifest\.json'/);
   assert.match(verifier, /\$manifest\.kind -ceq 'production-2\.8'/);
-  assert.match(verifier, /\$manifest\.cavalryVersion -ceq '2\.8\.0'/);
+  assert.match(verifier, /Join-Path \$PSScriptRoot 'cavalry_native_windows_target\.json'/);
+  assert.match(verifier, /\$manifest\.cavalryVersion -ceq \$windowsTarget\.cavalryVersion/);
   assert.match(verifier, /\$manifest\.complete -eq \$true/);
   assert.match(verifier, /Compare-Object -ReferenceObject \$expectedLocales -DifferenceObject \$actualLocales -CaseSensitive/);
   assert.match(verifier, /Get-FileHash -LiteralPath \$sourceManifestPath -Algorithm SHA256/);
@@ -103,6 +104,16 @@ test('PowerShell native pack verifier accepts current bytes and rejects drift', 
     '-InstallRoot', installRoot,
   ]);
   assert.equal(verify().status, 0, 'matching generated source and installed bytes pass');
+
+  const sourceManifest = path.join(sourceRoot, 'manifest.json');
+  const currentManifest = fs.readFileSync(sourceManifest);
+  const oldManifest = JSON.parse(currentManifest);
+  oldManifest.cavalryVersion = '2.8.0';
+  fs.writeFileSync(sourceManifest, JSON.stringify(oldManifest));
+  fs.copyFileSync(sourceManifest, path.join(installedRoot, 'manifest.json'));
+  assert.equal(verify().status, 1, 'matching old 2.8.0 resources fail current Windows admission');
+  fs.writeFileSync(sourceManifest, currentManifest);
+  fs.copyFileSync(sourceManifest, path.join(installedRoot, 'manifest.json'));
 
   const installedManifest = path.join(installedRoot, 'manifest.json');
   fs.appendFileSync(installedManifest, ' ');

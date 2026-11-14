@@ -50,7 +50,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -60,6 +60,7 @@ function runtime({
   let nextCallbackId = 1;
   const document = {
     documentElement: new Element(), body: new Element(), activeElement: null, title: '',
+    visibilityState: 'visible', hasFocus: () => true,
     listeners: new Map(),
     querySelector(selector) { return elements[selector]; },
     createElement() { const element = new Element(); element.ownerDocument = this; return element; },
@@ -84,6 +85,7 @@ function runtime({
   const navigator = { language: locale, languages: [locale] };
   const window = {
     navigator,
+    MutationObserver: class { observe() {} disconnect() {} },
     innerWidth: 400,
     innerHeight: 556,
     location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
@@ -189,6 +191,7 @@ function boot(options) {
   vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
   vm.runInNewContext(read('renderer/project-link-control.js'), r.context, { filename: 'project-link-control.js' });
+  vm.runInNewContext(read('renderer/support-follow-hand.js'), r.context, { filename: 'support-follow-hand.js' });
   vm.runInNewContext(read('renderer/support-footer.js'), r.context, { filename: 'support-footer.js' });
   vm.runInNewContext(read('renderer/about-control.js'), r.context, { filename: 'about-control.js' });
   vm.runInNewContext(read('renderer/window-controls.js'), r.context, { filename: 'window-controls.js' });

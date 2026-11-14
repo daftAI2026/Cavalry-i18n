@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖native_font_candidate.mm定义的原Skia函数、owner adapter与共享回退。
- * [OUTPUT]: 将Measure/Draw精确owner dispatch保持在可读的独立编译片段。
- * [POS]: Include于文件级；其函数体与native_font_candidate.mm的分支路由保持一致。
+ * [INPUT]: 依赖2.8.1 NodeView ABI合同、原Skia函数、owner adapter与共享回退。
+ * [OUTPUT]: 将NodeView Measure/Draw原始span交给精确owner路由与省略边界修复。
+ * [POS]: 仅由CAVALRY_NATIVE_TARGET_281 arm64分支include；2.8.0实现保持原样。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 extern "C" float timelineMeasureDispatch(
@@ -10,13 +10,14 @@ extern "C" float timelineMeasureDispatch(
     std::uintptr_t callerPc) noexcept
 {
     const MeasureOriginal original = requireMeasureOriginal();
-#if defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     const auto extensionBase = reinterpret_cast<std::uintptr_t>(imageAddress(gExtensionImage, 0));
     if (::dependency_node_font::contract::isMeasureReturnOffset(callerPc - extensionBase))
         return dependency_node_font_adapter::dispatchDependencyNodeFont(
-            font, encoding, Caller::Measure, callerPc,
+            font, text, length, encoding, Caller::Measure, callerPc,
             reinterpret_cast<std::uintptr_t>(__builtin_frame_address(0)),
-            [&](const void *displayFont) { return original(displayFont, text, length, encoding, bounds, paint); },
+            [&](const void *displayFont, const void *displayText, std::size_t displayLength) {
+                return original(displayFont, displayText, displayLength, encoding, bounds, paint); },
             [](DecisionReason) noexcept {});
 #endif
     if (viewport_owner::measureCaller(callerPc - reinterpret_cast<std::uintptr_t>(imageAddress(gExtensionImage,0))))
@@ -34,13 +35,14 @@ extern "C" void timelineDrawDispatch(
     const void *closure, std::uintptr_t callerPc) noexcept
 {
     const DrawOriginal original = requireDrawOriginal();
-#if defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     const auto extensionBase = reinterpret_cast<std::uintptr_t>(imageAddress(gExtensionImage, 0));
     if (::dependency_node_font::contract::isDrawReturnOffset(callerPc - extensionBase)) {
         dependency_node_font_adapter::dispatchDependencyNodeFont(
-            font, encoding, Caller::Draw, callerPc,
+            font, text, length, encoding, Caller::Draw, callerPc,
             reinterpret_cast<std::uintptr_t>(__builtin_frame_address(0)),
-            [&](const void *displayFont) { original(canvas, text, length, encoding, x, y, displayFont, paint); },
+            [&](const void *displayFont, const void *displayText, std::size_t displayLength) {
+                original(canvas, displayText, displayLength, encoding, x, y, displayFont, paint); },
             [](DecisionReason) noexcept {});
         return;
     }

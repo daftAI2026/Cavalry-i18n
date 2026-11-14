@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖2.8.0/显式2.8.1候选官方assets、冻结target、Forge8、缺源365、隐藏caption1、插件caption1与源绑定DNT批准。
- * [OUTPUT]: 2.8.1候选复用已验245个fallback标签并隔离输出；默认生成development-preview；显式production-2.8拒绝缺源包并绑定三语payload摘要。
- * [POS]: macOS用户语言事务的构建输入owner；两种profile复用同一批准源，生产不改译文或target。
+ * [INPUT]: 依赖当前2.8.1官方assets/target、Forge8、缺源365、隐藏caption1、插件caption1与source-bound审批。
+ * [OUTPUT]: 默认预览与production-2.8均构建2.8.1语言包；production拒绝缺源包并绑定三语payload摘要。
+ * [POS]: macOS用户语言事务的构建输入owner；预览与生产复用当前2.8.1批准源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -12,22 +12,19 @@ const { createHash, randomUUID } = require('node:crypto');
 const { collectNativeCatalog, resolveTranslations, renderNativePack,
   validateDemoSceneDntDisplayApprovals } = require('./native_language_pack');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
-const { sourceEntries: forgeSourceEntries, validateSupplementEntries, SUPPLEMENT_CATALOG_ID } = require('./native_schema_supplement');
-const { sourceEntriesFromDefinitions } = require('./native_schema_supplement');
-const { sourceEntries: gapSourceEntries, validateGapEntries, GAP_CATALOG_ID,
-  BACKGROUND_RENDERING_GAP_COUNT } = require('./native_schema_gap_sources');
+const { sourceEntriesFromDefinitions, validateSupplementEntries, SUPPLEMENT_CATALOG_ID } = require('./native_schema_supplement');
+const { validateGapEntries, GAP_CATALOG_ID, BACKGROUND_RENDERING_GAP_COUNT } = require('./native_schema_gap_sources');
 const { validateGapDefinitions, validateBackgroundRenderingDefinition, CURRENT_GAP_SOURCE_ROWS } = require('./native_schema_gap_sources');
 const { sourceEntries: pluginCaptionSourceEntries, validatePluginCaptionEntries,
   PLUGIN_CAPTION_CATALOG_ID, PLUGIN_CAPTION_KEY_COUNT,
   SOURCE_PATH: PLUGIN_CAPTION_SOURCE_PATH } = require('./native_plugin_caption_supplement');
-const { assertOfficialTarget, assertCandidate281Target } = require('./native_official_target');
+const { assertOfficialTarget } = require('./native_official_target');
 const { APPROVED_VENDOR_CORRECTIONS } = require('../languages/native/approved_vendor_corrections');
 const { DEMO_MENU_DNT_KEYS } = require('../languages/native/official_demo_menus');
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
 const RESOURCE_PROFILES = Object.freeze({
-  'development-preview': { kind: 'development-preview', requiresComplete: false },
-  'production-2.8': { kind: 'production-2.8', requiresComplete: true },
-  'development-2.8.1': { kind: 'development-preview', requiresComplete: true, cavalryVersion: '2.8.1' },
+  'development-preview': { kind: 'development-preview', requiresComplete: false, cavalryVersion: '2.8.1' },
+  'production-2.8': { kind: 'production-2.8', requiresComplete: true, cavalryVersion: '2.8.1' },
 });
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -94,7 +91,7 @@ function buildNativeResourceBundle(pairs, approved, trustedVendorCorrections = A
   const dntDisplayExceptions = validateDemoSceneDntDisplayApprovals(entries, approved, dntDisplayExceptionKeys);
   const packs = {};
   const manifest = {
-    schemaVersion: 1, kind: resourceProfile.kind, cavalryVersion: resourceProfile.cavalryVersion || '2.8.0',
+    schemaVersion: 1, kind: resourceProfile.kind, cavalryVersion: resourceProfile.cavalryVersion,
     approvedUIKeys: approved.length, nativeKeys: entries.length,
     supplementalKeys: supplements.length, complete: false, packs: {},
   };
@@ -143,10 +140,8 @@ function safeRegularFile(root, relative) {
 // -- 明确输入：锁定全部source/厂商JA，不递归猜测未来catalog ----------
 function buildFromAssetRoot(assetRoot, profile = 'development-preview') {
   const root = fs.realpathSync(assetRoot);
-  const candidate281 = profile === 'development-2.8.1';
-  const targetBytes = fs.readFileSync(path.join(__dirname,
-    candidate281 ? 'cavalry_native_target_2_8_1.json' : 'cavalry_native_target.json'));
-  const { target } = (candidate281 ? assertCandidate281Target : assertOfficialTarget)(targetBytes);
+  const targetBytes = fs.readFileSync(path.join(__dirname, 'cavalry_native_target.json'));
+  const { target } = assertOfficialTarget(targetBytes);
   const sourceLock = target.sourceFiles?.[0];
   const pairs = target.catalogs.map(catalog => {
     const source = safeRegularFile(root, catalog.source);
@@ -159,19 +154,13 @@ function buildFromAssetRoot(assetRoot, profile = 'development-preview') {
   const nodeDefinitions = safeRegularFile(root, sourceLock.path);
   if (sha256(nodeDefinitions) !== sourceLock.sha256) throw new Error('native schema supplement source digest differs');
   const officialEntries = collectOfficialEntries(pairs);
-  let forge, gaps;
-  if (candidate281) {
-    // The exact 2.8.1 source bytes were checked above. Reuse the existing schema
-    // checks and labels; all 245 distinct IDs were verified against 2.8.1 Core.
-    const definitions = JSON.parse(nodeDefinitions);
-    forge = sourceEntriesFromDefinitions(definitions, officialEntries);
-    validateGapDefinitions(definitions, officialEntries);
-    validateBackgroundRenderingDefinition(definitions, officialEntries);
-    gaps = structuredClone(CURRENT_GAP_SOURCE_ROWS);
-  } else {
-    forge = forgeSourceEntries(nodeDefinitions, officialEntries);
-    gaps = gapSourceEntries(nodeDefinitions, officialEntries);
-  }
+  // The current target is 2.8.1. Its node-definition source is already digest-locked
+  // above; retain the existing schema validators and approved supplemental labels.
+  const definitions = JSON.parse(nodeDefinitions);
+  const forge = sourceEntriesFromDefinitions(definitions, officialEntries);
+  validateGapDefinitions(definitions, officialEntries);
+  validateBackgroundRenderingDefinition(definitions, officialEntries);
+  const gaps = structuredClone(CURRENT_GAP_SOURCE_ROWS);
   const supplements = [...forge, ...gaps,
     ...pluginCaptionSourceEntries(safeRegularFile(root, PLUGIN_CAPTION_SOURCE_PATH), officialEntries)];
   const { approvedEntries } = require('../languages/native/approved_modules');
@@ -189,8 +178,11 @@ function buildFromAssetRoot(assetRoot, profile = 'development-preview') {
 }
 
 // -- 陈旧构建不能靠旧manifest重新获批；显式编译前核对tracked输入 ----
-function inputDigest(cavalryVersion = '2.8.0') {
+function inputDigest(cavalryVersion = '2.8.1') {
   const { APPROVED_MODULES } = require('../languages/native/approved_modules');
+  const repo = path.resolve(__dirname, '..');
+  const targetBytes = safeRegularFile(repo, 'tools/cavalry_native_target.json');
+  assertOfficialTarget(targetBytes);
   const files = [
     'languages/native/approved_modules.js',
     'languages/native/approved_vendor_corrections.js',
@@ -201,20 +193,19 @@ function inputDigest(cavalryVersion = '2.8.0') {
     'tools/native_schema_gap_sources.js', 'tools/native_plugin_caption_supplement.js',
     'tools/native_official_target.js', 'package-lock.json',
   ].sort();
-  if (cavalryVersion === '2.8.1') files.push(
-    'languages/native/release_2_8_1_delta.js', 'tools/cavalry_native_target_2_8_1.json');
-  const repo = path.resolve(__dirname, '..');
+  if (cavalryVersion !== '2.8.1') throw new Error(`unsupported native resource target: ${cavalryVersion}`);
+  files.push('languages/native/release_2_8_1_delta.js', 'tools/cavalry_native_target.json');
   return sha256(JSON.stringify(files.map(file => [file, sha256(safeRegularFile(repo, file))])));
 }
 function validateBuildFreshness(manifest, expectedInputs, expectedTarget) {
-  if (manifest.inputSha256 !== expectedInputs) throw new Error('native preview inputs are stale; rebuild native resources');
-  if (manifest.targetSha256 !== expectedTarget) throw new Error('native preview target is stale; rebuild native resources');
+  if (manifest.inputSha256 !== expectedInputs) throw new Error('native resource inputs are stale; rebuild native resources');
+  if (manifest.targetSha256 !== expectedTarget) throw new Error('native resource target is stale; rebuild native resources');
   return true;
 }
 function validateResourceProfile(manifest, profile = 'development-preview') {
   const resourceProfile = RESOURCE_PROFILES[profile];
   if (!resourceProfile) throw new Error(`unsupported native resource profile: ${profile}`);
-  if (manifest.cavalryVersion !== (resourceProfile.cavalryVersion || '2.8.0'))
+  if (manifest.cavalryVersion !== resourceProfile.cavalryVersion)
     throw new Error('native resource version differs from profile');
   if (manifest.kind !== resourceProfile.kind) throw new Error(`native resource profile differs: expected ${resourceProfile.kind}`);
   const countsAreConsistent = Number.isSafeInteger(manifest.nativeKeys) && manifest.nativeKeys > 0
@@ -233,25 +224,23 @@ function validateResourceProfile(manifest, profile = 'development-preview') {
   return true;
 }
 function checkBuildOutput(profile = 'development-preview') {
-  const candidate281 = profile === 'development-2.8.1';
-  const root = path.resolve(__dirname, candidate281
-    ? '../src-tauri/target/native-language-packs-2.8.1' : '../src-tauri/target/native-language-packs');
+  const root = path.resolve(__dirname, '../src-tauri/target/native-language-packs');
   const manifest = JSON.parse(safeRegularFile(root, 'manifest.json'));
-  validateBuildFreshness(manifest, inputDigest(candidate281 ? '2.8.1' : '2.8.0'),
-    sha256(fs.readFileSync(path.join(__dirname,
-      candidate281 ? 'cavalry_native_target_2_8_1.json' : 'cavalry_native_target.json'))));
+  const targetBytes = fs.readFileSync(path.join(__dirname, 'cavalry_native_target.json'));
+  assertOfficialTarget(targetBytes);
+  validateBuildFreshness(manifest, inputDigest(), sha256(targetBytes));
   validateResourceProfile(manifest, profile);
   for (const language of LANGUAGES) {
     const info = manifest.packs?.[language];
-    if (info?.file !== `${language}.json`) throw new Error('native preview pack path differs');
+    if (info?.file !== `${language}.json`) throw new Error('native pack path differs');
     const bytes = safeRegularFile(root, info.file);
-    if (bytes.length !== info.bytes || sha256(bytes) !== info.sha256) throw new Error('native preview payload differs');
+    if (bytes.length !== info.bytes || sha256(bytes) !== info.sha256) throw new Error('native resource payload differs');
   }
 }
 
 function publishBuildOutput(result) {
-  const output = path.resolve(__dirname, result.manifest.cavalryVersion === '2.8.1'
-    ? '../src-tauri/target/native-language-packs-2.8.1' : '../src-tauri/target/native-language-packs');
+  if (result.manifest.cavalryVersion !== '2.8.1') throw new Error('native resource target differs from current production');
+  const output = path.resolve(__dirname, '../src-tauri/target/native-language-packs');
   // 派生目录是固定构建位置；不允许symlink把写入引向App或profile。
   let cursor = path.parse(output).root;
   for (const part of output.slice(cursor.length).split(path.sep)) {
@@ -283,7 +272,7 @@ if (require.main === module) {
     if (profileAt >= 0 && (!profile || args.indexOf('--profile', profileAt + 1) >= 0)) throw new Error('invalid --profile argument');
     const positional = profileAt >= 0 ? args.filter((_, index) => index !== profileAt && index !== profileAt + 1) : args;
     if (positional.length === 1 && positional[0] === '--check') { checkBuildOutput(profile); process.exit(0); }
-    if (positional.length !== 2 || positional[0] !== '--assets-root') throw new Error('usage: native_resource_bundle.js --assets-root <official Contents/assets> [--profile development-preview|production-2.8|development-2.8.1]');
+    if (positional.length !== 2 || positional[0] !== '--assets-root') throw new Error('usage: native_resource_bundle.js --assets-root <official 2.8.1 Contents/assets> [--profile development-preview|production-2.8]');
     const result = buildFromAssetRoot(positional[1], profile);
     const output = publishBuildOutput(result);
     console.log(JSON.stringify({

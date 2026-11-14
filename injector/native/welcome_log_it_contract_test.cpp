@@ -81,7 +81,7 @@ void checkProjection(std::string_view input,
     const auto source = messageFor(input);
     resetCall(true);
     welcome_log_it::forward(originalSpy, reinterpret_cast<void *>(0x1234),
-        &source, true, false, 0x18f118, 0x18f118, locale);
+        &source, true, false, 0x6a4e20, 0x6a4e20, locale);
     expect(gCall.calls == 1, "recognized Welcome calls original exactly once");
     expect(gCall.payload == expected, "approved locale projects source and keeps suffix");
     expect(gCall.message != &source, "translated Welcome uses a local shadow message");
@@ -137,17 +137,17 @@ int main()
 
     constexpr std::string_view userOutput =
         "Welcome to Cavalry. account migration complete";
-    checkUnchanged(userOutput, 0x1234, 0x18f118, TestLocale::Hans,
+    checkUnchanged(userOutput, 0x1234, 0x6a4e20, TestLocale::Hans,
                    "same-prefix user text from another caller forwards once");
-    checkUnchanged(userOutput, 0x18f118, 0x18f118, TestLocale::Hans,
+    checkUnchanged(userOutput, 0x6a4e20, 0x6a4e20, TestLocale::Hans,
                    "unapproved suffix at Welcome caller forwards once");
-    checkUnchanged(bare, 0x18f118, 0x18f118, TestLocale::Unknown,
+    checkUnchanged(bare, 0x6a4e20, 0x6a4e20, TestLocale::Unknown,
                    "unsupported locale leaves source unchanged");
 
     const void *unreadableMessage = reinterpret_cast<const void *>(std::uintptr_t{1});
     resetCall(false);
     welcome_log_it::forward(originalSpy, nullptr, unreadableMessage, true, true,
-                            0x1234, 0x18f118, Locale::Hans);
+                            0x1234, 0x6a4e20, Locale::Hans);
     expect(gCall.calls == 1 && gCall.message == unreadableMessage,
            "unknown caller forwards unreadable message without dereference");
 
@@ -157,7 +157,7 @@ int main()
     bool propagated = false;
     try {
         welcome_log_it::forward(originalSpy, nullptr, &throwingSource, true, false,
-                                0x18f118, 0x18f118, Locale::Hans);
+                                0x6a4e20, 0x6a4e20, Locale::Hans);
     } catch (const OriginalFailure &) {
         propagated = true;
     }

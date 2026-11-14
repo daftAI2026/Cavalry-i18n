@@ -48,6 +48,9 @@ const expectedRendererHashes = {
   'support-footer.css': sha256(path.join(rendererRoot, 'support-footer.css')),
   'project-link-control.js': sha256(path.join(rendererRoot, 'project-link-control.js')),
   'support-footer.js': sha256(path.join(rendererRoot, 'support-footer.js')),
+  'support-follow-hand.js': sha256(path.join(rendererRoot, 'support-follow-hand.js')),
+  'follow-hand.webp': sha256(path.join(rendererRoot, 'follow-hand.webp')),
+  'THIRD_PARTY_NOTICES.md': sha256(path.join(rendererRoot, 'THIRD_PARTY_NOTICES.md')),
   'operation-log.css': sha256(path.join(rendererRoot, 'operation-log.css')),
   'user-profile-text.js': sha256(path.join(rendererRoot, 'user-profile-text.js')),
   'ui-text.js': sha256(path.join(rendererRoot, 'ui-text.js')),
@@ -175,6 +178,7 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
   const binaryText = fs.readFileSync(binary, 'latin1');
   for (const token of [
     'index.html', '/styles.css', '/support-footer.css', '/project-link-control.js', '/support-footer.js', '/operation-log.css', '/user-profile-text.js', '/ui-text.js',
+    '/support-follow-hand.js', '/follow-hand.webp', '/THIRD_PARTY_NOTICES.md',
     '/icons.js', '/operation-log.js', '/permission-handoff.js', '/update-progress.js', '/app.js',
   ]) {
     assert.ok(binaryText.includes(token), `Tauri executable should embed route token ${token}`);

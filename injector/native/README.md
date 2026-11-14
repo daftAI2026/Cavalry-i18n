@@ -1,19 +1,34 @@
 <!--
-[INPUT]: 依赖 injector/native 候选源、Qt 6.9.2公开头与同bundle Cavalry 2.8.1 arm64/2.8 x86_64 Frameworks。
-[OUTPUT]: 说明已验证ARM候选边界与独立x86_64 ABI/build路径及其验收边界。
-[POS]: Cavalry 2.8.1 ARM候选源码入口；此前2.8.0制品已部署到owned测试App，2.8.1实屏验收尚未完成。
+[INPUT]: 依赖当前2.8.1 arm64源码、Qt 6.9.2公开头与官方Frameworks；保留2.8.0历史组件记录。
+[OUTPUT]: 说明当前macOS arm64构建入口，以及历史实现与平台验收边界。
+[POS]: 当前原生运行时源码入口；Intel与Windows的2.8.1迁移和验收另行完成。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
-# Cavalry 2.8.1 ARM native candidate
+# Cavalry 2.8 native candidate
+
+The current macOS arm64 target is Cavalry 2.8.1:
+
+```sh
+CAVALRY_QT_PREFIX=<Qt-6.9.2-public-headers> \
+  bash injector/native/build_candidate.sh <Cavalry-2.8.1.app/Contents/Frameworks>
+```
+
+The default entry delegates to `build_candidate_2_8_1.py`, which composes the
+shared implementation with `abi_2_8_1` inputs in a temporary source tree.
+The profile snapshot test preserves the 14 historical default ABI headers.
+Production Tauri packaging embeds the explicitly supplied, validated runtime
+through the existing `production-2.8` profile. Build success does not establish
+live display, Intel support, Windows support, or a published release.
 
 ## Scope
 
-This module documents the Cavalry 2.8.1 macOS arm64 candidate and the separate retained x86_64 implementation.
-It does not enter the Cavalry 2.7 build or release path.
-The default shipped product does not consume it.
-The explicit macOS native debug preview can embed the verified artifact at build time.
-Its coordinator installs that artifact into a selected Cavalry 2.8 copy.
-The candidate directory itself does not sign, install, or start an app.
+Current macOS arm64 builds target 2.8.1 only. Users of 2.8.0 use historical
+releases. The Intel implementation and the detailed offsets and acceptance
+records below describe the 2.8.0 baseline; they do not establish 2.8.1 support.
+Current 2.8.1 ABI inputs live in `abi_2_8_1`.
+This directory does not sign, install, or start Cavalry; the Switcher owns that
+transaction. The historical 2.7 build and release path stays separate.
+
 The candidate reuses the existing Mach-O parser and UTF-8 glyph policy.
 It verifies the native getter and four direct Skia targets.
 It obtains the executable path with `_NSGetExecutablePath`, then canonicalizes that path.
@@ -31,15 +46,15 @@ The layout adapter also links the selected bundle's QtGui and QtWidgets runtimes
 The 2.7 translator and default release build do not consume this candidate.
 
 The Demo reader projects approved string-literal offsets only when the exact
-`populatePresetsMenu::$_1` `textFromFile` return PC (`0x6d9ab4`), canonical
-Presets path, and official source SHA all match. Its 2.8.1 ABI uses the verified
-`std::optional<std::string>` result slot; Core exports `textFromFile` at
-`0x4b175c` and Extension imports it from `libCore`.
+Preset-menu `textFromFile` return PC, canonical Presets path, and official source
+SHA all match. Its ABI uses the verified `std::optional<std::string>` result slot.
 Unknown callers and files receive the original optional unchanged. The catalog
 is build input; generated tables contain translated text and offsets, not vendor
-JavaScript source. The previous 2.8.0 candidate 9c352155 was deployed to an
-owned test app; that result does not establish that this 2.8.1 migration is
-loaded or visually accepted.
+JavaScript source. Frozen candidate 9c352155 compiled and linked with this reader.
+The normal Switcher installed this artifact into the owned test app.
+Hans, Hant, and Japanese each expose all 100 approved menu titles through AX.
+The recorded first visible empty-workspace frames contain readable text.
+These results do not cover the full first-frame matrix or a production release.
 
 ## Runtime boundary
 
@@ -48,9 +63,8 @@ The wrapper calls its original once, then publishes one `gLocale` snapshot for t
 The wrapper does not catch or replace original getter exceptions.
 
 GetPath accepts the FPS direct owner or the verified Core→cache→producer chain.
-For 2.8.1, FPS requires Core return `+0x65a04` and Extension return
-`+0x237548`. The candidate verifies the FPS `MakePathFromText` call at
-Extension `+0x237544`.
+FPS requires Core return `+0x69a70` and Extension return `+0x23c7bc`.
+The candidate verifies the FPS `MakePathFromText` call at Extension `+0x23c7b8`.
 This owner stays separate from the Viewport quality cache owner.
 It copies at most 512 UTF-8 bytes into the existing text snapshot.
 It selects one of three 75-entry fixed UI lanes from `gLocale`.
@@ -72,23 +86,13 @@ It does not parse or rewrite the formatted frame-rate suffix.
 
 ## Graph Editor empty state
 
-The Graph Editor empty-state message reaches the existing GetPath owner through
-the verified Extension caller at `+0x57e29c`. The adapter reads that caller frame
+The Graph empty-state message reaches the existing GetPath owner through the
+verified Extension caller at `+0x59afd8`. The adapter reads that caller frame
 once. It selects a separate three-locale table only for the exact
 `GraphEditorEmptyState` owner and full source string. The existing 225-entry
 lane remains byte-for-byte unchanged. Unknown callers, locales, and strings
 retain the original path. The offline contract proves the narrow gate; it does
 not prove a live Graph message or first visible frame.
-
-## Dependency Graph node headers
-
-The Dependency Graph node text is a separate owner. The 2.8.1 adapter accepts
-only the `lina::TextView` children at NodeView child indices 1 (`NiceName`) and
-2 (`NodeType`). It proves the exact Skia Measure/Draw return PCs, TextView to
-NodeView parent and vtable chain, direct child vector, and complete source
-string closure before reusing the shared font selector. Unknown Lina text and
-the Graph Editor empty-state caller keep their existing paths. The source
-contract checks the selected 2.8.1 Extension image; no live UI result is implied.
 
 ## Demo Preset reader
 
@@ -97,7 +101,7 @@ contract checks the selected 2.8.1 Extension image; no live UI result is implied
 It checks each file's exact path, byte length, and SHA before emitting temporary
 C++ tables. The generated tables contain no vendor JavaScript.
 
-The 2.8.1 interposer admits only the `MenuBarManager::populatePresetsMenu::$_1`
+The interposer admits only the `StaticMenuBarManager::populatePresetsMenu::$_3`
 caller. It checks the exact `textFromFile` return PC, `Contents/assets/Presets`
 path, file SHA, source literal, and locale before projecting a string. The
 verified return ABI is `std::optional<std::string>`. Unknown calls preserve the
@@ -128,20 +132,11 @@ No source text enters diagnostics or files.
 
 ## Main window title boundary
 
-The 2.8.1 arm64 candidate checks the `Gui::updateAppTitle` caller in the selected
-`libExtensionLayer.dylib` and its two-level import of `fmt::v11::vformat` from
-the same bundle's `libfmt.11.dylib` (11.2.0). The title BL at `0x12a46c` targets
-the import stub at `0xd206e0`; its GOT slot is `0x10294b8`.
+The candidate checks the arm64 `Gui::updateAppTitle` caller in the selected
+`libExtensionLayer.dylib` and its two-level import of `fmt::v10::vformat`.
 The check locks the caller return PC, format address and length, descriptor,
 source-object copy/empty branches, fmt UUID, exported symbol, and entry bytes.
-The candidate checks call and stub bytes, fmt export offset `0x1a54`, UUID, and
-the loaded GOT target before enabling the title projection.
-
-The retained x86_64 compilation path keeps its previous fmt10 import and
-legacy title constants unchanged. Those constants originally describe the
-2.8.0 ARM caller; preserving them does not establish an Intel title ABI.
-An unmatched Intel caller remains outside this projection. The separate
-x86_64 build still links `libfmt.10.dylib`; no 2.8.1 Intel support is added.
+The candidate links only the same bundle's `libfmt.10.dylib`.
 
 The adapter calls the original formatter once. It then projects only the
 `Project` and `Scene` labels and true empty project/scene placeholders.
@@ -175,10 +170,22 @@ It leaves the selected directory, filter, selected-filter pointer, options,
 return value and every other caption unchanged. It does not translate the
 native panel's Save/Cancel controls.
 
+The explicit 2.8.1 arm64 profile also covers the fixed Open-panel caption.
+`chooseSceneOpen` constructs `Load .cv` at Extension offset `0x626704` and
+calls `presentOpenFile` at `0x626760`; that helper passes the caption to
+`QFileDialog::getOpenFileName` at `0x6c1220` (return PC `0x6c1224`). The
+profile verifies the exact source-construction and argument/call windows,
+QtWidgets 6.9.2 export, and Extension two-level import. Only that return PC
+with caption `Load .cv` is projected to the existing three TS translations.
+Directory, filter, selected-filter pointer, options and returned `QString`
+remain unchanged, as do every other caller and caption.
+
 The QtCore-only contract exercises the real Qt `QString` type without loading
 Cavalry or opening a dialog. It verifies the returned `QString`, const-reference
 arguments, translated temporary lifetime, one original call, and exact caller
-and source gates. A contract pass is not live UI evidence.
+and source gates. The 281 candidate runs this Save test in both the default
+2.8.0 contract mode and the 2.8.1 profile mode. A contract pass is not live UI
+evidence.
 
 ## Help description boundary
 
@@ -306,12 +313,11 @@ is evidence of a loaded hook or live UI result.
 ## Welcome producer boundary
 
 The candidate interposes the exact `spdlog::logger::log_it_` import.
-The reviewed 2.8.1 arm64 Extension UUID is
-`AF1367BD-2D7E-3EC0-A111-935E4881C655`; the `libspdlog.1.15.dylib` UUID is
-`43FC7DAB-6695-3EF6-B50B-B8189E170B09`.
-The selected `log_it_` export resolves to offset `0x6f10`. The Welcome import
-stub is at `0xd21520`, GOT at `0x1029488`, and caller return at `0x18f118`
-(call at `0x18f114`).
+The reviewed arm64 Extension UUID is
+`448DD50E-75F4-3F2D-A46B-2C9F00DF9408`; the spdlog UUID is
+`F9429837-12E6-3A4A-8436-97E5257E75EA`.
+The selected `libspdlog.1.13.dylib` export must resolve to offset `0x992c`.
+The Extension import is at `0x6a4e1c`; its return PC is `0x6a4e20`.
 The runtime publishes that PC only when the exact bundle images and the
 Extension GOT target match the candidate veneer.
 
@@ -324,18 +330,18 @@ its own replacement, which allows the interposer to call the prior function.
 The source contract is `DyldRuntimeState.h` lines 2344-2353.
 The independent dyld fixture must verify the host's actual call-through.
 
-Only the exact `0x18f118` return PC enters the dispatcher.
+Only the exact `0x6a4e20` return PC enters the dispatcher.
 The dispatcher calls the same direct import for the original function.
 It copies the reviewed `0x60`-byte message view and changes only payload
 pointer and byte length. The original runs once; exceptions propagate.
 No constructor-published original pointer gates unknown calls.
 
 The projected payload buffer lives through the original `log_it_` call.
-This scope is pinned to the reviewed spdlog 1.15 runtime ABI.
+This scope is pinned to the reviewed spdlog 1.13.0 source.
 Its synchronous path consumes the message inside `log_it_`.
 Its async and backtrace paths copy the payload into `log_msg_buffer`.
 Do not reuse this lifetime proof for another spdlog version.
-Sources: [logger-inl.h](https://github.com/gabime/spdlog/blob/v1.15.0/include/spdlog/logger-inl.h#L743-L760), [thread_pool.h](https://github.com/gabime/spdlog/blob/v1.15.0/include/spdlog/details/thread_pool.h#L441-L492), [log_msg_buffer-inl.h](https://github.com/gabime/spdlog/blob/v1.15.0/include/spdlog/details/log_msg_buffer-inl.h#L293-L303), [backtracer-inl.h](https://github.com/gabime/spdlog/blob/v1.15.0/include/spdlog/details/backtracer-inl.h#L363-L369).
+Sources: [logger-inl.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/logger-inl.h#L764-L781), [thread_pool.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/details/thread_pool.h#L458-L513), [log_msg_buffer-inl.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/details/log_msg_buffer-inl.h#L314-L324), [backtracer-inl.h](https://github.com/gabime/spdlog/blob/v1.13.0/include/spdlog/details/backtracer-inl.h#L384-L390).
 
 The policy accepts only `Welcome to Cavalry.`, that source plus the exact
 ` Happy New Year!` suffix, or that source plus ` Happy Holidays!`.
@@ -394,14 +400,14 @@ It generates separate 384-main and 17-def help tables plus a 401-root layout
 table from official MetaData.
 It generates the 20-label Easing display table outside the repository.
 It compiles and runs the pure getter/GOT/FPS-owner, Guide body, Easing,
-Save Scene caption, Welcome,
+Save/281 Load .cv caption, Welcome,
 Fast C1 policy, help shadow, and hidden Qt layout tests.
 It also runs the vendor-free dyld constructor-order fixture against the new veneer.
 It links the real help veneer to a vendor-free register probe.
 That probe checks unknown-caller argument, return and indirect-result transparency,
 plus exact main/def LR dispatch.
 The fixup gate separately checks the real UI import binding.
-It compiles a target-arm64 `fmt::v11::vformat` ABI probe and records its assembly
+It compiles a target-arm64 `fmt::v10::vformat` ABI probe and records its assembly
 with the exact caller and fmt entry bytes in `title-format-abi-proof.json`.
 It rejects a UUID that belongs to another FAT slice, using the actual checker.
 It never loads the candidate or starts Cavalry.

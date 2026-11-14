@@ -1,5 +1,8 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/save_scene_caption_abi_contract.h"
+#else
 /**
- * [INPUT]: 依赖官方2.8.1 arm64及既有x86 QFileDialog调用窗、QtWidgets UUID与导出符号。
+ * [INPUT]: 依赖官方2.8各架构QFileDialog调用窗、QtWidgets UUID与导出符号。
  * [OUTPUT]: 锁定QString返回槽、四个引用参数、精确caption caller及BL目标。
  * [POS]: 两个caption共用同一QFileDialog调用边界；不改全局标题或文件名。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -56,25 +59,25 @@ static_assert(static_cast<std::int64_t>(kReturnOffset) +
               static_cast<std::int64_t>(kImportStubOffset));
 #else
 inline constexpr char kExtensionUuid[] =
-    "AF1367BD-2D7E-3EC0-A111-935E4881C655";
+    "448DD50E-75F4-3F2D-A46B-2C9F00DF9408";
 inline constexpr char kQtWidgetsUuid[] =
     "01652E29-047E-3528-9DC2-1BD084292E50";
 inline constexpr char kQtVersion[] = "6.9.2";
 inline constexpr char kGetSaveFileNameSymbol[] =
     "__ZN11QFileDialog15getSaveFileNameEP7QWidgetRK7QStringS4_S4_PS2_6QFlagsINS_6OptionEE";
 
-inline constexpr std::uintptr_t kCallWindowOffset = 0x006c1744;
-inline constexpr std::uintptr_t kCallOffset = 0x006c1760;
-inline constexpr std::uintptr_t kReturnOffset = 0x006c1764;
-inline constexpr std::uintptr_t kImportStubOffset = 0x00d1d0d4;
+inline constexpr std::uintptr_t kCallWindowOffset = 0x006e4b6c;
+inline constexpr std::uintptr_t kCallOffset = 0x006e4b88;
+inline constexpr std::uintptr_t kReturnOffset = 0x006e4b8c;
+inline constexpr std::uintptr_t kImportStubOffset = 0x00dbaa10;
 inline constexpr std::uintptr_t kQtWidgetsExportOffset = 0x00260b7c;
 
 // -- x8为QString返回槽，x1-x3为const QString引用 -------------------------
 inline constexpr std::array<std::uint8_t, 32> kCallWindowBytes = {
-    0xe8, 0x83, 0x01, 0x91, 0xe1, 0x23, 0x01, 0x91,
-    0xe2, 0xc3, 0x00, 0x91, 0xe3, 0x63, 0x00, 0x91,
-    0xe0, 0x03, 0x16, 0xaa, 0x04, 0x00, 0x80, 0xd2,
-    0x05, 0x00, 0x80, 0xd2, 0x5d, 0x6e, 0x19, 0x94,
+    0xe8, 0x23, 0x01, 0x91, 0xe1, 0xc3, 0x00, 0x91,
+    0xe2, 0x63, 0x00, 0x91, 0xe3, 0x03, 0x00, 0x91,
+    0xe0, 0x03, 0x15, 0xaa, 0x04, 0x00, 0x80, 0xd2,
+    0x05, 0x00, 0x80, 0xd2, 0xa2, 0x57, 0x1b, 0x94,
 };
 
 constexpr std::uint32_t arm64Instruction(
@@ -108,3 +111,5 @@ static_assert(static_cast<std::int64_t>(kCallOffset) +
               static_cast<std::int64_t>(kImportStubOffset));
 #endif
 }  // namespace native_save_scene_caption::contract
+
+#endif  // CAVALRY_NATIVE_TARGET_281

@@ -1,7 +1,7 @@
 /*
- * [INPUT]: 官方Windows2.8 Viewport分段blob的sret/borrowed SkFont、同线程栈和精确父调用。
+ * [INPUT]: 官方Windows 2.8.1 Viewport分段blob的sret/borrowed SkFont、同线程栈和精确父调用。
  * [OUTPUT]: 读取父层完整MSVC名称快照；片段只参与原厂绘制，字体必须覆盖完整名称。
- * [POS]: Windows ABI薄适配；font=父帧+88、完整string=父帧+190，未知链/越栈/过长均透传。
+ * [POS]: Windows 2.8.1分段Viewport快照；只准入caller 0x430bff后续栈帧中的parent return 0x40d784；direct 0x40d7bc由runtime完整文本分支处理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -12,6 +12,19 @@
 #include <cstring>
 
 namespace native_windows_viewport {
+inline constexpr std::uintptr_t kViewportBlobReturn=0x40d7bc;
+inline constexpr std::uintptr_t kSegmentedBlobReturn=0x430bff;
+inline constexpr std::uintptr_t kSegmentedParentReturn=0x40d784;
+inline bool approvedProducerFrames(const std::uintptr_t *frames,std::size_t count,std::uintptr_t extension) noexcept {
+    if(!frames)return false;
+    for(std::size_t i=0;i<count;++i){
+        if(frames[i]==extension+kSegmentedBlobReturn){
+            for(std::size_t j=i+1;j<count;++j)
+                if(frames[j]==extension+kSegmentedParentReturn)return true;
+        }
+    }
+    return false;
+}
 struct Snapshot {std::array<std::byte,4096> bytes{};std::size_t size=0;};
 inline bool read(const void *address,void *destination,std::size_t bytes) noexcept {
     SIZE_T copied=0;
@@ -19,14 +32,10 @@ inline bool read(const void *address,void *destination,std::size_t bytes) noexce
 }
 inline bool snapshot(const void *font,std::uintptr_t extension,Snapshot *output) noexcept {
     if(!font || !output)return false;
-    void *frames[12]{};const auto count=CaptureStackBackTrace(0,12,frames,nullptr);
-    bool blobCaller=false,parent=false;
-    for(unsigned i=0;i<count;++i){
-        const auto pc=reinterpret_cast<std::uintptr_t>(frames[i]);
-        if(pc==extension+0x42a4bf)blobCaller=true;
-        else if(blobCaller && pc==extension+0x407084){parent=true;break;}
-    }
-    if(!parent)return false;
+    void *captured[12]{};const auto count=CaptureStackBackTrace(0,12,captured,nullptr);
+    std::array<std::uintptr_t,12> frames{};
+    for(unsigned i=0;i<count;++i)frames[i]=reinterpret_cast<std::uintptr_t>(captured[i]);
+    if(!approvedProducerFrames(frames.data(),count,extension))return false;
     ULONG_PTR low=0,high=0;GetCurrentThreadStackLimits(&low,&high);
     const auto fontAddress=reinterpret_cast<std::uintptr_t>(font);
     if(fontAddress<low || fontAddress>high || high-fontAddress<0x128)return false;

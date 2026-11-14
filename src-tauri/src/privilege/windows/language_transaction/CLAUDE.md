@@ -3,7 +3,7 @@
 
 成员清单
 native2.8编译profile：parent只接受空legacy assets；普通可写根与Program Files worker共用原journal/QPA执行器，后者仍只接受OS Known Folder授权。所有同用户Cavalry写者关闭，source provenance按编译期runtime摘要，不引入旧JSON前置。pending、厂商备份、postimage、marker最后提交和未知文件保护保留。
-native_runtime_tests.rs: 显式官方vendor输入的ignored Windows集成合同；实际temp根激活/未知generic拒删/撤销自注漂移后English恢复，核vendor原像和外来同级文件保全；不写用户profile、不启动Cavalry。
+native_runtime_tests.rs: 显式只读官方Cavalry 2.8.1 vendor输入的ignored Windows集成合同；宿主/资源仅作来源，真实journal只写temp安装/state根，覆盖激活、未知generic拒删、撤销自注漂移后English恢复及vendor原像/外来同级文件保全，不写用户profile、不启动Cavalry。
 目录同步：journal_manifest复用src/windows_fs.rs，与用户语言事务共享同一目录句柄与FlushFileBuffers原语；授权与journal schema不变。
 mod.rs: Windows Program Files 语言事务模块根；组织共享合同、父进程、same-EXE launcher、编译期来源证明、提权 worker 与 durable journal，不暴露任意复制目标。
 contract.rs: 提权 plan v1 与固定退出码真相源；分别绑定 apply 的 plan/nonce 摘要与 recovery 的已验证安装根，两者都绑定 worker EXE hash，并拒绝未知字段、非规范路径与错误 marker 连续 preimage。

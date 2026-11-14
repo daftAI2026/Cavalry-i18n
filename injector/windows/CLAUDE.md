@@ -35,7 +35,7 @@ cavalry_i18n_adjacent_acceptance_lifecycle.inc: Adjacent 生命周期与 Tag pro
 cavalry_i18n_adjacent_acceptance_assets.inc: Adjacent Assets producer 分片；把带 run nonce 的冻结素材真实 Drop 到 `assets::Window`，按动态 stem 重解析 row，再向 exact viewport post 真实 ContextMenu 事件，以可见的 Replace/Create 菜单作为接受后置条件；write-once trace 只进入临时 evidence。
 cavalry_i18n_adjacent_acceptance_evidence.inc: Adjacent 证据与终态分片；在 producer 瞬态仍存活时执行 exact QWidget grab，绑定同 PID producer HWND 或 alien-popup 的进程 HWND 锚点，原子发布 ready/ack/done；进程退出不混入 producer PASS，统一交给外部 exact-PID/HWND gate 清理。
 cavalry_i18n_qpa_contract.h: QPA manifest v1 与语言 marker 的纯数据接口；隔离代理文件 IO 和 exact schema/hash/语言判定。
-cavalry_i18n_qpa_contract.cpp: 严格拒绝 manifest 未知/缺失字段、版本/架构/固定 vendor hash 漂移，逐项比较实际 Cavalry.exe/vendor/proxy/generic SHA-256，并只接受四语言精确 marker。
+cavalry_i18n_qpa_contract.cpp: 严格拒绝 manifest 未知/缺失字段、版本/架构/固定 vendor hash 漂移；native编译绑定官方Cavalry 2.8.1、Qt 6.9.2与qwindows摘要，逐项比较实际EXE/vendor/proxy/generic SHA-256，只接受四语言精确marker。
 cavalry_i18n_qpa_contract_test.cpp: 无厂商 DLL 的激活合同回归；覆盖 prepared/active/restoring、schema/key/运行 Qt/Cavalry.exe/hash 漂移、vendor 执行前摘要门及 marker 空白/大小写拒绝。
 cavalry_i18n_qpa_binary_smoke_test.cpp: 最终 `qpa/qwindows.dll` 产物加载门；验证 QPA IID、唯一 `windows` key、动态依赖可解析及 `QPlatformIntegrationPlugin` 类型，不调用 create 或触碰厂商 DLL。
 cavalry_i18n_qpa_proxy.h: Qt 6.6.3 私有 `QPlatformIntegrationPlugin` 接口与 `windows` metadata；完整实现两种 create 重载。

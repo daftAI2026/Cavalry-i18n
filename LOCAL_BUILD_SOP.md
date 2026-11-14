@@ -1,11 +1,13 @@
 <!--
-[INPUT]: 依赖Windows唯一native wrapper与CI官方输入、冻结2.7.2默认profile及2.8.0三平台production profile、官方Qt6.9.2、同源码目标架构native runtime、production语言包和Tauri平台/release overlays
-[OUTPUT]: 提供macOS双架构和Windows x64生产构建、隔离合同、资源检查及已授权tag发布闭包
+[INPUT]: 依赖Windows唯一native wrapper与CI官方输入、冻结2.7.2默认profile及Cavalry 2.8.1 macOS arm64/Windows x64 production profile、官方Qt6.9.2和平台release overlays；Intel ABI/build仍待闭合
+[OUTPUT]: 提供macOS arm64与Windows x64生产构建入口和隔离合同；实屏、安装生命周期及Intel闭合后才可走三平台tag发布闭包
 [POS]: 仓库唯一桌面打包SOP；本地macOS生产包不代替公开发行验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 # Cavalry Language Switcher 本地打包 SOP - Tauri
+
+当前源码的Cavalry 2.8.1生产输入和native构建路径已接通macOS arm64与Windows x64。Windows沿已验2.8.0基线增量复用事务和共享策略，独立核2.8.1 PE身份与调用ABI；实屏、安装生命周期和公开发行分别记账。Intel ABI/build仍待闭合，不得由其它平台证据代验。2.8.0用户使用此前的Release，不在当前源码重打包旧版。公开2.8.1 tag仍须等所有发布平台的官方输入、runtime和验收闭合。
 
 本文档记录唯一发布路径：Tauri。旧壳层和 fallback 打包链路已移除，不再作为本地或 CI 发布入口。
 
@@ -14,8 +16,8 @@
 - Node 依赖：`@tauri-apps/cli`、`@tauri-apps/api` 固定在 `2.10.1`。
 - Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.98.0`）。
 - Qt bootstrap：`requirements-ci.txt` 固定 `aqtinstall==3.3.0` 及其完整依赖摘要；SoupSieve固定4.0以修复上游两项选择器复杂度问题，保持原aqt/BeautifulSoup入口；旧 `prepare:qt-sdk` 创建 ignored 的 repo-local venv 并以 `--require-hashes` 安装，绝不信任全局 aqt。Windows CMake bootstrap 由 `tools/resolve_windows_cmake.js` 消费 `tools/ci_action_pins.json` 中官方 Kitware/CMake v4.4.3 Windows x64 zip 的固定 URL/SHA-256，重新解包，执行 `cmake --version` 并验证 CTest 同包布局；不会消费 runner PATH 中的预装版本。GitHub Actions 全量 pin 见 `tools/ci_action_pins.json`。
-- 2.8.0 macOS ARM依赖：使用官方Cavalry 2.8.0 Qt `6.9.2` 与同源码已验的arm64 native runtime绝对路径。主构建直接打包该dylib，不运行旧Qt `6.6.3` 的 `build:injector`。
-- 历史injector依赖：`tools/cavalry_qt_target.json` 保留版本化SDK投影。旧2.7 injector使用Qt `6.6.3`；Windows路径另按其既有配置执行。不要用旧injector替代2.8.0 native runtime。
+- 2.8.1 macOS ARM依赖：使用官方Cavalry 2.8.1 Qt `6.9.2` 与同源码已验的arm64 native runtime绝对路径。主构建直接打包该dylib，不运行旧Qt `6.6.3` 的 `build:injector`。此证据不覆盖尚无281 ABI的Intel构建。
+- 历史injector依赖：`tools/cavalry_qt_target.json` 保留版本化SDK投影。旧2.7 injector使用Qt `6.6.3`；Windows路径另按其既有配置执行。不要用旧injector替代2.8.1 native runtime。
 
 本地dev使用 `debug = "line-tables-only"`。
 test继承dev；release默认不变。
@@ -25,7 +27,7 @@ test继承dev；release默认不变。
 只删除已确认可重建的本项目缓存。
 保留native语言包输入；不要用 `cargo clean` 一并删除。
 
-以下Qt SDK命令属于2.7终版历史参考，不是2.8.0执行入口。2.8.0两平台使用官方Qt6.9.2；Windows入口见8.1，不使用这些旧SDK命令。
+以下Qt SDK命令属于2.7终版历史参考，不是2.8.1执行入口。当前已接通的2.8.1 macOS arm64路径使用官方Qt6.9.2；Intel仍待ABI验证；Windows使用2.8.1官方输入与Qt6.9.2 MSVC链路，不将旧SDK命令当成当前入口。
 
 ```bash
 npm run prepare:qt-sdk          # macOS
@@ -52,13 +54,13 @@ npm run prepare:qt-sdk:windows  # Windows x64
 发布版本分两层，不能混用：
 
 - Internal app version: SemVer，写在 `CHANGELOG.md`、`package.json`、`src-tauri/Cargo.toml` 与 `src-tauri/tauri.conf.json`，由 `npm run sync:version` 同步。
-- Release tag：`cavalry-2.7.2-pN` 仅属历史协议；p12终版只作历史下载，停止2.7开发、更新、验收与p12复核维护。`release.config.json` 保留冻结的2.7.2 p12默认profile，供历史元数据读取与合同核验。统一 `latest.json` 更新入口，不按宿主版本拆通道；该名称和下载基础地址仍与2.8.0共用。
-- 当前 Cavalry 2.8.0 使用 `release-2.8.config.json` 与 `cavalry-2.8.0-pN`。本地生产包与历史客户端共用 `latest.json` endpoint overlay；workflow按所选2.8.0 profile向tag打包命令传统一endpoint overlay。Intel的2.8.0 x86_64及Windows native本地构建入口已接通；三平台生产runtime与验收已闭合，维护者已批准2.8.0首发。Intel实机UI尚未验，不作为本地编译通过的阻断。不得给旧2.7 runtime换名称；保留三平台production构建与发布闭包。
-- 历史p12三种发布资产由冻结的 `release.config.json` 命名；它们不是当前2.8.0发布资产：
+- Release tag：`cavalry-2.7.2-pN` 仅属历史协议；p12终版只作历史下载，停止2.7开发、更新、验收与p12复核维护。`release.config.json` 保留冻结的2.7.2 p12默认profile，供历史元数据读取与合同核验。统一 `latest.json` 更新入口，不按宿主版本拆通道；该名称和下载基础地址仍与2.8.1共用。
+- 当前 Cavalry 2.8.1 使用 `release-2.8.config.json` 与 `cavalry-2.8.1-pN` 元数据；workflow按所选2.8.1 profile向tag打包命令传统一endpoint overlay。macOS arm64本地生产包与历史客户端共用 `latest.json` endpoint overlay。Intel仍需281 ABI/build验证；Windows已锁2.8.1官方输入与native路径，其实屏和安装生命周期独立验收。当前不能据源码配置声称完整三平台release已闭合。不得给旧2.7 runtime换名称；保留三平台production构建与发布闭包。
+- 历史p12三种发布资产由冻结的 `release.config.json` 命名；它们不是当前2.8.1发布资产：
   - Apple Silicon: `Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.dmg`
   - Intel: `Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg`
 - Windows x64 NSIS asset: `Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe`
-  `tools/release_metadata.js` 从冻结profile重建这些历史名称。当前2.8.0资产由显式 `release-2.8.config.json` profile生成，workflow不允许手写漂移；release job会下载Windows build artifact，将Tauri原始EXE名规范化后，与两个DMG一次性上传。
+  `tools/release_metadata.js` 从冻结profile重建这些历史名称。当前2.8.1资产由显式 `release-2.8.config.json` profile生成，workflow不允许手写漂移；release job会下载Windows build artifact，将Tauri原始EXE名规范化后，与两个DMG一次性上传。
 
 打标前先跑：
 
@@ -72,24 +74,24 @@ node tools/verify_source_artifact.js --check-repo --check-workflow
 
 ### 3.1 Tag release runbook（最小可信闭环）
 
-1. 只在Intel、Apple Silicon与Windows的2.8.0生产runtime和验收闭合后考虑公开tag。本地arm64包不关闭三平台guard。
-2. 执行本节开头的版本、2.8.0 profile、合同、Actions pin与source artifact检查，再从 `release-2.8.config.json` 复核tag/title/资产名：
+1. 只在Intel、Apple Silicon与Windows的2.8.1生产runtime和验收闭合后考虑公开tag。本地arm64包不关闭三平台guard。
+2. 执行本节开头的版本、2.8.1 profile、合同、Actions pin与source artifact检查，再从 `release-2.8.config.json` 复核tag/title/资产名：
 
 ```bash
-TAG='cavalry-2.8.0-pN'
+TAG='cavalry-2.8.1-pN'
 node tools/release_metadata.js --profile release-2.8.config.json --tag "$TAG" --format json
 git fetch origin main --tags
 test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
-git tag -a "$TAG" -m "Cavalry Language Switcher for Cavalry 2.8.0 patch N"
+git tag -a "$TAG" -m "Cavalry Language Switcher for Cavalry 2.8.1 patch N"
 git push origin "$TAG"
 ```
 
 3. Tag 流水线会先验证tag ancestry与三平台闭包，再运行合同、Rust/native、Windows NSIS与macOS打包检查。维护者批准首发后已移除迁移期无条件拦截；tag仍须属于main，且三平台打包、updater签名及资产回读全部成功。
-4. 2.7 p12仅保留历史下载，不复验、不更新、不维护。新版Release发布新的 `latest.json`；宿主版本不匹配时复用主窗口提示与p12下载入口。只有三平台runtime与验收就绪后，才按2.8.0 profile执行publisher。新2.8.0资产仍由CI生成 `SHA256SUMS` 与 `release-asset-provenance.json`；此流程不改写p12历史资产。
-5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。当前2.8.0 macOS-only手动预验不提供 no-tag updater-signing smoke；updater私钥与签名仅在tag生产流程使用。
+4. 2.7 p12仅保留历史下载，不复验、不更新、不维护。新版Release发布新的 `latest.json`；宿主版本不匹配时复用主窗口提示与p12下载入口。只有三平台runtime与验收就绪后，才按2.8.1 profile执行publisher。新2.8.1资产仍由CI生成 `SHA256SUMS` 与 `release-asset-provenance.json`；此流程不改写p12历史资产。
+5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。当前2.8.1 macOS-only手动预验不提供 no-tag updater-signing smoke；updater私钥与签名仅在tag生产流程使用。
 
 6. Release 正文由 workflow 中的版本更新记录与固定用户指引组成。**从 p8 开始，版本更新说明只显示中文**，不额外显示“中文 / English”语言标题。CHANGELOG 使用 Added/Changed/Fixed 等稳定英文分类键，条目写本版实际中文变化；抽取器只把分类标题映射为新增/变更/修复，不自动翻译正文，不用产品介绍代替更新条目。未来 GitHub Release 与 updater notes 共用该中文投影。已发布正文修订不替换历史 updater manifest 或安装包。固定部分保留 macOS 首次打开、Windows 首次安装、带版本链接的源码构建步骤、四语支持列表、权限/备份须知及简短英日说明；不要用维护者私有绝对路径替代通用 `<仓库路径>`。只修改已发布正文时使用 `gh release edit --notes-file`，不重打 tag、不替换资产，并回读正文及资产摘要。
-7. 所选 profile 的资产完成回读且 Release 公开后，`tools/post_release_reactions.js <tag> <owner/repo> [--profile <config>]` 添加并分页回读 👍、😄、🎉、❤️、🚀、👀 六种 reactions。默认 profile 是 2.7；2.8.0 必须显式给出 2.8.0 profile。GitHub 按账号去重；CI 使用现有 job token，失败作为非阻断提示，不重新发布资产。可用同一命令为已公开版本补做，但拒绝 draft/prerelease。
+7. 所选 profile 的资产完成回读且 Release 公开后，`tools/post_release_reactions.js <tag> <owner/repo> [--profile <config>]` 添加并分页回读 👍、😄、🎉、❤️、🚀、👀 六种 reactions。默认 profile 是 2.7；2.8.1 必须显式给出 2.8.1 profile。GitHub 按账号去重；CI 使用现有 job token，失败作为非阻断提示，不重新发布资产。可用同一命令为已公开版本补做，但拒绝 draft/prerelease。
 
 ### 3.2 版本更新说明模板
 
@@ -106,7 +108,7 @@ git push origin "$TAG"
 
 ## 4. macOS 标准打包流程
 
-### 4.1 macOS 2.8.0 Apple Silicon ad-hoc production package
+### 4.1 macOS 2.8.1 Apple Silicon ad-hoc production package
 
 先按4.1.0生成production语言包，并指向同源码已验的arm64 native runtime绝对路径。
 `build:tauri`会调用本地生产构建、DMG盖章与production packaged检查。
@@ -119,21 +121,20 @@ export APPLE_SIGNING_IDENTITY="-"
 npm run build:tauri
 ```
 
-#### 4.1.0 2.8.0 Apple Silicon production inputs
+#### 4.1.0 2.8.1 Apple Silicon production inputs
 
-该入口打包2.8.0 arm64生产profile，不代表公开release。
-它使用官方Cavalry 2.8.0 assets、Qt `6.9.2`与同源码已验的arm64 native runtime绝对路径。
+该入口打包2.8.1 arm64生产profile，不代表公开release。
+它使用官方Cavalry 2.8.1 assets、Qt `6.9.2`与同源码已验的arm64 native runtime绝对路径。
 不要调用旧Qt `6.6.3` `build:injector`。
-CI的2.8.0生产runtime源码固定为提交`ad7d501b04133650ac9d26953fa60ee3f57eedec`，通过Git archive导出到runner隔离目录，再复用已安装的锁定Node依赖。当前2.8.1候选源码不用于旧生产ABI；源提交随制品摘要记录。
 
-显式从官方2.8.0 app生成完整production语言包：
+显式从官方2.8.1 app生成完整production语言包：
 
 ```bash
-npm run build:native-resources -- --assets-root "<官方Cavalry 2.8.0.app>/Contents/assets" --profile production-2.8
+npm run build:native-resources -- --assets-root "<官方Cavalry 2.8.1.app>/Contents/assets" --profile production-2.8
 export CAVALRY_I18N_NATIVE_INJECTOR_FILE="<同源码已验的arm64 native runtime绝对路径>"
 ```
 
-`tauri:build`是无硬编码target的2.8.0 production命令。
+`tauri:build`是无硬编码target的2.8.1 production命令。
 本地ARM alias传入 `aarch64-apple-darwin`。
 本地Intel alias传入 `x86_64-apple-darwin`。
 CI矩阵也只传入一次所选target。
@@ -146,22 +147,9 @@ Intel包位于 `src-tauri/target/x86_64-apple-darwin/release/bundle/`。
 两个本地alias的packaged gate都固定 `production-2.8` 与预期架构。
 ad-hoc签名不构成公证或公开发行。
 
-#### 4.1.0.1 2.8.1 Apple Silicon candidate
+#### 4.1.0.1 macOS Intel x86_64 production package
 
-2.8.1 候选沿用当前完整 native 功能，使用独立 target、资源目录和 App identifier。此入口不更新公开 release，也不改变 2.8.0 生产入口。
-
-```bash
-CAVALRY_QT_PREFIX="<Qt 6.9.2 headers prefix>" bash injector/native/build_candidate.sh "<官方 Cavalry 2.8.1.app>/Contents/Frameworks"
-npm run build:native-resources -- --assets-root "<官方 Cavalry 2.8.1.app>/Contents/assets" --profile development-2.8.1
-export CAVALRY_I18N_NATIVE_INJECTOR_FILE="<上一步通过完整检查的 libCavalryNativeFontCandidate.dylib 绝对路径>"
-npm run build:tauri:native:candidate:281
-```
-
-候选不使用旧 preview/candidate 环境变量。构建必须提供真实 arm64 runtime，不能仅传配置文件。测试启动另设 `CAVALRY_I18N_STATE_DIR`，实际状态在其 `native-2.8-preview` 子目录；测试选择只指向自有 Cavalry 副本。完整编译通过仍须验证本轮实屏与 Apply/Restore。
-
-#### 4.1.0.2 macOS Intel x86_64 production package
-
-此入口复用4.1.0的2.8.0 profile、Qt `6.9.2`、语言包与三个Tauri配置。
+此入口复用4.1.0的2.8.1 profile、Qt `6.9.2`、语言包与三个Tauri配置。
 调用前将 `CAVALRY_I18N_NATIVE_INJECTOR_FILE` 指向同源码已验的x86_64 runtime。
 构建与盖章沿用同一pipeline，只改变目标架构与输出目录。
 
@@ -181,7 +169,7 @@ Intel实机UI尚未验，不阻断此本地编译合同。
 #### 4.1.0.2 GitHub macOS-only 预验
 
 `workflow_dispatch`默认`package_scope=none`，不打包产品。
-维护者显式选择`macos-2.8-preflight`后，GitHub在macos-26 ARM与macos-26-intel矩阵各构建一份2.8.0 ad-hoc App/DMG。
+维护者显式选择`macos-2.8-preflight`后，GitHub在macos-26 ARM与macos-26-intel矩阵各构建一份2.8.1 ad-hoc App/DMG。
 该选择器跳过Windows job，不读取updater私钥、不生成updater签名，也不创建GitHub Release。
 该预验跳过全量依赖漏洞扫描；PR/main/tag/schedule扫描规则不变。
 同一SHA的源码合同只在Ubuntu执行一次。
@@ -193,14 +181,16 @@ Rust检查与测试命令单独设置`TAURI_CONFIG='{"bundle":{"resources":[]}}'
 测试使用`--no-fail-fast`收齐独立失败，再按影响范围修复复验。
 生产App仍使用macOS、native-production-2.8与release-2.8三份CLI配置。
 自有native候选的绑定表由LLVM读取；不以旧dyld_info错位输出裁决。
-公开2.8.0 tag复用三平台production构建、updater签名及publisher回读闭包。
+公开2.8.1 tag复用三平台production构建、updater签名及publisher回读闭包。
 旧2.7 p12只作历史下载；所有旧2.7 tag都拒绝重打包。
-Windows 2.8.0的窄运行时构建入口见下节；macOS预验不能替代Windows实机验收。
+下节说明Windows当前构建入口；macOS预验不能替代Windows 2.8.1的独立实机验收。
 
-#### 4.1.0-W Windows 2.8.0默认生产构建
+#### 4.1.0-W Windows 2.8.1默认生产构建
 
-Windows默认安装包只构建2.8.0 native runtime。唯一入口是`npm run build:tauri:windows`，完整参数见8.1。
-它生成production三语包，编译同版generic/QPA并运行CTest，再准备provenance、构建NSIS和记录指纹。
+Windows提取脚本、host target与共享native resource target均锁2.8.1；历史2.8.0资产继续在source digest门被拒绝。部署与回退沿原事务，PE/Qt调用点由Windows二进制合同独立核验。
+
+Windows默认入口为`npm run build:tauri:windows`，完整2.8.1输入见8.1。
+包装器先从已校验的2.8.1资产生成共享资源，再构建generic/QPA、运行CTest并闭合provenance和NSIS；步骤存在不等于已完成本轮安装验收。
 包装器固定Windows、native-production、native-windows和release-2.8四份配置。
 只有Tauri Release子进程设置`CAVALRY_I18N_NATIVE_BUILD_PROFILE=production-2.8`。
 Debug Rust检查不继承生产模式。生产配置关闭旧beforeBuild钩子；不编译2.7 translator。
@@ -210,7 +200,7 @@ runtime-only事务、用户profile、Program Files授权、恢复与marker提交
 
 帮助表由既有producer核官方四份MetaData SHA后在系统临时构建目录生成384/17说明及401根排版数据；同目录由既有producer生成20项缓动显示表，不读取私人文档。各平台共用说明、Guide、Easing、Fast及Qt四行布局策略，Windows单独绑定对象和调用ABI。`native-desktop`布局合同以不显示的Qt fixture使用本机Windows QPA字体及屏幕；offscreen虚拟平台不代Windows布局，未接桌面的环境不得冒称该项通过。
 
-Demo producer从同一官方assets的Presets读取100文件。Windows显式CRLF模式先还原完整批准LF长度/SHA，再映射489位置并锁实际源摘要，原文件不改写；运行时只为动态canonical Presets根及唯一读取caller投影。Welcome复用共享裸句/两精确后缀策略，Windows独立核同根spdlog、消息布局及启动调用链，未知消息单次原样转发。它们的隔离合同和完整源位置核对不能代替实际菜单/MessageBar证据。
+Demo producer从同一官方assets的Presets读取100文件。Windows显式CRLF模式先还原完整批准LF长度/SHA，再映射489位置并锁实际源摘要，原文件不改写；运行时只为动态canonical Presets根及菜单工厂/Onboarding两个已证reader投影。Welcome复用共享裸句/两精确后缀策略，Windows独立核同根spdlog、消息布局及启动调用链，未知消息单次原样转发。它们的隔离合同和完整源位置核对不能代替实际菜单/MessageBar证据。
 
 Windows临时源码目录的原生C++构建使用`--clean-first`，确保共享头文件及仓外生成表全部进入新DLL/合同EXE；不能仅凭增量构建退出0推断头文件已重编译。此清理只作用于选定CMake构建目录，不清用户安装、profile或Rust/Qt SDK缓存。
 
@@ -270,8 +260,8 @@ npm run tauri:dev
 Tauri 配置按“公共合同 + 平台覆盖”拆分：
 
 - `src-tauri/tauri.conf.json` 保存产品标识、版本、renderer、窗口与 capability 等跨平台公共合同。
-- `src-tauri/tauri.macos.conf.json` 保留平台资源映射与旧injector hook。2.8.0 native-production overlay清空该hook，改用production native runtime与release-2.8 endpoint。
-- `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。此Windows链路仅作2.7终版历史参考，不是2.8.0执行入口。
+- `src-tauri/tauri.macos.conf.json` 保留平台资源映射与旧injector hook。2.8.1 native-production overlay清空该hook，改用production native runtime与release-2.8 endpoint。
+- `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。此Windows链路仅作2.7终版历史参考，不是2.8.1执行入口。
 - macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
 - `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
 - main window 逻辑本体固定 `400x504`，最小本体 `400x504`；40px titlebar、434px内容轨道和30px无分割线footer分轨。内容内部404px布局保持，只有底padding从20px减至10px。footer文字与图标整组居中，正文14px/20px、关注文案Medium500。上方和下方只消费同一个固定10px spacing token；上方归content底padding，footer不重复加top padding。20px行+10px底padding推导30px高度。16px图标与32px命中区沿正文行垂直居中；命中区及焦点框不裁切。缩放不改padding，不在生产页混入对照快捷键。GitHub四语提示和无障碍名称保留Star支持语义。Retina 2x的10pt对应20px布局间距，字形墨迹不等于盒边缘。Windows 配置中的 `420x524` 只是在400×504本体四边各加10px transparent compositor 阴影画布，产品最小尺寸和视觉对齐均排除阴影。内容宽 360px、四边保留 20px；Windows 右侧 About/Minimize/Maximize/Close 统一使用 16px Phosphor Regular，Close 的 32px 点击区保持 4px 右边距，其可见 X 路径距本体右边约 15px，标题左缘据此使用 15px 光学边距。主任务流通常使用 20px 间距，`Switch to` 与其 Select 作为同一字段使用 8px 紧密关系间距，`Switch` / `Restore` 在 360px 内容轨道内以 `170 + 20 + 170` 等宽分配。Switch 不经确认直接进入 fail-before-mutation 事务；Restore、Updater、权限和危险操作使用独立 AlertDialog。主内容结果区是有界 Activity Log，由 `operation-log.css/js` 负责并在自身范围内滚动；主窗口禁止横向与纵向滚动；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度，16px 交通灯在 40px 标题栏内上下各留 12px，内容左缘继续与红灯中心线对齐。排印只使用 16/14/13px、400/450/500 和系统字体，间距以 4px token 为默认节奏。AppKit/WindowServer 的 AX/CGWindow 外框可能比逻辑高度多报告 1pt，不能据此改写 Tauri 配置。
@@ -289,7 +279,7 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 
 ## 5. Windows NSIS 安装包
 
-> 本节记录Windows 2.8.0生产构建与NSIS安装态检查入口，使用Qt 6.9.2、三份native语言包及两份DLL。不得用Qt 6.6.3或2.7 injector打包2.8.0；后文明确标记的2.7.2命令仅供历史参考。
+> 当前Windows官方输入与`tools/cavalry_native_windows_target.json`锁Cavalry 2.8.1。构建、实屏与NSIS安装生命周期分别验收；旧2.8.0或macOS证据不授予Windows 2.8.1通过。
 
 Windows CI 和本地开发使用同一个显式平台构建入口：
 
@@ -299,15 +289,15 @@ npm run test:tauri:windows-nsis
 npm run test:acceptance:windows:contract
 ```
 
-第一条命令通过`tools/windows_native_build.js`执行第8.1节的2.8.0生产链。
+第一条命令通过`tools/windows_native_build.js`执行第8.1节的Windows 2.8.1生产链；输入须符合当前官方target摘要。
 它只使用Qt6.9.2 `msvc2022_64`和现有CMake4.4.3 resolver，生成native packs及两份DLL。
 资源输出是`target/native-language-packs`；不再打包旧四语38文件JSON树。
 NSIS仍写入显式`x86_64-pc-windows-msvc` target目录。
 provenance三阶段共用同一生产配置列表，绑定三语manifest/payload、DLL、renderer、Rust、原生源码、译文输入与四份配置。
 已配置的NSIS hooks和四份安装器语言表同样进入指纹。任何实际输入改动都会撤销旧记录。
 
-CI先运行`prepare_cavalry_28_windows_ci_inputs.ps1`。
-它用现有target摘要核官方2.8.0 MSI，行政提取到RUNNER_TEMP，不安装Cavalry。
+CI链先运行`prepare_cavalry_28_windows_ci_inputs.ps1`。
+它用Windows target的固定MSI和五项PE摘要核官方2.8.1输入，行政提取到RUNNER_TEMP，不安装Cavalry。
 Qt由hash-locked aqt准备6.9.2 `win64_msvc2022_64`的qtbase。
 随后运行`prepare:tauri:windows-bundle`，生成production语言包与native DLL并执行CTest。
 Debug Rust仍验证共享合同。`--package-only`复用本轮DLL打包，不再次编译injector。
@@ -325,7 +315,7 @@ Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出
 
 该 gate 会真实安装、同版本更新并卸载 **Cavalry Language Switcher 自身**，但不会启动或写入真实 Cavalry；三文件哨兵只是一份独立的临时字节合同，不代表任意用户 Cavalry 安装根都已经实测。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。静态 hooks 无 Cavalry/QPA 写入入口与这次真实 install → 同版本 `/UPDATE` → uninstall 哨兵不变证据共同守住安装器边界，但不能替代真实 Cavalry GUI、Program Files/UAC、任意安装路径或跨版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
 
-Windows开发机使用Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带x64 MSVC v143的Visual Studio 2022+及固定CMake 4.4.3。Qt 6.6.3 `msvc2019_64`仅属于2.7.2历史injector链路；当前2.8.0构建使用Qt 6.9.2 `msvc2022_64`，见§8.1。CI与漏洞证据精确固定Node.js 24.22.1 / npm 12.2.1；本地使用`.node-version`固定Node 24.22.1，`packageManager`固定npm 12.2.1。CI在每个Node setup后显式安装并核验npm。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
+Windows开发机使用Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带x64 MSVC v143的Visual Studio 2022+及固定CMake 4.4.3。Qt 6.6.3 `msvc2019_64`仅属于2.7.2历史injector链路；当前Windows 2.8.1构建使用Qt 6.9.2 `msvc2022_64`，历史SDK不作为其前置。CI与漏洞证据精确固定Node.js 24.22.1 / npm 12.2.1；本地使用`.node-version`固定Node 24.22.1，`packageManager`固定npm 12.2.1。CI在每个Node setup后显式安装并核验npm。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
 ## 6. DMG 增强修饰（卷标与卷宗图标）
 
@@ -356,7 +346,7 @@ bash tools/stamp_dmg_icon.sh src-tauri/target/aarch64-apple-darwin/release/bundl
 
 ## 7. 产物验证
 
-`PACKAGED_NATIVE_PROFILE=production-2.8`用于当前2.8.0本地包。Windows构建与NSIS安装态入口见§5；整轮表与平台证据规则见[验收工具入口](tools/acceptance/README.md)和[验收SOP](docs/acceptance-workflow.md)。下文明确标记的2.7.2 manual smoke和live-clone命令仅作历史参考，不是当前验收入口。
+`PACKAGED_NATIVE_PROFILE=production-2.8`用于当前2.8.1本地包。Windows构建与NSIS安装态入口见§5；整轮表与平台证据规则见[验收工具入口](tools/acceptance/README.md)和[验收SOP](docs/acceptance-workflow.md)。下文明确标记的2.7.2 manual smoke和live-clone命令仅作历史参考，不是当前验收入口。
 
 ```bash
 npm run check:app
@@ -368,7 +358,7 @@ npm run test:tauri:dmg-layout
 npm run test:tauri:ui
 ```
 
-以下 macOS ignored smoke 是2.7终版历史流程，不是2.8.0执行入口。其优先输入是只读挂载的官方 Cavalry 2.7.2 DMG，而不是当前可能已经翻译或 ad-hoc 重签的 `/Applications/Cavalry.app`：
+以下 macOS ignored smoke 是2.7终版历史流程，不是2.8.1执行入口。其优先输入是只读挂载的官方 Cavalry 2.7.2 DMG，而不是当前可能已经翻译或 ad-hoc 重签的 `/Applications/Cavalry.app`：
 
 ```bash
 hdiutil attach /path/to/Cavalry.dmg -nobrowse -readonly -noverify -noautoopen
@@ -379,9 +369,9 @@ hdiutil detach "/Volumes/Cavalry"
 
 `CAVALRY_I18N_MACOS_SMOKE_APP` 必须是绝对 `Cavalry.app` 路径。harness 在任何 mutation 前重验官方版本、English 资产与 bundle identity，把全部写入限制在临时副本，并在三语 live injector capture 后逐字节复核源 bundle 的关键文件未变化；未设置该变量时才兼容回退 `/Applications/Cavalry.app`。任一 Cavalry 进程已存在时拒绝启动，避免把真实用户会话混入证据。
 
-以下Windows真机与disposable live-clone验收命令属于2.7.2历史流程，不是2.8.0执行入口。当前2.8.0构建见§5及§8.1；当前Windows验收结果须绑定对应整轮表与原始证据，不能由这些历史命令代替。
+以下Windows真机与disposable live-clone验收命令属于2.7.2历史流程，不是2.8.1执行入口。当前2.8.1构建见§5及§8.1；当前Windows验收结果须绑定对应整轮表与原始证据，不能由这些历史命令代替。
 
-2.7.2历史Windows基线命令（仅留档；不得作为2.8.0构建顺序）：
+2.7.2历史Windows基线命令（仅留档；不得作为2.8.1构建顺序）：
 该历史组合含旧Qt与injector步骤。当前Windows构建和NSIS入口只按§5执行。
 
 ```powershell
@@ -445,16 +435,18 @@ full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指�
 
 ## 8. 当前边界
 
-Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate、只写显式 disposable clone/evidence 根的三语 PID 窗口截图门，以及真实 Program Files/UAC 下由安装版完成的简中、繁中、日文和 English 恢复主工作区闭环。尚未闭环的是两个不同公开 updater-enabled 版本之间的真实跨版本升级；首个 updater-enabled 版本必须先作为人工安装 bootstrap 发布，因此该证据从下一版本开始补齐，不阻塞本次 bootstrap。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。
+Tauri 是唯一默认壳与唯一发布路径。当前macOS arm64 2.8.1已具备production构建、资源合同、package检查和三语实屏验收；Intel 2.8.1 ABI/build尚待补齐。Windows2.8.1沿既有配置和runtime事务接入新官方输入与窄ABI；构建、三语实屏和恢复证据须绑定同一候选，安装器生命周期另验。完整三平台tag发布与不同公开updater版本之间的跨版本升级都尚未闭环。旧壳层脚本、handler、harness、builder配置与fallback打包入口不得恢复。
 
-### 8.1 Windows 2.8.0默认本地构建
+### 8.1 Windows 2.8.1默认本地构建
+
+本节是当前Windows 2.8.1入口。构建前核对源码分支/提交、x64目标、官方MSI/PE身份及语言包/runtime来源；不从历史候选或不同版本缓存拼包。
 
 构建机需要Node/npm、Rust、MSVC2022 x64及Qt6.9.2 `msvc2022_64`。
-已核官方2.8.0 MSI提取目录必须包含`assets/MetaData`和`assets/Presets`。
+已核官方2.8.1 MSI提取目录必须包含`assets/MetaData`和`assets/Presets`。
 安装包用户不需要这些开发工具。不要把旧2.7 SDK或构建命令作为前置。
 
 ```powershell
-$env:CAVALRY_NATIVE_ASSETS_ROOT = '<官方2.8.0提取根>\assets'
+$env:CAVALRY_NATIVE_ASSETS_ROOT = '<官方2.8.1提取根>\assets'
 $env:CAVALRY_QT_PREFIX = '<Qt SDK根>\6.9.2\msvc2022_64'
 npm run build:tauri:windows
 npm run test:tauri:windows-nsis
@@ -467,4 +459,4 @@ npm run test:tauri:windows-nsis
 固定release overlay启用统一`latest.json`；旧宿主沿主窗口提示与p12下载入口。
 
 本地编译、NSIS烟测与Cavalry实屏验收分账。整轮填写表及配置原像保持私有。
-默认构建切到2.8.0不等于公开发行；公开发行仍须走三平台production构建及签名回读闭包。
+历史默认构建切到2.8.0不等于公开发行；当前2.8.1公开发行仍须走完整三平台production构建及签名回读闭包。

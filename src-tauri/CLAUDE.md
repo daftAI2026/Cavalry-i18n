@@ -2,7 +2,6 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-tauri.native-2.8.1-candidate.conf.json: 独立2.8.1 ARM候选资源覆盖；仅选native-language-packs-2.8.1，不改正式2.8.0包与更新入口。
 Cargo.toml: Rust crate 与 Tauri v2 依赖声明；dev只保留调试行表，test继承dev，release默认不变；`tauri`/`tauri-build` 保持精确版本线；macOS 交通灯交给 Tauri 原生窗口配置而不引入直接 AppKit 控件依赖，固定 `cc` build dependency 编译独立 AppKit handoff owner；`sha2` 同时服务 build-time 发布资源 trust anchor、流式安装 revision 与 hash-locked manifest，Windows API crate 仅启用 QPA durable/atomic 文件事务所需 feature。
 Cargo.lock: Rust依赖锁；rustls固定0.23.46，维持519项闭包，不增加依赖。
 build.rs: 固化BuildMode/native manifest；Mac校验dylib；Windows native绑定2.8编译profile与窄runtime SHA，legacy四语provenance独立。
@@ -14,8 +13,8 @@ zh-Hans.lproj/InfoPlist.strings: macOS App Management 简体中文用途说明�
 zh-Hant.lproj/InfoPlist.strings: macOS App Management 繁体中文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/zh-Hant.lproj`。
 ja.lproj/InfoPlist.strings: macOS App Management 日文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/ja.lproj`。
 tauri.windows.conf.json: Windows 合并配置，以完整 main-window override 关闭系统 caption/native shadow，启用 transparent compositor 表面并继承共享首帧显露/页面完成兜底；Rust 初始化脚本在 DOMContentLoaded 同步平台态后请求首帧 show/focus；产品本体保持共享400×504/360px内容几何（末尾40px为footer，内部404px控件布局不变）；420×524 仅为其四侧各附加 10px alpha 阴影画布且不参与视觉对齐，最大化时由 renderer 状态机归零留白/圆角/阴影；在 dev/bundle 前构建 generic + QPA；resources 只映射四个 runtime `languages/{en,zh-Hans,zh-Hant,ja_JP}` 子目录到原有 `languages/<locale>` 路径，不打包 `languages/native` 构建期数据；绑定四语双语义卸载 hook 与 NSIS 消息表，独占 ico/双 DLL，禁止携带 macOS dylib。
-tauri.native-preview.conf.json: macOS未发布开发预览覆盖；独立identifier/productName，关闭旧injector前置命令，数组替换resources仅带target/native-language-packs，编译由显式环境开关启用；仅显式ARM候选支持release优化；预览identifier/state与后端updater禁用保持。
-tauri.native-production-2.8.conf.json: ARM生产资源覆盖；正式identifier，取消旧injector构建钩子，仅带native语言包。单独加载时禁用更新；必须后叠release-2.8覆盖才能启用统一latest.json。
+tauri.native-preview.conf.json: macOS未发布开发预览覆盖；独立identifier/productName，关闭旧injector前置命令，数组替换resources仅带当前2.8.1 target/native-language-packs，编译由显式环境开关启用；仅显式ARM候选支持release优化；预览identifier/state与后端updater禁用保持。
+tauri.native-production-2.8.conf.json: 当前2.8.1 macOS生产资源覆盖；正式identifier，取消旧injector构建钩子，仅带native语言包。单独加载时禁用更新；必须后叠release-2.8覆盖才能启用统一latest.json。
 tauri.native-windows-2.8.conf.json: 在production覆盖后映射native包及2.8窄generic/QPA到固定相对资源路径；安装根仍动态发现，不带第二套Qt。
 tauri.updater-artifacts.conf.json: updater 产物覆盖；仅打开 Tauri v2 `createUpdaterArtifacts`，必须叠加已含最终 updater 公钥/endpoint 的共享配置并由受保护私钥环境执行，只允许 tag 发布或受保护的无发布 signing smoke 加载，普通本地/PR 构建不得加载。
 tauri.release-2.8.conf.json: 2.8生产统一latest.json endpoint覆盖，继承updater公钥。ARM本地production与tag共用配置；三平台tag仍受implementation-not-ready阻断，本地构建不授发布。

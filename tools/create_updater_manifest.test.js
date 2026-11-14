@@ -105,7 +105,7 @@ test('writes a deterministic latest.json with exact Tauri platform keys and sign
 test('explicit 2.8 profile shares latest.json and pins archive URLs to its own tag', () => {
   const f = fixture({
     profilePath: path.join(repoRoot, 'release-2.8.config.json'),
-    profileTag: 'cavalry-2.8.0-p17',
+    profileTag: 'cavalry-2.8.1-p17',
   });
   try {
     assert.equal(f.metadata.RELEASE_UPDATER_MANIFEST_NAME, 'latest.json');

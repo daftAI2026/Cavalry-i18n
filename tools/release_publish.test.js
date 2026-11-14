@@ -208,7 +208,7 @@ process.exit(2);
 
 function fixture28({ manifestVersion = null } = {}) {
   const profilePath = path.join(repoRoot, 'release-2.8.config.json');
-  const releaseTag = 'cavalry-2.8.0-p999';
+  const releaseTag = 'cavalry-2.8.1-p999';
   const profileMetadata = metadataForTag(loadConfig(profilePath), releaseTag);
   return fixture({ profilePath, releaseTag, releaseTitle: profileMetadata.RELEASE_TITLE, profileMetadata, manifestVersion });
 }

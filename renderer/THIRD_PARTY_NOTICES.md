@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 renderer 实际适配的 shadcn/ui、Base UI、Phosphor MIT 源码及 Simple Icons CC0 GitHub/小红书 SVG。
-[OUTPUT]: 对外提供 renderer 内组件行为与 SVG path 的来源、锁定版本、许可证和版权通知。
+[INPUT]: 依赖 renderer 实际适配的 shadcn/ui、Base UI、Phosphor MIT 源码及 Simple Icons CC0 GitHub/小红书 SVG、x-hands MIT手臂素材与动作。
+[OUTPUT]: 对外提供 renderer 内组件行为、SVG path与手臂素材的来源、锁定版本、许可证和版权通知。
 [POS]: renderer 的第三方归因边界；只记录进入本地源码的材料，不引入运行时依赖。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -70,3 +70,34 @@ icon size for legibility. About and the support footer consume one registry.
 
 Brand color `#FF2442` is taken from the Simple Icons Xiaohongshu entry
 (https://simpleicons.org/?q=xiaohongshu). It applies only to the decorative mark.
+
+## x-hands
+
+Source: https://github.com/yetone/x-hands/tree/10d4f90e6bd1518c5a2118e5868b783b46f660ac
+
+`follow-hand.webp` is the unmodified `assets/hand-suit.webp` from this commit.
+The fingertip geometry and reach easing in `support-follow-hand.js` are adapted from
+`extension/content.js`. This app uses one pointing gesture toward its existing
+support footer. No extension code, browser permissions or remote requests run.
+
+MIT License
+
+Copyright (c) 2026 yetone
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

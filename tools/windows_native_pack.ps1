@@ -1,6 +1,6 @@
 ﻿<#
-[INPUT]: 依赖当前生成的native manifest/三pack、目标安装根及主脚本Assert-Condition失败表达
-[OUTPUT]: 校验manifest profile、精确语言集合，以及安装manifest和pack对生成输入的长度/SHA-256一致性
+[INPUT]: 依赖Windows目标版本配置、当前生成的native manifest/三pack、安装根及主脚本断言
+[OUTPUT]: 校验当前Windows目标版本、production profile和三语集合，逐字节绑定安装资源与生成输入
 [POS]: tools 的Windows native pack校验器；由NSIS安装冒烟调用，不持有全局状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
@@ -12,6 +12,7 @@ function Assert-InstalledNativeResources {
         [string]$InstallRoot
     )
 
+    $windowsTarget = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'cavalry_native_windows_target.json') -Raw -Encoding UTF8 | ConvertFrom-Json
     $nativePackLocales = @('zh-Hans', 'zh-Hant', 'ja_JP')
     $installedNativePackRoot = Join-Path $InstallRoot 'target\native-language-packs'
     $sourceManifestPath = Join-Path $SourceRoot 'manifest.json'
@@ -34,7 +35,7 @@ function Assert-InstalledNativeResources {
         -Condition (
             $manifest.schemaVersion -eq 1 -and
             $manifest.kind -ceq 'production-2.8' -and
-            $manifest.cavalryVersion -ceq '2.8.0' -and
+            $manifest.cavalryVersion -ceq $windowsTarget.cavalryVersion -and
             $manifest.complete -eq $true
         ) `
         -Message 'Current native resource manifest is not a complete production-2.8 bundle.'

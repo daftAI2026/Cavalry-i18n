@@ -137,28 +137,6 @@ def cpp_byte_array(header: str, name: str) -> bytes:
                  re.findall(r'0x([0-9a-fA-F]{2})', match.group(1)))
 
 
-def arm64_bl_target(call_offset: int, instruction: bytes) -> int:
-    require(len(instruction) == 4, "arm64 BL必须读取一条完整指令")
-    word = int.from_bytes(instruction, "little")
-    require(word >> 26 == 0b100101, "ABI调用点不是arm64 BL指令")
-    immediate = word & 0x03ffffff
-    if immediate & 0x02000000:
-        immediate -= 0x04000000
-    return call_offset + immediate * 4
-
-
-def nm_symbol_offset(image: pathlib.Path, symbol: str) -> int | None:
-    rows = [line.split() for line in run(
-        "xcrun", "nm", "-arch", "arm64", "-a", str(image)).splitlines()
-        if line.split() and line.split()[-1] == symbol]
-    if len(rows) != 1:
-        return None
-    try:
-        return int(rows[0][0], 16)
-    except (IndexError, ValueError):
-        return None
-
-
 def arm64_macho_bytes_at(
     image: pathlib.Path, offset: int, length: int, out_dir: pathlib.Path
 ) -> bytes:
@@ -224,12 +202,6 @@ def main() -> None:
     getpath = (source / "getpath_font_adapter.inc").read_text()
     owner = (source / "getpath_owner_adapter.h").read_text()
     getpath_abi = (source / "getpath_font_abi_contract.h").read_text()
-    locale_abi = (source / "native_locale_abi_contract.h").read_text()
-    timeline_abi = (source / "timeline_owner_observer_contract.h").read_text()
-    viewport_adapter = (source / "viewport_font_adapter.inc").read_text()
-    viewport_owner = (source / "viewport_owner_snapshot.h").read_text()
-    viewport_arm64_owner = viewport_owner.split("#else", 1)[1].split(
-        "#endif", 1)[0]
     locale = (source / "native_locale_adapter.inc").read_text()
     verify_mesh_getpath_contract(root, source)
     verify_toolhelp_source_contract(root, source)
@@ -241,17 +213,13 @@ def main() -> None:
     title_policy = (source / "title_format_policy.h").read_text()
     title_abi = (source / "title_format_abi_contract.h").read_text()
     title_adapter = (source / "title_format_adapter.inc").read_text()
-    node_abi = (source / "dependency_node_font_abi_contract.h").read_text()
-    node_policy = (source / "dependency_node_font_policy.h").read_text()
-    node_adapter = (source / "dependency_node_font_adapter.inc").read_text()
-    skia_dispatch = (source / "skia_text_dispatch.inc").read_text()
     fast_abi = (source / "fast_search_unicode_abi_contract.h").read_text()
     fast_policy = (source / "fast_search_unicode_policy.h").read_text()
     fast_adapter = (source / "fast_search_unicode_adapter.mm").read_text()
     fast_test = (source / "fast_search_unicode_contract_test.cpp").read_text()
     build_script = (source / "build_candidate.sh").read_text()
-    abi_probe_path = out_dir / "title-format-fmt11-abi.s"
-    require(abi_probe_path.is_file(), "缺少已编译的fmt11 arm64 ABI探针")
+    abi_probe_path = out_dir / "title-format-fmt10-abi.s"
+    require(abi_probe_path.is_file(), "缺少已编译的fmt10 arm64 ABI探针")
     abi_probe = abi_probe_path.read_text()
     veneer_source = (source / "getpath_font_veneer.S").read_text()
     source_ops = source_instructions(veneer_source, "_getPathFontVeneer")
@@ -259,20 +227,20 @@ def main() -> None:
 
     fast_symbol = cpp_string(fast_abi, "kConstructorSymbol")
     require(cpp_string(fast_abi, "kExtensionUuid") ==
-            "AF1367BD-2D7E-3EC0-A111-935E4881C655" and
+            "448DD50E-75F4-3F2D-A46B-2C9F00DF9408" and
             cpp_string(fast_abi, "kQtVersion") == "6.9.2" and
             cpp_string(fast_abi, "kPattern") == r"[\\s\\-_\\W]" and
             fast_symbol ==
             "__ZN18QRegularExpressionC1ERK7QString6QFlagsINS_13PatternOptionEE" and
-            cpp_hex(fast_abi, "kOptionsOffset") == 0x70881c and
-            cpp_hex(fast_abi, "kCallOffset") == 0x708820 and
-            cpp_hex(fast_abi, "kReturnOffset") == 0x708824 and
-            cpp_hex(fast_abi, "kImportStubOffset") == 0xd1f5b8 and
+            cpp_hex(fast_abi, "kOptionsOffset") == 0x730f18 and
+            cpp_hex(fast_abi, "kCallOffset") == 0x730f1c and
+            cpp_hex(fast_abi, "kReturnOffset") == 0x730f20 and
+            cpp_hex(fast_abi, "kImportStubOffset") == 0xdbcef4 and
             cpp_hex(fast_abi, "kConstructorOffset") == 0x2664c8 and
             cpp_hex(fast_abi, "kNoPatternOption") == 0 and
             cpp_hex(fast_abi, "kUnicodePropertiesOption") == 0x40 and
             cpp_byte_array(fast_abi, "kOptionsBytes") == bytes.fromhex("02 00 80 d2") and
-            cpp_byte_array(fast_abi, "kCallBytes") == bytes.fromhex("66 5b 18 94"),
+            cpp_byte_array(fast_abi, "kCallBytes") == bytes.fromhex("f6 2f 1a 94"),
             "Fast C1固定ABI合同与已审阅arm64输入不一致")
     require("frameworksPathForExecutable" in fast_adapter and
             "_NSGetExecutablePath" in fast_adapter and
@@ -305,9 +273,7 @@ def main() -> None:
         "open(", "::write(", "ofstream")),
         "Fast产品适配不得读取测试配置或写运行诊断")
 
-    core_image = frameworks / "libCore.dylib"
     extension_image = frameworks / "libExtensionLayer.dylib"
-    skia_image = frameworks / "libskia.dylib"
     qt_core_image = frameworks / "QtCore.framework/Versions/A/QtCore"
     qt_gui_image = frameworks / "QtGui.framework/Versions/A/QtGui"
     qt_widgets_image = frameworks / "QtWidgets.framework/Versions/A/QtWidgets"
@@ -315,11 +281,11 @@ def main() -> None:
             and qt_gui_image.is_file() and qt_widgets_image.is_file(),
             "候选需要同bundle Extension、QtCore、QtGui与QtWidgets映像")
     frameworks_contract = {
-        "libCore.dylib": "FEFE5F95-740D-374F-9413-2AF1173AD9E0",
-        "libExtensionLayer.dylib": "AF1367BD-2D7E-3EC0-A111-935E4881C655",
-        "libskia.dylib": "39783571-E2D1-3C48-971B-9D97981CE13B",
-        "libApi.dylib": "7299A0A0-093E-3E7D-8CDD-226BE63049E0",
-        "libfmt.11.dylib": cpp_string(title_abi, "kFmtUuid"),
+        "libCore.dylib": "55C6FCB7-E0DA-3AC1-8C45-055CC6ECEAD9",
+        "libExtensionLayer.dylib": "448DD50E-75F4-3F2D-A46B-2C9F00DF9408",
+        "libskia.dylib": "E6258D2F-A1BB-3CEE-9DBA-6DB3BA0303D2",
+        "libApi.dylib": "475E0957-00C1-325C-BC45-58D35DD5EB86",
+        "libfmt.10.dylib": cpp_string(title_abi, "kFmtUuid"),
     }
     for filename, uuid in frameworks_contract.items():
         image = frameworks / filename
@@ -361,8 +327,8 @@ def main() -> None:
     require("TWOLEVEL" in load_flags, "candidate未启用two-level namespace")
     require("@rpath/libApi.dylib" in dependencies and
             "@rpath/libskia.dylib" in dependencies and
-            "@rpath/libfmt.11.dylib" in dependencies,
-            "candidate必须以@rpath two-level导入Api、Skia与fmt11")
+            "@rpath/libfmt.10.dylib" in dependencies,
+            "candidate必须以@rpath two-level导入Api、Skia与fmt10")
     require("@rpath/libCavalryNativeFontCandidate.dylib" in dependencies,
             "candidate install ID必须保持@rpath")
     require(str(frameworks) not in dependencies and str(root) not in dependencies,
@@ -424,13 +390,16 @@ def main() -> None:
             cpp_hex(getpath_abi, "kGraphEditorEmptyStateCallWindowOffset") + 12 and
             cpp_hex(getpath_abi, "kGraphEditorEmptyStateProducerReturn") ==
             cpp_hex(getpath_abi, "kGraphEditorEmptyStateMakePathCallOffset") + 4 and
-            graph_call_window[8:12] == bytes.fromhex("e0 c3 02 91"),
+            graph_call_window[8:16] == bytes.fromhex("e0 c3 02 91 28 94 20 94"),
             "GraphEditor空状态MakePathFromText调用窗与arm64合同不同")
+    graph_call_instruction = int.from_bytes(graph_call_window[12:16], "little")
+    graph_call_immediate = graph_call_instruction & 0x03ffffff
+    if graph_call_immediate & 0x02000000:
+        graph_call_immediate -= 0x04000000
     make_path_stub_offset = cpp_hex(
         getpath_abi, "kMakePathFromTextImportStubOffset")
-    require(arm64_bl_target(
-                cpp_hex(getpath_abi, "kGraphEditorEmptyStateMakePathCallOffset"),
-                graph_call_window[12:16]) == make_path_stub_offset,
+    require(cpp_hex(getpath_abi, "kGraphEditorEmptyStateMakePathCallOffset") +
+            graph_call_immediate * 4 == make_path_stub_offset,
             "GraphEditor MakePath call没有到达已锁定的Extension import stub")
     make_path_symbol = cpp_string(getpath_abi, "kMakePathFromTextSymbol")
     make_path_imports = run("dyld_info", "-arch", "arm64", "-imports",
@@ -438,83 +407,6 @@ def main() -> None:
     require(re.search(rf"{re.escape(make_path_symbol)}\s+\(from libCore\)",
                       make_path_imports) is not None,
             "Extension没有从libCore导入MakePathFromText")
-    core_getpath_window = arm64_macho_bytes_at(
-        core_image, cpp_hex(getpath_abi, "kCoreGetPathCallOffset"),
-        len(cpp_byte_array(getpath_abi, "kCoreGetPathCallBytes")), out_dir)
-    core_getpath_stub = arm64_macho_bytes_at(
-        core_image, cpp_hex(getpath_abi, "kCoreGetPathImportStubOffset"),
-        len(cpp_byte_array(getpath_abi, "kCoreGetPathImportStubBytes")), out_dir)
-    make_path_entry = arm64_macho_bytes_at(
-        core_image, cpp_hex(getpath_abi, "kMakePathFromTextEntryOffset"),
-        len(cpp_byte_array(getpath_abi, "kMakePathFromTextEntryBytes")), out_dir)
-    cache_call_window = arm64_macho_bytes_at(
-        extension_image, cpp_hex(getpath_abi, "kExtensionGetPathCallOffset"),
-        len(cpp_byte_array(getpath_abi, "kExtensionGetPathCallBytes")), out_dir)
-    cache_call_stub = arm64_macho_bytes_at(
-        extension_image, cpp_hex(getpath_abi, "kMakePathFromTextImportStubOffset"),
-        len(cpp_byte_array(getpath_abi, "kMakePathFromTextImportStubBytes")), out_dir)
-    toolhelp_window = arm64_macho_bytes_at(
-        extension_image, cpp_hex(getpath_abi, "kSetupGetPathCallOffset"),
-        len(cpp_byte_array(getpath_abi, "kSetupGetPathCallBytes")), out_dir)
-    viewport_window = arm64_macho_bytes_at(
-        extension_image, cpp_hex(getpath_abi, "kViewportGetPathCallOffset"),
-        len(cpp_byte_array(getpath_abi, "kViewportGetPathCallBytes")), out_dir)
-    require(core_getpath_window == cpp_byte_array(
-                getpath_abi, "kCoreGetPathCallBytes") and
-            core_getpath_stub == cpp_byte_array(
-                getpath_abi, "kCoreGetPathImportStubBytes") and
-            make_path_entry == cpp_byte_array(
-                getpath_abi, "kMakePathFromTextEntryBytes") and
-            cache_call_window == cpp_byte_array(
-                getpath_abi, "kExtensionGetPathCallBytes") and
-            cache_call_stub == cpp_byte_array(
-                getpath_abi, "kMakePathFromTextImportStubBytes") and
-            toolhelp_window == cpp_byte_array(
-                getpath_abi, "kSetupGetPathCallBytes") and
-            viewport_window == cpp_byte_array(
-                getpath_abi, "kViewportGetPathCallBytes"),
-            "Core/Extension GetPath、cache、ToolHelp或Viewport机器码窗口与2.8.1合同不同")
-    core_getpath_call_offset = cpp_hex(getpath_abi, "kCoreGetPathCallOffset") + 12
-    cache_call_offset = cpp_hex(getpath_abi, "kExtensionGetPathCallOffset") + 12
-    toolhelp_call_a = cpp_hex(getpath_abi, "kSetupGetPathCallOffset") + 12
-    toolhelp_call_b = cpp_hex(getpath_abi, "kSetupGetPathCallOffset") + 32
-    viewport_cache_call = cpp_hex(getpath_abi, "kViewportGetPathCallOffset") + 16
-    require(arm64_bl_target(core_getpath_call_offset,
-                            core_getpath_window[12:16]) ==
-                cpp_hex(getpath_abi, "kCoreGetPathImportStubOffset") and
-            arm64_bl_target(cache_call_offset, cache_call_window[12:16]) ==
-                cpp_hex(getpath_abi, "kMakePathFromTextImportStubOffset") and
-            arm64_bl_target(toolhelp_call_a, toolhelp_window[12:16]) ==
-                cpp_hex(getpath_abi, "kGetOrCreateTextPathOffset") and
-            arm64_bl_target(toolhelp_call_b, toolhelp_window[32:36]) ==
-                cpp_hex(getpath_abi, "kGetOrCreateTextPathOffset") and
-            arm64_bl_target(viewport_cache_call, viewport_window[16:20]) ==
-                cpp_hex(getpath_abi, "kGetOrCreateTextPathOffset") and
-            arm64_bl_target(cpp_hex(getpath_abi, "kViewportFpsGetPathCallOffset"),
-                            fps_call_bytes) ==
-                cpp_hex(getpath_abi, "kMakePathFromTextImportStubOffset"),
-            "Core与Extension精确调用点未路由到2.8.1 GetPath/cache import")
-    core_getpath_imports = run("dyld_info", "-arch", "arm64", "-imports",
-                               str(core_image))
-    getpath_symbol = cpp_string(getpath_abi, "kGetPathSymbol")
-    require(re.search(rf"{re.escape(getpath_symbol)}\s+\(from libskia\)",
-                      core_getpath_imports) is not None,
-            "Core没有从同bundle libskia导入GetPath")
-    require(nm_symbol_offset(core_image, make_path_symbol) ==
-                cpp_hex(getpath_abi, "kMakePathFromTextEntryOffset") and
-            nm_symbol_offset(extension_image,
-                cpp_string(getpath_abi, "kSetupToolHelpSymbol")) ==
-                cpp_hex(getpath_abi, "kSetupToolHelpOffset") and
-            nm_symbol_offset(extension_image,
-                cpp_string(getpath_abi, "kGetOrCreateTextPathSymbol")) ==
-                cpp_hex(getpath_abi, "kGetOrCreateTextPathOffset") and
-            nm_symbol_offset(extension_image,
-                cpp_string(getpath_abi, "kViewportRenderFrameSymbol")) ==
-                cpp_hex(getpath_abi, "kViewportRenderFrameOffset") and
-            nm_symbol_offset(extension_image,
-                cpp_string(getpath_abi, "kGraphEditorRenderFrameSymbol")) ==
-                cpp_hex(getpath_abi, "kGraphEditorRenderFrameOffset"),
-            "2.8.1 Core/Extension GetPath owner符号偏移与合同不同")
     instruction = int.from_bytes(call_bytes, "little")
     immediate = instruction & 0x03ffffff
     if immediate & 0x02000000:
@@ -524,87 +416,6 @@ def main() -> None:
             "Extension Fast C1调用没有到达锁定的import stub")
 
     locale_symbol = "__ZN7cavalry12activeLocaleEP3Api"
-    locale_call = arm64_macho_bytes_at(
-        extension_image, cpp_hex(locale_abi, "kActiveLocaleCallOffset"),
-        len(cpp_byte_array(locale_abi, "kActiveLocaleCallBytes")), out_dir)
-    locale_stub = arm64_macho_bytes_at(
-        extension_image, cpp_hex(locale_abi, "kActiveLocaleStubOffset"),
-        len(cpp_byte_array(locale_abi, "kActiveLocaleStubBytes")), out_dir)
-    locale_entry = arm64_macho_bytes_at(
-        frameworks / "libApi.dylib",
-        cpp_hex(locale_abi, "kActiveLocaleEntryOffset"),
-        len(cpp_byte_array(locale_abi, "kActiveLocaleEntryBytes")), out_dir)
-    require(locale_call == cpp_byte_array(locale_abi, "kActiveLocaleCallBytes") and
-            locale_stub == cpp_byte_array(locale_abi, "kActiveLocaleStubBytes") and
-            locale_entry == cpp_byte_array(locale_abi, "kActiveLocaleEntryBytes") and
-            arm64_bl_target(cpp_hex(locale_abi, "kActiveLocaleCallOffset") + 8,
-                            locale_call[8:12]) ==
-                cpp_hex(locale_abi, "kActiveLocaleStubOffset") and
-            nm_symbol_offset(frameworks / "libApi.dylib", locale_symbol) ==
-                cpp_hex(locale_abi, "kActiveLocaleEntryOffset") and
-            nm_symbol_offset(extension_image,
-                cpp_string(locale_abi, "kRegisterNodesSetupSymbol")) ==
-                cpp_hex(locale_abi, "kRegisterNodesSetupOffset"),
-            "activeLocale注册owner、getter入口、caller返回点或import stub与2.8.1合同不同")
-    locale_fixups = run("dyld_info", "-arch", "arm64", "-fixups",
-                        str(extension_image))
-    require(re.search(rf"__DATA_CONST\s+__got\s+0x0*{cpp_hex(locale_abi, 'kActiveLocaleGotOffset'):x}\s+bind\s+libApi/{re.escape(locale_symbol)}",
-                      locale_fixups, re.IGNORECASE) is not None,
-            "Extension activeLocale GOT槽不再指向同bundle libApi")
-    timeline_windows = []
-    for image, contract, offset_name, bytes_name in (
-        (extension_image, timeline_abi, "kMeasureWindowOffset", "kMeasureWindow"),
-        (extension_image, timeline_abi, "kDrawWindowOffset", "kDrawWindow"),
-        (extension_image, timeline_abi, "kClosureEntryOffset", "kClosureEntry"),
-        (extension_image, timeline_abi, "kMeasureOwnerLoadOffset", "kMeasureOwnerLoad"),
-    ):
-        expected = cpp_byte_array(contract, bytes_name)
-        actual = arm64_macho_bytes_at(
-            image, cpp_hex(contract, offset_name), len(expected), out_dir)
-        timeline_windows.append(actual == expected)
-    require(all(timeline_windows) and
-            cpp_hex(timeline_abi, "kMeasureReturnOffset") ==
-                cpp_hex(timeline_abi, "kMeasureWindowOffset") + 20 and
-            cpp_hex(timeline_abi, "kDrawReturnOffset") ==
-                cpp_hex(timeline_abi, "kDrawWindowOffset") + 24 and
-            nm_symbol_offset(extension_image,
-                cpp_string(timeline_abi, "kPaintNodeTextSymbol")) ==
-                cpp_hex(timeline_abi, "kPaintNodeTextOffset") and
-            nm_symbol_offset(extension_image,
-                cpp_string(timeline_abi, "kTimelineClosureSymbol")) ==
-                cpp_hex(timeline_abi, "kTimelineClosureOffset") and
-            nm_symbol_offset(skia_image,
-                cpp_string(timeline_abi, "kMeasureSymbol")) ==
-                cpp_hex(timeline_abi, "kMeasureSymbolOffset") and
-            nm_symbol_offset(skia_image,
-                cpp_string(timeline_abi, "kDrawSymbol")) ==
-                cpp_hex(timeline_abi, "kDrawSymbolOffset") and
-            nm_symbol_offset(skia_image,
-                cpp_string(timeline_abi, "kTextBlobSymbol")) ==
-                cpp_hex(timeline_abi, "kTextBlobSymbolOffset"),
-            "Timeline caller closure、Measure/Draw返回PC或Skia导出不匹配")
-    viewport_windows = (
-        (0x23a018, "viewportNameFrame"),
-        (0x23a074, "nameProducer"),
-        (0x23a200, "firstMeasure"),
-        (0x23a29c, "secondMeasure"),
-        (0x23acb4, "firstTextBlob"),
-    )
-    viewport_match = True
-    for offset, name in viewport_windows:
-        expected = cpp_byte_array(viewport_adapter, name)
-        actual = arm64_macho_bytes_at(
-            extension_image, offset, len(expected), out_dir)
-        viewport_match = viewport_match and actual == expected
-    require(viewport_match and
-            "return offset==0x23a230 || offset==0x23a2d0" in viewport_owner and
-            "return offset==0x23acd8" in viewport_owner and
-            cpp_hex(viewport_arm64_owner, "kNameBelowFrame") == 0x150 and
-            cpp_hex(viewport_arm64_owner, "kStackBelowFrame") == 0x360 and
-            nm_symbol_offset(skia_image,
-                cpp_string(timeline_abi, "kTextBlobSymbol")) ==
-                cpp_hex(timeline_abi, "kTextBlobSymbolOffset"),
-            "Viewport getNiceName、两种Measure owner或首个TextBlob窗口与2.8.1合同不同")
     skia_symbols = (
         "__ZN11SkTextUtils7GetPathEPKvm14SkTextEncodingffRK6SkFontP6SkPath",
         "__ZNK6SkFont11measureTextEPKvm14SkTextEncodingP6SkRectPK7SkPaint",
@@ -617,7 +428,7 @@ def main() -> None:
         BindingRequirement(locale_symbol, "libApi", ("__interpose", "__got")),
         *(BindingRequirement(symbol, "libskia", ("__interpose", "__got"))
           for symbol in skia_symbols),
-        BindingRequirement(fmt_symbol, "libfmt.11", ("__interpose",)),
+        BindingRequirement(fmt_symbol, "libfmt.10", ("__interpose",)),
         BindingRequirement(fast_symbol, "QtCore", ("__interpose", "__got")),
         BindingRequirement("_qVersion", "QtCore", ()),
     ]
@@ -762,14 +573,12 @@ def main() -> None:
         require(all(value in title_policy for value in title_translations[key].values()),
                 f"标题策略与native翻译源不一致: {key}")
 
-    fmt_image = frameworks / "libfmt.11.dylib"
+    fmt_image = frameworks / "libfmt.10.dylib"
     title_call = run("xcrun", "llvm-objdump", "--macho", "--arch=arm64",
-                      "--disassemble", "--dis-symname",
-                      cpp_string(title_abi, "kUpdateAppTitleSymbol"),
+                      "--disassemble-symbols=__ZN3Gui14updateAppTitleEv",
                       str(extension_image))
     fmt_disassembly = run("xcrun", "llvm-objdump", "--macho", "--arch=arm64",
-                          "--disassemble", "--dis-symname",
-                          cpp_string(title_abi, "kVformatSymbol"),
+                          "--disassemble-symbols=" + cpp_string(title_abi, "kVformatSymbol"),
                           str(fmt_image))
     extension_bytes = bytes_at(
         disassembly_bytes(title_call), cpp_hex(title_abi, "kCallSetupOffset"),
@@ -796,20 +605,6 @@ def main() -> None:
     fmt_bytes = bytes_at(
         disassembly_bytes(fmt_disassembly), cpp_hex(title_abi, "kVformatOffset"),
         len(cpp_byte_array(title_abi, "kVformatEntryBytes")))
-    vformat_call_bytes = arm64_macho_bytes_at(
-        extension_image, cpp_hex(title_abi, "kVformatCallOffset"),
-        len(cpp_byte_array(title_abi, "kVformatCallBytes")), out_dir)
-    vformat_stub_bytes = arm64_macho_bytes_at(
-        extension_image, cpp_hex(title_abi, "kVformatImportStubOffset"),
-        len(cpp_byte_array(title_abi, "kVformatImportStubBytes")), out_dir)
-    format_string_bytes = arm64_macho_bytes_at(
-        extension_image, cpp_hex(title_abi, "kFormatStringOffset"),
-        cpp_hex(title_abi, "kFormatStringLength") + 1, out_dir)
-    restricted_suffix_bytes = arm64_macho_bytes_at(
-        extension_image, cpp_hex(title_abi, "kRestrictedSuffixOffset"),
-        len(b"- Restricted\0"), out_dir)
-    empty_suffix_bytes = arm64_macho_bytes_at(
-        extension_image, cpp_hex(title_abi, "kEmptySuffixOffset"), 1, out_dir)
     require(extension_bytes == cpp_byte_array(title_abi, "kCallSetupBytes"),
             "真实Gui::updateAppTitle fmt调用序列与arm64合同不同")
     require(caller_frame_bytes == cpp_byte_array(title_abi, "kCallerFrameBytes"),
@@ -826,36 +621,10 @@ def main() -> None:
                 title_abi, "kFormatValuesWindowBytes"),
             "真实标题fmt参数栈布局与arm64合同不同")
     require(fmt_bytes == cpp_byte_array(title_abi, "kVformatEntryBytes"),
-            "真实libfmt.11 vformat导出入口与arm64合同不同")
-    require(vformat_call_bytes == cpp_byte_array(title_abi, "kVformatCallBytes") and
-            arm64_bl_target(cpp_hex(title_abi, "kVformatCallOffset"),
-                            vformat_call_bytes) ==
-            cpp_hex(title_abi, "kVformatImportStubOffset") and
-            vformat_stub_bytes == cpp_byte_array(
-                title_abi, "kVformatImportStubBytes"),
-            "真实标题BL必须落到Extension的fmt11 two-level import stub")
-    require(format_string_bytes == b"Project: {} - Scene: {} {}\0" and
-            restricted_suffix_bytes == b"- Restricted\0" and
-            empty_suffix_bytes == b"\0",
-            "真实标题格式/Restricted/empty字节与2.8.1合同不同")
-    require(nm_symbol_offset(extension_image,
-                cpp_string(title_abi, "kUpdateAppTitleSymbol")) ==
-            cpp_hex(title_abi, "kUpdateAppTitleOffset") and
-            nm_symbol_offset(fmt_image, fmt_symbol) ==
-            cpp_hex(title_abi, "kVformatOffset"),
-            "标题caller或fmt vformat导出符号偏移与2.8.1合同不同")
-    fmt_imports = run("dyld_info", "-arch", "arm64", "-imports",
-                      str(extension_image))
-    fmt_fixups = run("dyld_info", "-arch", "arm64", "-fixups",
-                     str(extension_image))
-    require(re.search(rf"(?m)^\s*0x[0-9A-Fa-f]+\s+{re.escape(fmt_symbol)}\s+\(from libfmt\.11\)$",
-                      fmt_imports) is not None and
-            re.search(rf"__DATA_CONST\s+__got\s+0x0*{cpp_hex(title_abi, 'kVformatGotOffset'):x}\s+bind\s+libfmt\.11/{re.escape(fmt_symbol)}",
-                      fmt_fixups, re.IGNORECASE) is not None,
-            "Extension必须通过锁定的fmt.11导入与GOT调用原vformat")
+            "真实libfmt.10 vformat导出入口与arm64合同不同")
     fmt_load = run("xcrun", "otool", "-L", str(fmt_image))
-    require("current version 11.2.0" in fmt_load,
-            "fmt输入不是锁定的11.2.0运行时映像")
+    require("current version 10.2.1" in fmt_load,
+            "fmt输入不是锁定的10.2.1运行时映像")
 
     probe_match = re.search(
         r"(?ms)^_titleFormatAbiProbe:.*?^\s*\.cfi_endproc", abi_probe)
@@ -875,23 +644,9 @@ def main() -> None:
     require(len(main_source.splitlines()) <= 800,
             f"native_font_candidate.mm超出800行: {len(main_source.splitlines())}")
 
-    require(cpp_string(node_abi, "kExtensionUuid") ==
-            "AF1367BD-2D7E-3EC0-A111-935E4881C655" and
-            "dependency_node_font_adapter.inc" in main_source and
-            "isMeasureReturnOffset(callerPc - extensionBase)" in skia_dispatch and
-            "isDrawReturnOffset(callerPc - extensionBase)" in skia_dispatch and
-            skia_dispatch.count("dependency_node_font_adapter::dispatchDependencyNodeFont(") == 2 and
-            "proveNodeViewHeaderTextView" in node_adapter and
-            "snapshotTextViewSource" in node_adapter and
-            "dispatchVerifiedText(originalFont, fullSource" in node_adapter and
-            "completeOwnerProof" in node_adapter and
-            "HeaderSlot::NiceName" in node_policy and
-            "HeaderSlot::NodeType" in node_policy,
-            "Dependency Graph NodeView字体适配必须只接两个经证明的header TextView Measure/Draw owner")
-
     checks = [
-        "PASS: 5 input image arm64 UUID contracts, including fmt 11.2.0",
-        "PASS: arm64-only candidate and 12 required exports",
+        "PASS: 5 input image arm64 UUID contracts, including fmt 10.2.1",
+        "PASS: arm64-only candidate and 11 required exports",
         "PASS: source and compiled GetPath veneer exact three instructions",
         "PASS: activeLocale Api, four Skia and fmt vformat two-level fixups",
         "PASS: Fast C1 and help layout use selected Qt 6.9.2 two-level imports",
@@ -900,10 +655,9 @@ def main() -> None:
         "PASS: native getter once/exception and GetPath unknown-owner source gates",
         "PASS: exact FPS direct caller bytes and two-return owner contract",
         "PASS: exact GraphEditor caller bytes, direct frame owner and three full strings",
-        "PASS: exact Dependency Graph NodeView Measure/Draw and two header TextView owner routes",
         "PASS: one gLocale, 512-byte GetPath cap, 225 source-bound UI strings",
         "PASS: exact Gui::updateAppTitle caller, format pointer/length and descriptor",
-        "PASS: fmt11 ABI probe matches sret x8, format view x0/x1, args x2/x3",
+        "PASS: fmt10 ABI probe matches sret x8, format view x0/x1, args x2/x3",
         "PASS: title projection uses catalog labels and source-empty plus fallback guards",
         "PASS: caller frame, project/scene getters, empty branches, fallback values and fmt stack windows match",
         "PASS: no canary configuration or diagnostic persistence in candidate source",
@@ -941,7 +695,7 @@ def main() -> None:
         },
         "fmt": {
             "arm64Uuid": cpp_string(title_abi, "kFmtUuid"),
-            "version": "11.2.0",
+            "version": "10.2.1",
             "export": fmt_symbol,
             "exportOffset": f"0x{cpp_hex(title_abi, 'kVformatOffset'):x}",
             "entryBytes": fmt_bytes.hex(" "),

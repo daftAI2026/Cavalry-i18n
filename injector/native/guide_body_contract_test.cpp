@@ -17,8 +17,8 @@ int main()
     using native_guide_body::contract::kReturnOffset;
     using native_guide_body::kSourceText;
 
-    static_assert(kCallerOffset == 0x004a94ec);
-    static_assert(kReturnOffset == 0x004a94f0);
+    static_assert(kCallerOffset == 0x004b9e44);
+    static_assert(kReturnOffset == 0x004b9e48);
     static_assert(kSourceText == "Keep going...");
 
     struct Case {

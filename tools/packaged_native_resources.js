@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖生成期native_resource_bundle profile validator、构建包路径、resource输入树、目标架构和批准runtime字节。
- * [OUTPUT]: 校验production-2.8架构中立manifest/payload与目标架构runtime内嵌摘要。
+ * [OUTPUT]: 校验Cavalry 2.8.1 production架构中立manifest/payload与目标架构runtime内嵌摘要。
  * [POS]: packaged检查共享的纯文件合同；不生成资源、不启动App、不修改build输入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,7 +41,7 @@ function verifyNativePackBundle({ sourceRoot, packagedRoot, targetArch = 'arm64'
   const manifest = JSON.parse(packagedManifestBytes.toString('utf8'));
   validateResourceProfile(manifest, 'production-2.8');
   assert.equal(manifest.schemaVersion, 1, 'native resource schema differs');
-  assert.equal(manifest.cavalryVersion, '2.8.0', 'native resource target version differs');
+  assert.equal(manifest.cavalryVersion, '2.8.1', 'native resource target version differs');
   assert.equal(manifest.complete, true, 'production native resource profile must be complete');
   assert.deepEqual(
     Object.keys(manifest.packs).sort(),

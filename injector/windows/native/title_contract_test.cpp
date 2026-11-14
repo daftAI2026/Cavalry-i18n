@@ -1,7 +1,7 @@
 /*
- * [INPUT]: Windows标题ABI薄适配、共享标题投影及隔离栈布局fixture。
+ * [INPUT]: Windows 2.8.1 fmt11标题ABI薄适配、共享标题投影及隔离栈布局fixture。
  * [OUTPUT]: 证明三语空标题、用户同名占位保全、含分隔符名称和dirty后缀，以及未知ABI透传。
- * [POS]: Windows2.8标题边界合同；不读取或启动真实宿主。
+ * [POS]: Windows 2.8.1标题边界合同；验证fmt11 descriptor/栈帧准入，不读取或启动真实宿主。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "title_adapter.h"
@@ -10,11 +10,13 @@
 
 int main(){
     using namespace native_windows_title;
+    if(kFormatReturn!=0x1f295a || kFormatDescriptor!=0xcdd ||
+       sizeof(View)!=16 || sizeof(Arguments)!=16 || sizeof(FormatValue)!=16)return 10;
     alignas(16) std::array<std::byte,0x280> frame{};
     auto *projectSource=new(frame.data()+0x1b0) std::string;
     auto *output=new(frame.data()+0x1d0) std::string;
     auto *sceneSource=new(frame.data()+0x1f0) std::string;
-    auto *values=reinterpret_cast<native_title_format_abi::FormatValue*>(frame.data()+0x98);
+    auto *values=reinterpret_cast<FormatValue*>(frame.data()+kValuesFrameOffset);
     auto *args=new(frame.data()+0x190) Arguments{0xcdd,values};
     auto *format=new(frame.data()+0x1a0) View{"Project: {} - Scene: {} {}",26};
     std::memcpy(frame.data()+0x210,"None",5);

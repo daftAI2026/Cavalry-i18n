@@ -1,27 +1,27 @@
 {
   "schemaVersion": 1,
-  "purpose": "macOS 2.8 native user-language development preview; not a release support declaration",
-  "cavalryVersion": "2.8.0",
+  "purpose": "Cavalry 2.8.1 official native production target",
+  "cavalryVersion": "2.8.1",
   "qtVersion": "6.9.2",
   "bundleId": "com.scenegroup.cavalry",
   "executable": "Contents/MacOS/Cavalry",
-  "executableSha256": "9966034625201dafb871f5038a87d5a7534c20efd67f3734c1c96f4042571c7b",
-  "nativeKeys": 10473,
+  "executableSha256": "66a1a6a4c63eb0f1fb6bae149d26a4f8b59e0d78213b3a4a4ab6c672a70a32a8",
+  "nativeKeys": 10468,
   "vendorJapaneseKeys": 390,
   "catalogs": [
     {
       "id": "Definitions/Translation/appStrings",
       "source": "Definitions/Translation/appStrings_en-GB.source.json",
-      "sourceSha256": "464f0d291cd7aac46dba9552ab08debf4302cbd36b7b8d9d49f692085004e82e",
+      "sourceSha256": "79fc4745b1eb9c87af3e750df51e6ba8987b1f52e48876d68a29c1aebedeb32e",
       "japanese": "Definitions/Translation/appStrings_ja-JP.translation.json",
-      "japaneseSha256": "4ecb6baf0196edaac4524bf9fbd12f4f082311239c89e9d6602770bd063d58dc"
+      "japaneseSha256": "4b4c326b864722d3f1d760f5383704cf0081907a6852600a9a9a2b58016b7247"
     },
     {
       "id": "Definitions/Translation/nodeStrings",
       "source": "Definitions/Translation/nodeStrings_en-GB.source.json",
-      "sourceSha256": "d5c9d9e133d9e2fe7574c453aaa4f56803e7988f4314d2158562cb35c67cbec0",
+      "sourceSha256": "09f9c938274a96d58a6b95ca82ef81ab07d60abfc2ec8136ffff72898e1b00e9",
       "japanese": "Definitions/Translation/nodeStrings_ja-JP.translation.json",
-      "japaneseSha256": "7dc7377c54bb28ea7badcee124f8e5097f8d86f9694a37cc08c1c9b7800fc439"
+      "japaneseSha256": "5d0e0e015395453aab476d9cb9947a9f409ef7ecbafe2de62fd5d50d269ca65e"
     },
     {
       "id": "Learn/Guides/Translation/strings",
@@ -132,22 +132,22 @@
   "runtimeFiles": [
     {
       "path": "Contents/Frameworks/libApi.dylib",
-      "sha256": "2315356caaa1480de5061ddd9cf85ddc8bf346eedd83d7497307187492f253d4"
+      "sha256": "6aa6257c45222ea32135907cbed43cf6b2a67ffe7bd84afb1b42bc93cc29bb77"
     },
     {
       "path": "Contents/Frameworks/libCore.dylib",
-      "sha256": "8df2a434b5a6b73da691f7c8d0bba6fbb4c244dc0b388ea466ba8220c5ebeafb"
+      "sha256": "9be57aae3a950c36ee7983f7231031114bbd438822bb7e06ffc6a9da17a8e955"
     },
     {
       "path": "Contents/Frameworks/QtCore.framework/Versions/A/QtCore",
-      "sha256": "14586420535bb8511b1668d14e0e61c6b964014d34bc4313166616b93f6298b4"
+      "sha256": "e3ac89989203c3e9653b79e04216102c24ecc3e30fe2d83a0125d5a5cba2e1f6"
     }
   ],
   "supplementalKeys": 373,
   "sourceFiles": [
     {
       "path": "Definitions/nodeDefinitions.json",
-      "sha256": "96c7ffbda8d8244a111b3ad3e60fe530eb919fe9f93cbdf3577e2e29ca11d48f"
+      "sha256": "d3acdbcc8da60354d57674cc3ae0025409f06e66758646114f808a43c29321af"
     }
   ]
 }

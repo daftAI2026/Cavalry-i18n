@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-windows/native/: 2.8窄补充独立构建；共享全串字体、标题/帮助/Guide/Easing/Fast策略及Windows QPA/CAS，绑定官方MSVC调用。Api的17目录目标缺文件warning仅在同版批准包实际可读时限域降噪，英语源及其它日志保留。实屏证据不继承Mac，正常首帧独立验收。
+windows/native/: Windows2.8.1窄补充独立构建；保留2.8.0的QPA/CAS、事务与共享字体/标题/帮助/Guide/Easing/Fast策略，独立核官方MSVC调用。节点图在精确header paint内复用全串字体和UTF8省略策略，不改名称；Api仅对同版批准包实际可读时的17目录目标探测warning降噪。实屏与首帧独立验收，不继承Mac或旧版本PASS。
 cavalry_i18n_macos_abi.h: 共享 Mach-O 映像/UUID/符号与机器码读取、64 位 Skia borrowed 存储；TransformTool 和时间轴各自定义准入而不重复解析。
 cavalry_i18n_macos_timeline_font.h / .cpp: Mac 时间轴名称两个 exact caller 的字体适配；启动期固定三个系统候选，按完整名称覆盖选择，同一策略服务测量与绘制，原始文本和24字节字体除typeface外保持原值；无逐帧IO或名称缓存。
 cavalry_i18n_macos_timeline_font_policy.h: UTF-8 严格解码与完整字形覆盖纯策略，ASCII/未知输入保持原字体，borrowed副本不拥有字体引用。

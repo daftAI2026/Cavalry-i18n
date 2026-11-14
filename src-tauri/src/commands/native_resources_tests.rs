@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 native_resources 的模式化manifest/payload准入与临时文件夹。
- * [OUTPUT]: 覆盖共享preview/production/2.8.1候选资源准入；夹具数量与版本绑定当前编译目标。
+ * [OUTPUT]: 覆盖共享preview/production资源准入；夹具数量与版本绑定当前2.8.1编译目标。
  * [POS]: native_resources 的隔离合同；测试显式选择编译profile，不绕过资源摘要校验。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,15 +41,6 @@ fn compile_mode_selects_manifest_kind_and_production_requires_complete_resources
         resource_profile("production-2.8"),
         Some(("production-2.8", true))
     );
-    assert_eq!(
-        resource_profile("development-2.8.1"),
-        Some(("development-preview", true))
-    );
-    assert!(!manifest_profile_matches(
-        "development-2.8.1",
-        "development-preview",
-        false
-    ));
     assert!(manifest_profile_matches(
         "production-2.8",
         "production-2.8",

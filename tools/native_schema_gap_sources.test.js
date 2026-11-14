@@ -29,7 +29,7 @@ const {
 } = require('./native_schema_gap_sources');
 
 const SOURCE_ROWS_SHA256 = 'd2f66a17f1a1fb9eddb26c0d8547088faa8fd99aebc7bd474d97246250f85f8f';
-const TARGET_PATH = path.join(__dirname, 'cavalry_native_target.json');
+const TARGET_PATH = path.join(__dirname, 'fixtures/cavalry_native_target_2_8_0.json');
 const sha256 = value => createHash('sha256').update(value).digest('hex');
 const tupleKey = ([owner, attributeId]) => `${owner}\0${attributeId}`;
 

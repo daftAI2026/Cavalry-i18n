@@ -1,7 +1,7 @@
 /*
- * [INPUT]: Windows Welcome ABI影子适配与共享三语/两节日后缀策略。
+ * [INPUT]: Windows 2.8.1 Welcome ABI影子适配与共享三语/两节日后缀策略。
  * [OUTPUT]: 验证源消息不变、opaque字段保全、未知caller不读坏指针、用户前缀保全及原异常单次传播。
- * [POS]: 隔离logger合同；不启动宿主，不将合成消息计为实屏。
+ * [POS]: 隔离Windows logger合同；不启动宿主，不将合成消息计为实屏。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "welcome_adapter.h"

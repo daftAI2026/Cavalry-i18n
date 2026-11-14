@@ -241,6 +241,10 @@
   --duration-spinner: 1s;
   --duration-shimmer: 2s;
   --duration-message-delta: 40ms;
+  /* 首次成功后的关注手势：完整结果落稳后再演一次，左斜上方伸出，进出共2.8秒。 */
+  --support-follow-hand-overhang: 40px;
+  --duration-follow-hand-delay: 800ms;
+  --duration-follow-hand: 2800ms;
   /* 后端不等待这些时序；仅保证人眼至少看见 running，并让相邻 Marker 分开落位。 */
   --duration-operation-running-min: 360ms;
   --duration-operation-step-gap: var(--duration-feedback);

@@ -138,7 +138,8 @@ jobs:
           if [[ "$RELEASE_REF" == refs/tags/cavalry-* ]]; then
             case "$RELEASE_TAG" in
               cavalry-2.7.2-p[0-9]*) echo "The 2.7.2 p12 feed is historical only; repackaging is forbidden: $RELEASE_TAG" >&2; exit 1 ;;
-              cavalry-2.8.0-p[0-9]*) profile='release-2.8.config.json' ;;
+              cavalry-2.8.0-p[0-9]*) echo "The 2.8.0 feed is historical only; repackaging is forbidden: $RELEASE_TAG" >&2; exit 1 ;;
+              cavalry-2.8.1-p[0-9]*) profile='release-2.8.config.json' ;;
               *) echo "Unsupported Cavalry release tag: $RELEASE_TAG" >&2; exit 1 ;;
             esac
             node tools/release_metadata.js --profile "$profile" --check --tag "$RELEASE_TAG"

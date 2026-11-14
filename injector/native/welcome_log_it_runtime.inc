@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖同bundle Extension/spdlog、固定UUID、导出地址与interpose GOT。
- * [OUTPUT]: 核原导出与GOT；完整ABI就绪后才发布唯一Welcome返回PC。
+ * [INPUT]: 依赖同bundle Extension/spdlog、固定UUID、async调用窗与interpose GOT。
+ * [OUTPUT]: 核原导出与一个精确producer；完整ABI就绪后才发布唯一Welcome返回PC。
  * [POS]: 原函数走本interposer的dyld旧实现导入桩，构造前门值为零。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -31,6 +31,22 @@ bool verifyWelcomeLogItContract() noexcept
         !imageUuidEquals(gWelcomeExtensionImage, welcome_contract::kExtensionUuid))
         return false;
 
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+    if (findMachOSymbol(gWelcomeExtensionImage,
+                        welcome_contract::kExtensionAsyncWelcomeSymbol) !=
+            imageAddress(gWelcomeExtensionImage,
+                         welcome_contract::kExtensionAsyncWelcomeSymbolOffset) ||
+        !matchesCode(gWelcomeExtensionImage,
+                     welcome_contract::kExtensionAsyncWelcomeSourceRefOffset,
+                     welcome_contract::kExtensionAsyncWelcomeSourceRefBytes) ||
+        !matchesCode(gWelcomeExtensionImage,
+                     welcome_contract::kExtensionAsyncWelcomeCallSetupOffset,
+                     welcome_contract::kExtensionAsyncWelcomeCallSetupBytes) ||
+        !matchesCode(gWelcomeExtensionImage,
+                     welcome_contract::kExtensionWelcomeSourceOffset,
+                     welcome_contract::kExtensionWelcomeSourceBytes)) return false;
+#endif
+
     const void *boundTarget = nullptr;
     if (!readSelf(imageAddress(gWelcomeExtensionImage,
                                welcome_contract::kExtensionGotOffset),
@@ -58,4 +74,16 @@ __attribute__((used)) static struct {
 bool verifyWelcomeLogItContract() noexcept
 {
     return welcome_log_it_runtime::verifyWelcomeLogItContract();
+}
+
+extern "C" __attribute__((noinline, visibility("hidden")))
+void nativeWelcomeLogItDispatcher(void *logger, const void *message,
+                                  bool logEnabled, bool tracebackEnabled,
+                                  std::uintptr_t callerPc)
+{
+    welcome_log_it::forward(
+        &welcomeLogItTarget, logger, message, logEnabled, tracebackEnabled,
+        callerPc,
+        nativeWelcomeLogItExpectedReturnPc.load(std::memory_order_acquire),
+        gLocale.value());
 }

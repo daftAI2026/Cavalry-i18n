@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Dependency Graph NodeView 的两个直系 header 索引与 2.8.1 source target ABI。
- * [OUTPUT]: 以纯值合同判定调用帧、NodeView owner、header 槽和完整源闭包是否齐全。
+ * [INPUT]: 依赖NodeView header合同、完整源串、实际省略片段与既有严格UTF8解码器。
+ * [OUTPUT]: 判定header owner，并仅为切断UTF8字符的原厂省略片段提供完整字符边界。
  * [POS]: 仅描述已证 NodeView header 的准入条件；未知 Lina owner 一律不准入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,10 +9,15 @@
 #include <cstddef>
 #include <cstdint>
 #include <limits>
+#include <cstring>
 
 #include "dependency_node_font_abi_contract.h"
+#include "utf8_elision_policy.h"
 
 namespace dependency_node_font::policy {
+using native_utf8_elision::kUnchangedTextSpan;
+using native_utf8_elision::repairedElisionPrefix;
+
 enum class HeaderSlot : std::uint8_t {
     None,
     NiceName,

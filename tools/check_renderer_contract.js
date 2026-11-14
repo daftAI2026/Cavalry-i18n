@@ -444,6 +444,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const icons = read('renderer/icons.js');
   const operationLog = read('renderer/operation-log.js');
   const supportFooter = read('renderer/support-footer.js');
+  const supportFollowHand = read('renderer/support-follow-hand.js');
   const updateProgress = read('renderer/update-progress.js');
   const tooltipControl = read('renderer/tooltip-control.js');
   const thirdPartyNotices = read('renderer/THIRD_PARTY_NOTICES.md');
@@ -508,7 +509,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-follow-hand\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
     'renderer scripts must load bridge, copy, policies, components, then app'
   );
   assert.match(profileText, /const NATIVE_USER_PROFILE_TEXT = Object\.freeze\(/);
@@ -541,7 +542,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}`;
+  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}\n${supportFooter}\n${supportFollowHand}`;
   assert.deepEqual(
     tokenDefinitions.filter(
       (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
@@ -1040,7 +1041,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);
   assert.match(app, /statusLabel\.textContent = t\('taskProgressLabel'\)/);
   assert.match(app, /operationLog\.start\(\{[\s\S]*?restoreIntro[\s\S]*?applyIntro/);
-  assert.match(app, /operationLog\.complete\(\s*t\(restoring \? 'restoreOutcome' : 'applyOutcome'/);
+  assert.match(app, /const message = t\(restoring \? 'restoreOutcome' : 'applyOutcome'[\s\S]*?operationLog\.complete\(message\)/);
   assert.match(app, /operationLog\.idle\(\)/);
   assert.match(app, /operationLog\.replace\(\{/);
   assert.match(app, /operationLog\.upsert\(operationPhaseCopy\(event, context\)\)/);
@@ -1444,7 +1445,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(permissionWaitFunction, /await operationLog\.presentBlocking\(\{[\s\S]*?id: phaseId,[\s\S]*?state: 'warning'/);
   assert.match(runApplyFunction, /await showPermissionWait\(nextLanguage, terminalPhaseEvent\?\.id\)/);
   assert.match(runApplyFunction, /if \(attemptId && state\.platform === 'macos'\)[\s\S]*?state\.pendingAction = ''[\s\S]*?setPermissionWait\(false\)[\s\S]*?permissionRestartRequiredTitle[\s\S]*?permissionRestartRequiredBody/);
-  assert.match(runApplyFunction, /operationLog\.complete\(t\(restoring \? 'restoreOutcome' : 'applyOutcome'/);
+  assert.match(runApplyFunction, /const message = t\(restoring \? 'restoreOutcome' : 'applyOutcome'[\s\S]*?operationLog\.complete\(message\)/);
   assert.doesNotMatch(app, /operationVerified|permissionVerified|permission-verified/, 'permission success must not add a product Activity event');
   assert.doesNotMatch(permissionWaitFunction, /setStatus\('waitingPermission'/);
   assert.doesNotMatch(permissionWaitFunction, /retryApply|Retry Apply/);

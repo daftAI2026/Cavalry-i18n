@@ -42,7 +42,7 @@ test('rejects draft, prerelease, wrong tag or invalid identity before posting', 
   assert.equal(f.calls.length, 0);
 });
 test('2.8 release reactions require the explicit 2.8 profile', () => {
-  const releaseTag = 'cavalry-2.8.0-p17';
+  const releaseTag = 'cavalry-2.8.1-p17';
   const defaultProfile = fixture({}, releaseTag);
   assert.throws(() => postReleaseReactions({ tag: releaseTag, repo: 'owner/repo', api: defaultProfile.api }));
   assert.equal(defaultProfile.calls.length, 0);

@@ -12,7 +12,7 @@ const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 const { test } = require('node:test');
-const { assertOfficialTarget } = require('./native_official_target');
+const { officialTargetSha256 } = require('./native_official_target');
 const { buildNativeResourceBundle } = require('./native_resource_bundle');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 const {
@@ -62,7 +62,7 @@ const EXPECTED_ALPHA_PRESERVES = Object.freeze({
 });
 const SOURCE_CATALOG_ID = 'Definitions/Translation/nodeStrings';
 const NATIVE_DIRECTORY = path.resolve(__dirname, '../languages/native');
-const TARGET_PATH = path.resolve(__dirname, 'cavalry_native_target.json');
+const TARGET_PATH = path.resolve(__dirname, 'fixtures/cavalry_native_target_2_8_0.json');
 const sha = value => crypto.createHash('sha256').update(value).digest('hex');
 const digest = value => sha(JSON.stringify(value));
 const compare = (left, right) => left < right ? -1 : left > right ? 1 : 0;
@@ -110,8 +110,8 @@ function assertFormalRegistration(modules) {
 }
 function assertSourceAndProvenance(modules) {
   const targetBytes = fs.readFileSync(TARGET_PATH);
-  const { target, officialTargetSha256 } = assertOfficialTarget(targetBytes);
-  assert.equal(officialTargetSha256, EXPECTED_SOURCE.targetManifestSha256, 'official native target manifest digest');
+  const target = JSON.parse(targetBytes);
+  assert.equal(officialTargetSha256(targetBytes), EXPECTED_SOURCE.targetManifestSha256, 'historical native target manifest digest');
   const catalog = target.catalogs.find(row => row.id === SOURCE_CATALOG_ID);
   assert.ok(catalog, 'official nodeStrings target exists');
   assert.equal(catalog.sourceSha256, EXPECTED_SOURCE.sourceCatalogSha256);

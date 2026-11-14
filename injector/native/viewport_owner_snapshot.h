@@ -1,3 +1,6 @@
+#if defined(CAVALRY_NATIVE_TARGET_281)
+#include "abi_2_8_1/viewport_owner_snapshot.h"
+#else
 /**
  * [INPUT]: 依赖已锁定调用点、线程栈范围与只读复制器。
  * [OUTPUT]: 单次读取调用帧记录，复用线程栈关系并复制有限名称容器。
@@ -15,16 +18,8 @@ inline constexpr std::size_t kObjectBytes=24;
 inline constexpr std::size_t kTagOffset=23;
 inline constexpr std::size_t kShortCapacity=22;
 inline constexpr std::size_t kMaxTextBytes=16384;
-#if defined(__x86_64__)
-// Preserve the legacy shared-header values for the isolated x86.64 owner path.
 inline constexpr std::uintptr_t kNameBelowFrame=0x150;
 inline constexpr std::uintptr_t kStackBelowFrame=0x340;
-#else
-// 2.8.1 GraphicsViewportBase::renderFrame::$_1 stores getNiceName at sp+0x210;
-// x29-to-current-sp is 0x360, so that libc++ object is exactly x29-0x150.
-inline constexpr std::uintptr_t kNameBelowFrame=0x150;
-inline constexpr std::uintptr_t kStackBelowFrame=0x360;
-#endif
 struct StackRange { std::uintptr_t low=0,high=0; };
 struct CallerFrameRecord { std::uintptr_t parent=0,returnPc=0; };
 inline bool contains(StackRange stack,std::uintptr_t address,std::size_t size) noexcept {
@@ -32,19 +27,9 @@ inline bool contains(StackRange stack,std::uintptr_t address,std::size_t size) n
   size<=stack.high-address;
 }
 inline bool measureCaller(std::uintptr_t offset) noexcept {
-#if defined(__x86_64__)
  return offset==0x23f514 || offset==0x23f5a8;
-#else
- return offset==0x23a230 || offset==0x23a2d0;
-#endif
 }
-inline bool blobCaller(std::uintptr_t offset) noexcept {
-#if defined(__x86_64__)
- return offset==0x23fd24;
-#else
- return offset==0x23acd8;
-#endif
-}
+inline bool blobCaller(std::uintptr_t offset) noexcept {return offset==0x23fd24;}
 inline bool admitted(std::uintptr_t offset,int encoding) noexcept {
  return encoding==0 && (measureCaller(offset)||blobCaller(offset));
 }
@@ -102,3 +87,5 @@ bool snapshot(std::uintptr_t offset,int encoding,std::uintptr_t frame,
  *outputLength=span.size;return true;
 }
 } // namespace viewport_owner
+
+#endif  // CAVALRY_NATIVE_TARGET_281

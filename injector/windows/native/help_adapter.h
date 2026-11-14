@@ -1,7 +1,7 @@
 /*
  * [INPUT]: 官方Windows ScriptDocumentation四个MSVC string及vector布局、共享审批查询和384/17生成表。
  * [OUTPUT]: main/def精确caller分别选表，仅shadow description后单次调用原厂consumer。
- * [POS]: Windows薄适配；d79e0证明四string/vector，c34fa0厂商formatForCompleter证明def归属，未知源不复制。
+ * [POS]: Windows 2.8.1 文档投影边界；formatForCompleter 导出 thunk 指向 def caller 0xc49ebf，root caller 为 0x13bfd2f；未知调用者原样透传。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -13,8 +13,8 @@
 #include <cstdint>
 
 namespace native_windows_help {
-inline constexpr std::uintptr_t kRootReturn=0x13a72ef;
-inline constexpr std::uintptr_t kDefReturn=0xc351af;
+inline constexpr std::uintptr_t kRootReturn=0x13bfd2f;
+inline constexpr std::uintptr_t kDefReturn=0xc49ebf;
 struct Documentation {
     std::string description;
     std::array<std::string,3> opaqueStrings;

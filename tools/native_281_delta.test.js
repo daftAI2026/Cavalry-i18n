@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 2.8.0审批、冻结2.8.1源目标与AGY生成后经主代理复核的三语delta。
+ * [INPUT]: 2.8.0历史审批、当前2.8.1官方target与AGY生成后经主代理复核的三语delta。
  * [OUTPUT]: 验证33条更新/新增、12条移除、source绑定与默认2.8.0复用边界。
  * [POS]: 原生版本增补行为合同，不授实屏或字体PASS。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -16,20 +16,20 @@ const delta = require('../languages/native/release_2_8_1_delta');
 const { assertNativeTranslationFormat } = require('./native_translation_format');
 
 const legacy = approvedEntries('2.8.0');
-const candidate = approvedEntries('2.8.1');
+const current = approvedEntries('2.8.1');
 const legacyByKey = new Map(legacy.map(row => [row.key, row]));
-const candidateByKey = new Map(candidate.map(row => [row.key, row]));
+const currentByKey = new Map(current.map(row => [row.key, row]));
 const deltaByKey = new Map(delta.entries.map(row => [row.key, row]));
 const removedByKey = new Map(delta.removedEntries.map(row => [row.key, row]));
 
-test('2.8.1 delta is source-bound to the frozen target and has full three-locale format coverage', () => {
-  const targetPath = path.resolve(__dirname, 'cavalry_native_target_2_8_1.json');
+test('2.8.1 delta is source-bound to the default target and has full three-locale format coverage', () => {
+  const targetPath = path.resolve(__dirname, 'cavalry_native_target.json');
   const targetBytes = fs.readFileSync(targetPath);
   const target = JSON.parse(targetBytes);
   const targetSha256 = crypto.createHash('sha256').update(targetBytes).digest('hex');
 
   assert.equal(delta.provenance.cavalryVersion, '2.8.1');
-  assert.equal(delta.provenance.targetPath, 'tools/cavalry_native_target_2_8_1.json');
+  assert.equal(delta.provenance.targetPath, 'tools/cavalry_native_target.json');
   assert.equal(delta.provenance.targetSha256, targetSha256);
   assert.equal(target.cavalryVersion, '2.8.1');
   assert.equal(target.nativeKeys, 10468);
@@ -41,7 +41,7 @@ test('2.8.1 delta is source-bound to the frozen target and has full three-locale
   ]);
   for (const row of delta.provenance.sourceCatalogs) {
     const catalog = targetCatalogs.get(row.catalogId);
-    assert.ok(catalog, `delta catalog exists in 2.8.1 target: ${row.catalogId}`);
+    assert.ok(catalog, `delta catalog exists in current target: ${row.catalogId}`);
     assert.equal(row.sourcePath, catalog.source);
     assert.equal(row.sourceSha256, catalog.sourceSha256);
     assert.equal(row.japanesePath, catalog.japanese);
@@ -68,7 +68,7 @@ test('2.8.1 delta is source-bound to the frozen target and has full three-locale
   }
 });
 
-test('2.8.1 replaces changed-source and metadata rows, adds seven keys, and removes twelve absent approvals', () => {
+test('2.8.1 production replaces changed-source and metadata rows, adds seven keys, and removes twelve absent approvals', () => {
   const sourceChanged = [];
   const metadataChanged = [];
   const added = [];
@@ -90,17 +90,17 @@ test('2.8.1 replaces changed-source and metadata rows, adds seven keys, and remo
   assert.equal(delta.provenance.migration.unapprovedDontTranslate, 95);
 
   for (const row of delta.entries) {
-    assert.ok(candidateByKey.has(row.key), `candidate includes delta key ${row.key}`);
-    assert.equal(candidateByKey.get(row.key), row);
+    assert.ok(currentByKey.has(row.key), `current target includes delta key ${row.key}`);
+    assert.equal(currentByKey.get(row.key), row);
   }
   for (const row of delta.removedEntries) {
     assert.deepEqual(row.source, legacyByKey.get(row.key)?.source);
-    assert.ok(!candidateByKey.has(row.key), `candidate drops removed key ${row.key}`);
+    assert.ok(!currentByKey.has(row.key), `current target drops removed key ${row.key}`);
   }
 
   assert.equal(legacy.length, 10753);
-  assert.equal(candidate.length, 10748);
-  assert.equal(new Set(candidate.map(row => row.key)).size, candidate.length);
+  assert.equal(current.length, 10748);
+  assert.equal(new Set(current.map(row => row.key)).size, current.length);
 });
 
 test('2.8.0 remains the default and other target versions fail closed', () => {

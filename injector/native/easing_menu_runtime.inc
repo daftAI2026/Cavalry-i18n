@@ -30,6 +30,15 @@
 
 #include "easing_menu_abi_contract.h"
 #include "easing_menu_policy.h"
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#ifndef NATIVE_DG_CONTEXT_MENU_TABLE
+#error "281 arm64必须由source-bound builder提供DG/TransformTool显示表。"
+#endif
+#include "dg_context_menu_abi_contract.h"
+#include "dg_context_menu_policy.h"
+#include NATIVE_DG_CONTEXT_MENU_TABLE
+static_assert(std::tuple_size<decltype(native_dg_context_menu::kRows)>::value == 5);
+#endif
 
 static_assert(QT_VERSION == QT_VERSION_CHECK(6, 9, 2));
 static_assert(std::tuple_size<decltype(native_easing_display::kRows)>::value ==
@@ -49,6 +58,10 @@ std::atomic<std::uintptr_t> gEasingMenuExpectedReturnPc{0};
 LoadedImage gEasingMenuExtensionImage{};
 LoadedImage gEasingMenuQtWidgetsImage{};
 LoadedImage gEasingMenuQtGuiImage{};
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+std::atomic<bool> gDgContextMenuContractReady{false};
+std::atomic<std::uintptr_t> gDgContextMenuExpectedReturnPc{0};
+#endif
 
 EasingMenuAddAction requireEasingMenuOriginal() noexcept
 {
@@ -56,6 +69,59 @@ EasingMenuAddAction requireEasingMenuOriginal() noexcept
         gOriginalEasingMenuAddAction.load(std::memory_order_acquire);
     return original != nullptr ? original : &easingMenuAddActionTarget;
 }
+
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+bool verifyDgContextMenuContract() noexcept
+{
+    using namespace native_dg_context_menu::contract;
+    gDgContextMenuContractReady.store(false, std::memory_order_release);
+    gDgContextMenuExpectedReturnPc.store(0, std::memory_order_release);
+
+    const bool symbolsMatch =
+        imageUuidEquals(gEasingMenuExtensionImage, kExtensionUuid) &&
+        findMachOSymbol(gEasingMenuExtensionImage, kToolMenuAddMenuItemSymbol) ==
+            imageAddress(gEasingMenuExtensionImage, kToolMenuAddMenuItemOffset) &&
+        findMachOSymbol(gEasingMenuExtensionImage, kAddDuplicatorActionsSymbol) ==
+            imageAddress(gEasingMenuExtensionImage, kAddDuplicatorActionsOffset) &&
+        findMachOSymbol(gEasingMenuExtensionImage, kAddGroupActionSymbol) ==
+            imageAddress(gEasingMenuExtensionImage, kAddGroupActionOffset) &&
+        findMachOSymbol(gEasingMenuExtensionImage, kAddLockActionSymbol) ==
+            imageAddress(gEasingMenuExtensionImage, kAddLockActionOffset) &&
+        findMachOSymbol(gEasingMenuExtensionImage, kAddShowInWindowActionsSymbol) ==
+            imageAddress(gEasingMenuExtensionImage, kAddShowInWindowActionsOffset);
+    const bool codeMatches =
+        matchesCode(gEasingMenuExtensionImage, kToolMenuFrameWindowOffset,
+                    kToolMenuFrameWindowBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kToolMenuAddActionWindowOffset,
+                    kToolMenuAddActionWindowBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddDuplicatorActionsFrameWindowOffset,
+                    kAddDuplicatorActionsFrameWindowBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddGroupActionFrameWindowOffset,
+                    kAddGroupActionFrameWindowBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddLockActionFrameWindowOffset,
+                    kAddLockActionFrameWindowBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddShowInWindowActionsFrameWindowOffset,
+                    kAddShowInWindowActionsFrameWindowBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddDuplicatorActionsCallOffset,
+                    kAddDuplicatorActionsBranchBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddGroupActionCallOffset,
+                    kAddGroupActionBranchBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddLockActionCallOffset,
+                    kAddLockActionBranchBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddShowAttributeEditorCallOffset,
+                    kAddShowAttributeEditorBranchBytes) &&
+        matchesCode(gEasingMenuExtensionImage, kAddShowSceneWindowCallOffset,
+                    kAddShowSceneWindowBranchBytes);
+    const bool ready = symbolsMatch && codeMatches;
+    gDgContextMenuExpectedReturnPc.store(ready ? reinterpret_cast<std::uintptr_t>(
+        imageAddress(gEasingMenuExtensionImage, kToolMenuAddActionReturnOffset)) : 0,
+        std::memory_order_release);
+    gDgContextMenuContractReady.store(ready, std::memory_order_release);
+    return ready;
+}
+#else
+bool verifyDgContextMenuContract() noexcept { return false; }
+#endif
 
 bool verifyEasingMenuContract() noexcept
 {
@@ -96,6 +162,10 @@ bool verifyEasingMenuContract() noexcept
                                   &gEasingMenuQtWidgetsImage) ||
         !findLoadedImageExactPath(canonicalQtGuiPath.data(), &gEasingMenuQtGuiImage))
         return false;
+
+    // -- 281 DG/TransformTool uses the same one QWidget interpose, but its own
+    // -- ABI gate. Easing readiness and its legacy behavior stay independent.
+    (void)verifyDgContextMenuContract();
 
     const void *addAction = findMachOSymbol(
         gEasingMenuQtWidgetsImage, easing_contract::kAddActionSymbol);
@@ -151,20 +221,73 @@ extern "C" __attribute__((noinline)) void nativeEasingMenuAddActionInterpose(
     const std::uintptr_t expectedReturnPc = ready ?
         gEasingMenuExpectedReturnPc.load(std::memory_order_acquire) : 0;
 
-    QByteArray sourceUtf8;
-    native_easing_menu::forwardProjectedAction(
-        [&]() { original(widget, action); }, ready, callerReturnPc,
-        expectedReturnPc,
-        []() { return gLocale.value(); },
-        [&]() -> std::string_view {
-            if (action == nullptr) return {};
-            sourceUtf8 = action->text().toUtf8();
-            return std::string_view(sourceUtf8.constData(),
-                                    static_cast<std::size_t>(sourceUtf8.size()));
-        },
-        [&](std::string_view projection) {
-            action->setText(QString::fromUtf8(
-                projection.data(), static_cast<qsizetype>(projection.size())));
-        },
-        native_easing_display::kRows);
+    if (callerReturnPc == expectedReturnPc && expectedReturnPc != 0) {
+        QByteArray sourceUtf8;
+        native_easing_menu::forwardProjectedAction(
+            [&]() { original(widget, action); }, ready, callerReturnPc,
+            expectedReturnPc,
+            []() { return gLocale.value(); },
+            [&]() -> std::string_view {
+                if (action == nullptr) return {};
+                sourceUtf8 = action->text().toUtf8();
+                return std::string_view(sourceUtf8.constData(),
+                                        static_cast<std::size_t>(sourceUtf8.size()));
+            },
+            [&](std::string_view projection) {
+                action->setText(QString::fromUtf8(
+                    projection.data(), static_cast<qsizetype>(projection.size())));
+            },
+            native_easing_display::kRows);
+        return;
+    }
+
+#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+    std::uintptr_t helperReturnOffset = 0;
+    const bool dgContractReady =
+        gDgContextMenuContractReady.load(std::memory_order_acquire);
+    const std::uintptr_t dgExpectedReturnPc = dgContractReady ?
+        gDgContextMenuExpectedReturnPc.load(std::memory_order_acquire) : 0;
+    if (dgContractReady && dgExpectedReturnPc != 0 &&
+        callerReturnPc == dgExpectedReturnPc && action != nullptr) {
+        const std::uintptr_t ownFrame = reinterpret_cast<std::uintptr_t>(
+            __builtin_frame_address(0));
+        const auto stack = currentThreadStack();
+        const auto read = [](std::uintptr_t address, std::size_t size,
+                             void *destination) noexcept {
+            return readSelf(reinterpret_cast<const void *>(address), size, destination);
+        };
+        viewport_owner::CallerFrameRecord toolMenuFrame{};
+        viewport_owner::CallerFrameRecord helperFrame{};
+        if (viewport_owner::callerFrameRecord(ownFrame, stack, read, &toolMenuFrame) &&
+            toolMenuFrame.returnPc == dgExpectedReturnPc &&
+            viewport_owner::callerFrameRecord(toolMenuFrame.parent, stack, read,
+                                               &helperFrame)) {
+            const std::uintptr_t extensionBase = reinterpret_cast<std::uintptr_t>(
+                imageAddress(gEasingMenuExtensionImage, 0));
+            if (extensionBase != 0 && helperFrame.returnPc >= extensionBase)
+                helperReturnOffset = helperFrame.returnPc - extensionBase;
+        }
+    }
+    if (dgContractReady && dgExpectedReturnPc != 0 &&
+        callerReturnPc == dgExpectedReturnPc && action != nullptr) {
+        QByteArray sourceUtf8;
+        native_dg_context_menu::forwardProjectedAction(
+            [&]() { original(widget, action); }, dgContractReady,
+            callerReturnPc, dgExpectedReturnPc, helperReturnOffset,
+            []() { return gLocale.value(); },
+            [&]() -> std::string_view {
+                sourceUtf8 = action->text().toUtf8();
+                return std::string_view(sourceUtf8.constData(),
+                                        static_cast<std::size_t>(sourceUtf8.size()));
+            },
+            [&](std::string_view projection) {
+                action->setText(QString::fromUtf8(
+                    projection.data(), static_cast<qsizetype>(projection.size())));
+            },
+            native_dg_context_menu::kRows);
+        return;
+    }
+#endif
+
+    original(widget, action);
 }

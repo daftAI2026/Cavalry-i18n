@@ -67,9 +67,9 @@ int main()
     using native_easing_menu::contract::kPresetSourceCount;
 
     static_assert(kPresetSourceCount == 20);
-    static_assert(kAddActionReturnOffset == 0x00688ed8);
-    static_assert(kAddActionImportStubOffset == 0x00d21f10);
-    if (kAddActionCallerOffset != 0x00688ed4 || !uniqueRows()) return 1;
+    static_assert(kAddActionReturnOffset == 0x006a9128);
+    static_assert(kAddActionImportStubOffset == 0x00dbf834);
+    if (kAddActionCallerOffset != 0x006a9124 || !uniqueRows()) return 1;
 
     if (native_easing_menu::sourceProjection("Bounce Out", Locale::Hans,
                                              kSyntheticRows) != "H:bounce-out" ||

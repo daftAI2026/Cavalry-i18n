@@ -1,7 +1,7 @@
 /*
- * [INPUT]: Windows spdlog6b30证明的96字节log_msg、精确启动调用链及共享Welcome纯策略。
+ * [INPUT]: Cavalry 2.8.1 Windows spdlog.dll 96字节log_msg ABI、runtime caller gate及共享Welcome纯策略。
  * [OUTPUT]: 只在已准入producer影子替换payload；未知调用先透传，原logger单次调用及异常保全。
- * [POS]: Windows Welcome薄适配；不扫描MessageBar、不记录消息、不改变logger状态。
+ * [POS]: Windows 2.8.1 Welcome payload薄适配；caller批准由runtime负责，未知caller透传，不扫描MessageBar或改变logger状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
