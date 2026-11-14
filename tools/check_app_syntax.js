@@ -238,6 +238,8 @@ const APP_SYNTAX_FILES = Object.freeze([
   'tools/prepare_cavalry_28_windows_ci_inputs.test.js',
   'tools/watch_cavalry_release.js',
   'tools/watch_cavalry_release.test.js',
+  'renderer/support-follow-hand.js',
+  'tools/support_follow_hand.test.js',
 ]);
 
 function runAppSyntaxCheck(files = APP_SYNTAX_FILES, options = {}) {

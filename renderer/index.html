@@ -1,5 +1,5 @@
 <!--
-  [INPUT]: 依赖 tokens/button 及共享 shell/Activity/About/支持 footer/Toast/窗口控件视觉层，依赖冻结 bridge、先于UI_TEXT加载的user-profile-text四语子域、language-scope/version-guidance与project-link-control适配器，以及icons/select/tooltip/path/operation/permission-handoff/update/toast/support-footer/about/window-controls状态机
+  [INPUT]: 依赖 tokens/button 及共享 shell/Activity/About/支持 footer/本地关注手势/Toast/窗口控件视觉层，依赖冻结 bridge、先于UI_TEXT加载的user-profile-text四语子域、language-scope/version-guidance与project-link-control适配器，以及icons/select/tooltip/path/operation/permission-handoff/update/toast/support-footer/about/window-controls状态机
   [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、Trigger 与空值 popup 均保留占位语义的 Select + scope-aware Switch/Restore English 主任务流、2.8 切换器遇 Cavalry 2.7.2 时显露的固定 legacyRelease 按钮、三轨 Activity 与条件权限/Issue 表单动作、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点，以及文字与固定 GitHub/X/小红书入口整组居中的无分割线单行 footer；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起共享外壳窗口，Windows 以 Info/Minus/Square/Copy/X 的统一 Phosphor Regular 语义驱动右侧控件
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -140,6 +140,9 @@
         </a>
       </nav>
     </footer>
+    <div id="supportFollowHand" class="support-follow-hand" aria-hidden="true" inert hidden>
+      <img id="supportFollowHandImage" src="./follow-hand.webp" alt="" draggable="false" />
+    </div>
   </div>
 
   <dialog id="modalBackdrop" class="modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
@@ -169,6 +172,7 @@
   <script src="./update-progress.js"></script>
   <script src="./toast-control.js"></script>
   <script src="./project-link-control.js"></script>
+  <script src="./support-follow-hand.js"></script>
   <script src="./support-footer.js"></script>
   <script src="./about-control.js"></script>
   <script src="./window-controls.js"></script>
