@@ -66,6 +66,7 @@ Cavalry-i18n/
 - Do not create a branch, commit, or push unless the user asks. This repo owner often expects direct `main` work.
 - New root or module files require the matching `CLAUDE.md` map update in the same change.
 - Communicate in Chinese, start user-facing replies with `哥`, and report evidence before claiming completion.
+- **成功基线与构建来源**：版本适配必须从对应平台最近已验收的成功基线增量推进。先查历史经验、源码和验收脚本，复用已有实现，仅针对新版差异增补或修正，保留已有功能和性能。每次构建前核对源码目录、分支与提交、目标宿主版本与架构，以及 runtime、语言包的来源，禁止混用旧候选或临时副本；有用经验先归档，会混淆来源的过期构建、缓存和测试输出及时清理。每轮验收按改动影响范围覆盖已有功能和新增项，复用成功脚本及同口径性能基准；旧版本证据不能直接记为新版通过。
 
 ### Current 2.8 migration scope
 

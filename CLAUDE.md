@@ -37,7 +37,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 src-tauri/tauri.native-windows-2.8.conf.json - 保留的Windows 2.8.0 production wrapper配置；Windows仍锁2.8.0输入，但当前共享native target已升2.8.1，故旧资源路径构建被source digest门拒绝
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
 CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8.0迁移唯一44项主账，44完成/0待办；§66.193记录2.8.0 p1正式发行及七资产/统一feed回读；Windows D-6/G-5按§66.189收口；§66.191记录2.8.0首发授权、1.1.0及生产tag启用；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已合入PR54，2.8.0 p1已按§66.193公开发行。私档不作为构建输入。
-AGENTS.md - 固定本轮单2.8.0安装范围，不加旧版/双安装必验门；根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
+AGENTS.md - 根级 Agent 行动地图；版本适配沿对应平台已验成功基线增补，构建前核对源码与输入来源，按影响范围回归旧功能和性能；固定单目标安装范围，不加旧版/双安装必验门
 CHANGELOG.md - 新版本中文条目与英文分类语义分离的 SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 当前macOS arm64 Cavalry 2.8.1生产构建合同；Intel ABI与Windows迁移/验收待闭合；旧2.7.2 p12只作历史下载，release.config.json保留冻结profile与共享latest.json endpoint；唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
 README.md - 简体中文主入口；标题与介绍说明Cavalry汉化/中文语言包及Windows/macOS支持，英文入口移至README.en.md；四语保留头部徽章与语言导航，Preview和图片前置，说明紧跟图片；再列2.8.0亮点、三步使用及权限恢复，Release安装段置于权限之后、开发之前；折叠原理、语言代码、翻译来源、目录和CI；徽章读取最新Release，2.7.2保留p12入口
