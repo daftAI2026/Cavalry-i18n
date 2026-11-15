@@ -4,6 +4,8 @@
  * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+@layer ui-sdk;
+
 :root {
   color-scheme: light;
 

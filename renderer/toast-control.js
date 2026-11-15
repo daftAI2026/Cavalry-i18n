@@ -1,244 +1,118 @@
 /**
- * [INPUT]: 依赖标准 DOM/Window 事件、button.css/tokens.css/toast.css 的视觉状态与 cavalryIcons 的受控语义图标工厂。
- * [OUTPUT]: 对外提供 createToastControl；以 Base UI 1.6.0 的 5 秒/3 条默认值管理右下 Toast，悬停、键盘焦点或窗口失焦时暂停并保留剩余时间。
- * [POS]: renderer 的共享短时通知状态机；只承载不属于主任务流的局部失败，不读取 Tauri、不覆盖 Activity、不承担 AlertDialog 的决策职责。
+ * [INPUT]: UI SDK 独立 Toast 队列、真实图标工厂与既有 Toast 样式。
+ * [OUTPUT]: 保持createToastControl/show/close及main的五秒/三条丢弃最旧/loading常驻；SDK管理队列、堆叠与暂停，公开组合保留main的F6/原生Tab顺序、进入/500ms退出和移除时回焦。
+ * [POS]: 局部通知展示适配，不读取 Tauri、不覆盖 Activity、不接管业务决策。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachToastControl(global) {
   'use strict';
-
   const DEFAULT_TIMEOUT_MS = 5000;
   const DEFAULT_LIMIT = 3;
-  const DEFAULT_EXIT_DURATION_MS = 500;
-  const DEFAULT_STACK_GAP_PX = 12;
-  const TYPE_ICONS = Object.freeze({
-    success: 'checkCircle',
-    info: 'infoCircle',
-    warning: 'warningCircle',
-    error: 'errorCircle',
-    loading: 'spinner',
-  });
-  let nextToastId = 1;
-
-  function setTimer(callback, delay) {
-    const timer = globalThis.setTimeout(callback, delay);
-    timer?.unref?.();
-    return timer;
-  }
-
-  function readMillisecondsToken(name, fallback) {
-    const styles = global.getComputedStyle?.(document.documentElement);
-    const rawValue = styles?.getPropertyValue(name).trim();
-    if (!rawValue) return fallback;
-    const value = Number.parseFloat(rawValue);
-    if (!Number.isFinite(value)) return fallback;
-    if (rawValue.endsWith('ms')) return value;
-    if (rawValue.endsWith('s')) return value * 1000;
-    return fallback;
-  }
-
-  function createToastControl({
-    label = 'Notifications',
-    closeLabel = 'Close',
-    timeout = DEFAULT_TIMEOUT_MS,
-    limit = DEFAULT_LIMIT,
-  } = {}) {
-    const viewport = document.createElement('div');
+  const TYPE_ICONS = Object.freeze({ success: 'checkCircle', info: 'infoCircle', warning: 'warningCircle', error: 'errorCircle', loading: 'spinner' });
+  function createToastControl({ label = 'Notifications', closeLabel = 'Close', timeout = DEFAULT_TIMEOUT_MS, limit = DEFAULT_LIMIT } = {}) {
+    const toaster = global.cavalryUi.createToaster({ duration: timeout });
+    const viewport = document.createElement('ui-toast-region');
     viewport.className = 'toast-viewport';
-    viewport.dataset.expanded = 'false';
-    viewport.setAttribute('data-slot', 'toast-viewport');
-    viewport.setAttribute('role', 'region');
-    viewport.setAttribute('aria-live', 'polite');
-    viewport.setAttribute('aria-atomic', 'false');
-    viewport.setAttribute('aria-relevant', 'additions text');
     viewport.setAttribute('aria-label', label);
-    viewport.setAttribute('tabindex', '-1');
+    viewport.setAttribute('side', 'bottom');
+    viewport.setAttribute('align', 'end');
+    viewport.setAttribute('max-visible', String(limit));
+    viewport.setAttribute('shortcut', '');
+    // 保留main普通文档层级；允许原生dialog盖住通知，不提升到top layer。
+    viewport.addEventListener('beforetoggle',event=>{if(event.newState==='open')event.preventDefault();});
+    viewport.toaster = toaster;
+    const template = document.createElement('template');
+    const part = document.createElement('ui-toast');
+    part.setAttribute('as-child', '');
+    const node = document.createElement('section');
+    node.className = 'toast';
+    node.setAttribute('role', 'dialog');
+    node.setAttribute('aria-modal', 'false');
+    const content = document.createElement('div');
+    content.className = 'toast-content';
+    const icon = document.createElement('span');
+    icon.className = 'toast-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    const copy = document.createElement('div');
+    copy.className = 'toast-copy';
+    const title = document.createElement('ui-toast-title');
+    title.className = 'toast-title';
+    const description = document.createElement('ui-toast-description');
+    description.className = 'toast-description';
+    copy.append(title, description);
+    const closePart = document.createElement('ui-toast-close');
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.className = 'ui-button toast-close';
+    closeButton.setAttribute('data-variant', 'ghost');
+    closeButton.setAttribute('aria-label', closeLabel);
+    closeButton.append(global.cavalryIcons.create('close'));
+    closePart.append(closeButton);
+    content.append(icon, copy, closePart);
+    node.append(content);
+    part.append(node);
+    template.content.append(part);
+    viewport.append(template);
+    viewport.renderToast = (toast, wrapper) => {
+      const element = wrapper.querySelector('.toast');
+      if (!element.dataset.toastId) {
+        element.dataset.state = toast.data.ending ? 'ending' : 'starting';
+        if (!toast.data.ending) {
+          element.setAttribute('data-starting-style', '');
+          setTimeout(() => { if (element.dataset.state === 'starting') element.dataset.state = 'open'; element.removeAttribute('data-starting-style'); }, 0);
+        }
+      }
+      if (!element.dataset.toastId) {
+        // 保留main的原生文字拖选，不让SDK把pointerdown当作滑动关闭。
+        // 在SDK绑定前截获根节点冒泡：目标按钮press与默认选字仍可运行。
+        element.addEventListener('pointerdown', event => event.stopImmediatePropagation());
+      }
+      element.dataset.toastId = toast.id;
+      element.querySelector('.toast-icon').replaceChildren(global.cavalryIcons.create(TYPE_ICONS[toast.type] || 'errorCircle'));
+    };
     document.body.append(viewport);
-
-    const records = [];
-    let hovering = false;
-    let focused = false;
-    let windowFocused = true;
-
-    function isPaused() {
-      return hovering || focused || !windowFocused;
-    }
-
-    function clearRecordTimer(record) {
-      if (record.timer !== null) globalThis.clearTimeout(record.timer);
-      record.timer = null;
-    }
-
-    function pauseTimers() {
-      const now = Date.now();
-      for (const record of records) {
-        if (record.timer === null) continue;
-        clearRecordTimer(record);
-        record.remaining = Math.max(record.remaining - (now - record.startedAt), 0);
+    // SDK默认F6会切回原控件；main每次聚焦最新项，Tab保持原生文档顺序。
+    document.addEventListener('keydown', event => {
+      if (event.key !== 'F6') return;
+      const latest = toaster.toasts()[0];
+      const element = [...viewport.querySelectorAll('.toast')].find(node => node.dataset.toastId === latest?.id);
+      if (element) { event.preventDefault(); element.focus(); }
+    });
+    function show({ title, description, type = 'error', timeout: duration = timeout }) {
+      // main 的 limit 是丢弃最旧项，不能让SDK的 max-visible 变成隐藏队列。
+      for (const previous of toaster.toasts().slice(Math.max(0, limit - 1))) {
+        const element = [...viewport.querySelectorAll('.toast')].find(node => node.dataset.toastId === previous.id);
+        if (element) { element.hidden = true; element.setAttribute('aria-hidden', 'true'); }
+        previous.data.immediate = true;
+        clearTimeout(previous.data.exitTimer);
+        toaster.dismiss(previous.id);
       }
-    }
-
-    function schedule(record) {
-      if (isPaused() || record.type === 'loading' || record.remaining <= 0) return;
-      record.startedAt = Date.now();
-      record.timer = setTimer(() => close(record.id), record.remaining);
-    }
-
-    function resumeTimers() {
-      for (const record of records) schedule(record);
-    }
-
-    function setExpanded(expanded) {
-      viewport.dataset.expanded = String(expanded);
-    }
-
-    function layout() {
-      let offset = 0;
-      const styles = global.getComputedStyle?.(document.documentElement);
-      const tokenGap = Number.parseFloat(styles?.getPropertyValue('--toast-stack-gap'));
-      const stackGap = Number.isFinite(tokenGap) ? tokenGap : DEFAULT_STACK_GAP_PX;
-      records.forEach((record, index) => {
-        const height = record.node.getBoundingClientRect?.().height || record.node.offsetHeight || 0;
-        record.node.style?.setProperty('--toast-index', String(index));
-        record.node.style?.setProperty('--toast-offset-y', `${offset}px`);
-        offset += height + stackGap;
+      const data = { immediate: false, exitTimer: null, ending: false };
+      let id;
+      id = toaster({ title, description, type, duration: type === 'loading' || duration <= 0 ? Infinity : duration, priority: 'polite', data,
+        onDismiss(details) {
+          if (data.immediate) return;
+          details.cancel();
+          if (data.ending) return;
+          data.ending = true;
+          const element = [...viewport.querySelectorAll('.toast')].find(node => node.dataset.toastId === id);
+          if (element) element.dataset.state = 'ending';
+          const raw = getComputedStyle(document.documentElement).getPropertyValue('--duration-toast-transform').trim();
+          const ms = Number.parseFloat(raw) * (raw.endsWith('ms') ? 1 : 1000);
+          // main保留500ms退出阶段和当前焦点，到移除时才回到document。
+          data.exitTimer = setTimeout(() => {
+            data.immediate = true;
+            const leaving = [...viewport.querySelectorAll('.toast')].find(node => node.dataset.toastId === id);
+            // 与main一样移除实际节点，让浏览器处理焦点；不先blur或转焦下一条。
+            leaving?.remove();
+            toaster.dismiss(id);
+          }, Number.isFinite(ms) ? ms : 500);
+        },
       });
-    }
-
-    function finalize(record) {
-      clearRecordTimer(record);
-      const index = records.indexOf(record);
-      if (index >= 0) records.splice(index, 1);
-      record.node.remove?.();
-      if (!record.node.remove) record.node.hidden = true;
-      layout();
-    }
-
-    function close(id) {
-      const record = records.find((candidate) => candidate.id === id);
-      if (!record || record.node.dataset.state === 'ending') return;
-      clearRecordTimer(record);
-      record.node.dataset.state = 'ending';
-      const exitDuration = readMillisecondsToken('--duration-toast-transform', DEFAULT_EXIT_DURATION_MS);
-      setTimer(() => finalize(record), exitDuration);
-    }
-
-    function createNode({ id, title, description, type }) {
-      const node = document.createElement('section');
-      const content = document.createElement('div');
-      const copy = document.createElement('div');
-      const titleNode = document.createElement('div');
-      const descriptionNode = document.createElement('div');
-      const closeButton = document.createElement('button');
-
-      node.className = 'toast';
-      node.dataset.state = 'starting';
-      node.dataset.type = type;
-      node.setAttribute('data-slot', 'toast');
-      node.setAttribute('role', 'dialog');
-      node.setAttribute('aria-modal', 'false');
-      node.setAttribute('aria-labelledby', `${id}-title`);
-      node.setAttribute('aria-describedby', `${id}-description`);
-      node.setAttribute('tabindex', '0');
-
-      content.className = 'toast-content';
-      content.setAttribute('data-slot', 'toast-content');
-      const icon = global.cavalryIcons?.create(TYPE_ICONS[type]);
-      if (icon) {
-        const iconSlot = document.createElement('span');
-        iconSlot.className = 'toast-icon';
-        iconSlot.setAttribute('data-slot', 'toast-icon');
-        iconSlot.append(icon);
-        content.append(iconSlot);
-      }
-
-      copy.className = 'toast-copy';
-      titleNode.id = `${id}-title`;
-      titleNode.className = 'toast-title';
-      titleNode.textContent = title;
-      titleNode.setAttribute('data-slot', 'toast-title');
-      descriptionNode.id = `${id}-description`;
-      descriptionNode.className = 'toast-description';
-      descriptionNode.textContent = description;
-      descriptionNode.setAttribute('data-slot', 'toast-description');
-      copy.append(titleNode, descriptionNode);
-
-      closeButton.type = 'button';
-      closeButton.className = 'ui-button toast-close';
-      closeButton.setAttribute('data-slot', 'toast-close');
-      closeButton.setAttribute('data-variant', 'ghost');
-      closeButton.setAttribute('aria-label', closeLabel);
-      const closeIcon = global.cavalryIcons?.create('close');
-      if (closeIcon) closeButton.append(closeIcon);
-      closeButton.addEventListener('click', () => close(id));
-      node.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') close(id);
-      });
-
-      content.append(copy, closeButton);
-      node.append(content);
-      return node;
-    }
-
-    function show({ title, description, type = 'error', timeout: itemTimeout = timeout }) {
-      const id = `toast-${nextToastId++}`;
-      const node = createNode({ id, title, description, type });
-      const record = {
-        id,
-        node,
-        type,
-        timer: null,
-        startedAt: 0,
-        remaining: Math.max(0, itemTimeout),
-      };
-      records.unshift(record);
-      viewport.append(node);
-      while (records.length > limit) finalize(records[records.length - 1]);
-      layout();
-      schedule(record);
-      setTimer(() => {
-        if (node.dataset.state === 'starting') node.dataset.state = 'open';
-      }, 0);
       return id;
     }
-
-    viewport.addEventListener('mouseenter', () => {
-      hovering = true;
-      setExpanded(true);
-      pauseTimers();
-    });
-    viewport.addEventListener('mouseleave', () => {
-      hovering = false;
-      setExpanded(focused);
-      if (!isPaused()) resumeTimers();
-    });
-    viewport.addEventListener('focusin', () => {
-      focused = true;
-      setExpanded(true);
-      pauseTimers();
-    });
-    viewport.addEventListener('focusout', (event) => {
-      if (viewport.contains(event.relatedTarget)) return;
-      focused = false;
-      setExpanded(hovering);
-      if (!isPaused()) resumeTimers();
-    });
-    global.addEventListener('blur', () => {
-      windowFocused = false;
-      pauseTimers();
-    });
-    global.addEventListener('focus', () => {
-      windowFocused = true;
-      if (!isPaused()) resumeTimers();
-    });
-    document.addEventListener('keydown', (event) => {
-      if (event.key !== 'F6' || records.length === 0) return;
-      event.preventDefault?.();
-      records[0].node.focus();
-    });
-
+    function close(id) { toaster.dismiss(id); }
     return Object.freeze({ show, close });
   }
-
   global.createToastControl = createToastControl;
 })(window);

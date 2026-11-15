@@ -1,6 +1,8 @@
 # Cavalry-i18n - Cavalry 的 macOS / Windows Tauri 桌面语言补丁器
 HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows generic translator + QPA delegate)
 
+UI SDK实验按固定最新main对照：15类基础组件与6类业务组合使用Web/Core parts，任务序列、权限交接与原生事务保留单一业务源。ui_sdk_components.json是映射；tools/ui-parity以同一黑盒输入核视觉、交互、状态、动画及实例覆盖。ui_sdk_entry/primitives只用公开API，经build_ui_sdk生成单个离线包。
+
 当前macOS arm64与Windows x64 production输入为Cavalry 2.8.1；Intel ABI/build仍待验证；Windows实屏与包生命周期独立记账；33键三语增补/12移除与完整官方target绑定，生产沿用既有native resource mode与用户状态域。
 公开的Cavalry 2.8.0 release保留为历史下载；2.7 p12是终版，只保留历史下载。
 Windows原生Apply在profile/runtime写入前持久化已验安装选择；GUI、--launch-cavalry和卸载共用native模式状态域及操作锁。卸载先解析必要目标，缺状态零profile写入，宿主已移除仍幂等恢复自有profile。

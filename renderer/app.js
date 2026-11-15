@@ -39,6 +39,7 @@ const statusText = document.querySelector('#statusText');
 const statusPanel = document.querySelector('#statusPanel');
 const statusViewport = document.querySelector('#statusViewport');
 const modalBackdrop = document.querySelector('#modalBackdrop');
+const confirmationDialog = document.querySelector('#confirmationDialog');
 const modalTitle = document.querySelector('#modalTitle');
 const modalBody = document.querySelector('#modalBody');
 const modalPrimaryButton = document.querySelector('#modalPrimaryButton');
@@ -53,9 +54,13 @@ const languageSelectControl = window.createSelectControl({
   list: languageSelectList,
   onValueChange: () => setBusy(state.busy),
 });
+// SDK按作者的tabindex绑定；ui-sdk.js已同步升级静态DOM，现在归还浏览器原生Tab策略。
+// main未指定tabindex：Chromium可聚焦溢出的滚动区，WebKit遵循系统键盘偏好。
+statusViewport.removeAttribute('tabindex');
 const operationLog = window.createOperationLog({
   root: statusPanel, idleMessage: document.querySelector('#statusIdle'),
   intro: document.querySelector('#statusIntro'), viewport: statusViewport,
+  scrollArea: document.querySelector('#statusScrollArea'),
   list: statusText, outcome: document.querySelector('#statusOutcome'),
 });
 const updateProgress = window.createUpdateProgress({ log: operationLog, text: t });
@@ -86,7 +91,6 @@ const permissionHandoff = window.createPermissionHandoffController({
 });
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
-let modalReturnFocus = null;
 const uiLocale = detectUiLocale();
 const languageScope = window.createLanguageScopeController({ text: t });
 const versionGuidance = window.cavalryVersionGuidance;
@@ -451,41 +455,24 @@ async function installCheckedUpdate(update) {
 }
 
 function showModal({ title, body, primary, secondary, onPrimary, onSecondary }) {
-  if (modalBackdrop.open) return;
-  if (typeof modalBackdrop.showModal !== 'function') {
-    setStatus('operationFailed', 'error');
-    return;
-  }
+  if (confirmationDialog.open) return;
   modalTitle.textContent = title;
   modalBody.textContent = body;
   modalPrimaryButton.textContent = primary;
   modalSecondaryButton.textContent = secondary;
   modalPrimaryAction = onPrimary;
   modalSecondaryAction = onSecondary || closeModal;
-  modalReturnFocus =
-    document.activeElement && typeof document.activeElement.focus === 'function'
-      ? document.activeElement
-      : null;
-  modalBackdrop.showModal();
-  modalPrimaryButton.focus();
+  confirmationDialog.open = true;
 }
 
 function finalizeModalClose() {
   modalPrimaryAction = null;
   modalSecondaryAction = null;
-  const returnFocus = modalReturnFocus;
-  modalReturnFocus = null;
-  if (
-    returnFocus &&
-    returnFocus.isConnected !== false &&
-    typeof returnFocus.focus === 'function'
-  ) {
-    returnFocus.focus();
-  }
 }
 
 function closeModal() {
-  if (modalBackdrop.open) modalBackdrop.close();
+  confirmationDialog.open = false;
+  finalizeModalClose();
 }
 
 function showRestoreConfirmation() {
@@ -786,8 +773,9 @@ modalPrimaryButton.addEventListener('click', () =>
 modalSecondaryButton.addEventListener('click', () =>
   void Promise.resolve(modalSecondaryAction && modalSecondaryAction()).catch(recoverOperationFailure)
 );
-modalBackdrop.addEventListener('close', finalizeModalClose);
-modalBackdrop.addEventListener('cancel', (event) => event.preventDefault());
+confirmationDialog.addEventListener('openchangecomplete', (event) => {
+  if (!event.detail.value && !confirmationDialog.open) finalizeModalClose();
+});
 
 bootstrap().then(() => checkForUpdates())
   .catch(() => setStatus('bootstrapFailed', 'error', { detail: t('operationFailed') }));

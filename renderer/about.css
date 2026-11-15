@@ -119,7 +119,7 @@ html:is([data-platform="macos"], [data-platform="windows"]) .about-titlebar {
   flex: 0 0 auto;
 }
 
-.about-link-icon > svg {
+.about-link-icon svg {
   width: 100%;
   height: 100%;
   display: block;

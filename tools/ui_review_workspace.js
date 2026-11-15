@@ -101,6 +101,7 @@ function workspaceHtml() {
         <div class="group-label">真实任务界面</div>
         <button class="scenario" data-scenario="switch"><span>Switch 四阶段</span></button>
         <button class="scenario" data-scenario="followHand"><span>关注手势 · 成功后播放 / 重播</span></button>
+        <button class="scenario" data-scenario="componentsSdk"><span>全组件 SDK · 2.8.1</span></button>
         <button class="scenario" data-scenario="restore"><span>Restore English 四阶段</span></button>
         <button class="scenario" data-scenario="update"><span>Update 三阶段</span></button>
         <button class="scenario" data-scenario="updateFailure"><span>Update 安装失败</span></button>

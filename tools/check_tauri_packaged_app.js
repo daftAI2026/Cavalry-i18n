@@ -59,7 +59,14 @@ const expectedRendererHashes = {
   'permission-handoff.js': sha256(path.join(rendererRoot, 'permission-handoff.js')),
   'update-progress.js': sha256(path.join(rendererRoot, 'update-progress.js')),
   'app.js': sha256(path.join(rendererRoot, 'app.js')),
+  'select-control.js': sha256(path.join(rendererRoot, 'select-control.js')),
+  'tooltip-control.js': sha256(path.join(rendererRoot, 'tooltip-control.js')),
+  'toast-control.js': sha256(path.join(rendererRoot, 'toast-control.js')),
 };
+const sdkManifest = JSON.parse(fs.readFileSync(path.join(rendererRoot, 'ui-sdk.manifest.json'), 'utf8'));
+for (const file of sdkManifest.files) {
+  expectedRendererHashes[file.path] = sha256(path.join(rendererRoot, file.path));
+}
 
 function sha256(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');

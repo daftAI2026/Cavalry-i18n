@@ -49,7 +49,13 @@ function fixture(styleValues = {}) {
   context.globalThis = context;
   vm.runInNewContext(read('renderer/icons.js'), context, { filename: 'icons.js' });
   vm.runInNewContext(read('renderer/operation-log.js'), context, { filename: 'operation-log.js' });
+  let sticking = true;
+  elements.viewport.addEventListener('scroll', () => {
+    sticking = elements.viewport.scrollHeight - elements.viewport.clientHeight - elements.viewport.scrollTop <= 1;
+  });
+  const scrollArea = { api: { isSticking: () => sticking, scrollToEnd() { elements.viewport.scrollTop = elements.viewport.scrollHeight; sticking = true; } } };
   const log = window.createOperationLog({
+    scrollArea,
     root: elements.root, idleMessage: elements.idle, intro: elements.intro,
     viewport: elements.viewport, list: elements.list, outcome: elements.outcome,
   });
@@ -86,11 +92,11 @@ test('Marker swaps Spinner in place and follows only while the reader stays at t
   assert.equal(elements.list.children[0].children[0].dataset.icon, 'verify');
   log.upsert({ id: 'baseline', title: 'Preparing recovery files', state: 'running' });
   assert.equal(elements.viewport.scrollTop, 40);
-  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.dataset.fadeAtEnd, 'true');
   elements.viewport.scrollTop = 0;
   for (const callback of elements.viewport.listeners.get('scroll') || []) callback();
-  assert.equal(elements.viewport.dataset.atStart, 'true');
-  assert.equal(elements.viewport.dataset.atEnd, 'false');
+  assert.equal(elements.viewport.dataset.fadeAtStart, 'true');
+  assert.equal(elements.viewport.dataset.fadeAtEnd, 'false');
   log.upsert({ id: 'apply', title: 'Applying', state: 'running' });
   assert.equal(elements.viewport.scrollTop, 0);
 });
@@ -114,7 +120,7 @@ test('outcome track recalculates overflow when it shrinks the middle viewport', 
   log.complete('Task complete.');
   assert.equal(elements.root.dataset.hasOutcome, 'true');
   assert.equal(elements.viewport.dataset.overflowing, 'true');
-  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.dataset.fadeAtEnd, 'true');
   assert.equal(elements.viewport.scrollTop, 40);
 });
 
@@ -140,7 +146,7 @@ test('a blocker description remeasures after layout and pushes the live edge upw
   committedScrollHeight = 104;
   flushAnimationFrames();
   assert.equal(elements.viewport.dataset.overflowing, 'true');
-  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.dataset.fadeAtEnd, 'true');
   assert.equal(elements.viewport.scrollTop, 104);
 });
 
@@ -162,7 +168,7 @@ test('external permission controls can shrink the viewport without clipping the 
   log.remeasure();
   flushAnimationFrames();
   assert.equal(elements.viewport.dataset.overflowing, 'true');
-  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.dataset.fadeAtEnd, 'true');
   assert.equal(elements.viewport.scrollTop, 104);
 });
 

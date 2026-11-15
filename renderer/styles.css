@@ -392,6 +392,7 @@ html[data-platform="windows"] .titlebar {
 }
 
 .select-root {
+  display: block;
   position: relative;
   min-width: 0;
   grid-column: 1 / -1;
@@ -463,10 +464,12 @@ html[data-platform="windows"] .titlebar {
   top: 0;
   left: 0;
   width: 100%;
+  margin: 0;
   padding: var(--padding-menu);
   border: 0;
   border-radius: var(--radius-select-popup);
   background: var(--surface-raised);
+  color: var(--text);
   box-shadow: var(--shadow-select-popup);
 }
 
@@ -524,16 +527,16 @@ html[data-platform="windows"] .titlebar {
   pointer-events: none;
 }
 
-.select-item[data-highlighted="true"] {
+.select-item[data-highlighted] {
   background: var(--surface-hover);
 }
 
-.select-item[data-disabled="true"] {
+.select-item[data-disabled] {
   color: var(--text-secondary);
   opacity: var(--opacity-control-disabled);
 }
 
-.select-item[data-disabled="true"][data-highlighted="true"] {
+.select-item[data-disabled][data-highlighted] {
   background: transparent;
 }
 
@@ -553,7 +556,7 @@ html[data-platform="windows"] .titlebar {
   height: var(--select-indicator-size);
 }
 
-.select-item[aria-selected="true"] .select-item-indicator {
+.select-item[data-selected] .select-item-indicator {
   opacity: 1;
 }
 
@@ -642,6 +645,7 @@ html[data-platform="windows"] .titlebar {
 }
 
 .modal-backdrop {
+  color: CanvasText;
   position: fixed;
   inset: var(--titlebar-height) 0 0;
   width: 100%;
