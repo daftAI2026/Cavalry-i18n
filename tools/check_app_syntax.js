@@ -240,6 +240,12 @@ const APP_SYNTAX_FILES = Object.freeze([
   'tools/watch_cavalry_release.test.js',
   'renderer/support-follow-hand.js',
   'tools/support_follow_hand.test.js',
+  'tools/build_ui_sdk.js',
+  'tools/ui_sdk_entry.mjs',
+  'tools/ui_sdk_primitives.mjs',
+  'tools/ui-parity/run.js',
+  'tools/ui-parity/driver.js',
+  'tools/ui-parity/cases.js',
 ]);
 
 function runAppSyntaxCheck(files = APP_SYNTAX_FILES, options = {}) {

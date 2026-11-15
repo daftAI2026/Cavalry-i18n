@@ -1,0 +1,145 @@
+{
+  "sdkVersion": "0.1.0-beta.2",
+  "esbuildVersion": "0.28.2",
+  "components": [
+    "button",
+    "select",
+    "tooltip",
+    "alert-dialog",
+    "toast",
+    "scroll-area",
+    "progress",
+    "badge",
+    "item",
+    "icon",
+    "link",
+    "marker",
+    "message",
+    "spinner",
+    "shimmer"
+  ],
+  "implementations": {
+    "schemaVersion": 1,
+    "primitives": [
+      {
+        "name": "button",
+        "mode": "web",
+        "selector": "ui-button:has(button)"
+      },
+      {
+        "name": "select",
+        "mode": "core",
+        "selector": "cv-select"
+      },
+      {
+        "name": "tooltip",
+        "mode": "core",
+        "selector": "cv-tooltip"
+      },
+      {
+        "name": "alert-dialog",
+        "mode": "core-native-dialog",
+        "selector": "cv-alert-dialog"
+      },
+      {
+        "name": "toast",
+        "mode": "core-main-presence",
+        "selector": "ui-toast-region"
+      },
+      {
+        "name": "scroll-area",
+        "mode": "web",
+        "selector": "ui-scroll-area"
+      },
+      {
+        "name": "progress",
+        "mode": "web",
+        "selector": "ui-progress"
+      },
+      {
+        "name": "badge",
+        "mode": "core",
+        "selector": "cv-badge"
+      },
+      {
+        "name": "item",
+        "mode": "core",
+        "selector": "cv-item"
+      },
+      {
+        "name": "icon",
+        "mode": "core",
+        "selector": "cv-icon"
+      },
+      {
+        "name": "link",
+        "mode": "web",
+        "selector": "ui-button:has(a)"
+      },
+      {
+        "name": "marker",
+        "mode": "core",
+        "selector": "cv-marker"
+      },
+      {
+        "name": "message",
+        "mode": "core",
+        "selector": "cv-message"
+      },
+      {
+        "name": "spinner",
+        "mode": "core",
+        "selector": "cv-spinner"
+      },
+      {
+        "name": "shimmer",
+        "mode": "core",
+        "selector": "cv-shimmer"
+      }
+    ],
+    "compositions": [
+      {
+        "name": "activity",
+        "selector": "cv-task-panel",
+        "controller": "renderer/operation-log.js"
+      },
+      {
+        "name": "permission-handoff",
+        "selector": "cv-alert-dialog",
+        "controller": "renderer/permission-handoff.js"
+      },
+      {
+        "name": "window-controls",
+        "selector": "cv-window-frame, cv-window-controls",
+        "controller": "renderer/window-controls.js"
+      },
+      {
+        "name": "about",
+        "selector": "cv-about",
+        "controller": "renderer/about-window.js"
+      },
+      {
+        "name": "support-footer",
+        "selector": "cv-support-footer",
+        "controller": "renderer/support-footer.js"
+      },
+      {
+        "name": "follow-hand",
+        "selector": "cv-follow-hand",
+        "controller": "renderer/support-follow-hand.js"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "ui-sdk.js",
+      "bytes": 117983,
+      "sha256": "1e215eb8f2a2ac4a4b8cb153172a62e497ffb48f58751e019567dfd5e20c68fd"
+    },
+    {
+      "path": "ui-sdk.LICENSE",
+      "bytes": 11343,
+      "sha256": "85dc930b9f77edd477ceddd7658dd3a4bb4411186718d19e137a7a5724ee7007"
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 ; [INPUT]: 依赖 Tauri NSIS 模板的 PRODUCTNAME、VERSION 与 SimpChinese 语言常量
 ; [OUTPUT]: 对外提供简体中文安装/卸载消息，并在确认页限定应用数据为切换器设置
-; [POS]: nsis-languages 的简体中文消息表；键集合与 Tauri 2.10.3 默认表同构，只收窄 deleteAppData 的产品语义
+; [POS]: nsis-languages 的简体中文消息表；键集合与 Tauri CLI 2.12.4 默认表同构，只收窄 deleteAppData 的产品语义
 ; [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 LangString addOrReinstall ${LANG_SIMPCHINESE} "添加/重新安装组件"
@@ -9,7 +9,7 @@ LangString alreadyInstalledLong ${LANG_SIMPCHINESE} "${PRODUCTNAME} ${VERSION} �
 LangString appRunning ${LANG_SIMPCHINESE} "{{product_name}} 正在运行！请关闭后再试。"
 LangString appRunningOkKill ${LANG_SIMPCHINESE} "{{product_name}} 正在运行！$\n点击确定以终止运行。"
 LangString chooseMaintenanceOption ${LANG_SIMPCHINESE} "选择要执行的维护操作。"
-LangString choowHowToInstall ${LANG_SIMPCHINESE} "选择你想要安装 ${PRODUCTNAME} 的方式。"
+LangString chooseHowToInstall ${LANG_SIMPCHINESE} "选择你想要安装 ${PRODUCTNAME} 的方式。"
 LangString createDesktop ${LANG_SIMPCHINESE} "创建桌面快捷方式"
 LangString dontUninstall ${LANG_SIMPCHINESE} "请勿卸载"
 LangString dontUninstallDowngrade ${LANG_SIMPCHINESE} "请勿卸载（此安装程序禁止未卸载就进行版本降级的操作）"

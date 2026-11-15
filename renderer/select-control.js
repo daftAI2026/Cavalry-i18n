@@ -1,159 +1,75 @@
 /**
- * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、只读 popup placeholder、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected/disabled 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，禁用项保持可见但不会被指针、方向键、Home/End、Enter/Space 或 typeahead 选中，可选 badge 由业务传入，菜单项与已提交选中值共享名称/徽章及无障碍投影，不随 active 改变，选中 checkmark 独立贴右。
- * [POS]: renderer 的无依赖选择器组件状态机；只管理显式选择交互和无障碍投影，不替业务预选默认值、不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
+ * [INPUT]: 依赖 UI SDK 0.1.0-beta.2 的本地 Web Components 与既有 Select DOM、样式和业务 options。
+ * [OUTPUT]: 保持 createSelectControl 四方法接口；只投影标签、徽章、原生值和业务回调，选择、键盘、焦点及弹层由 UI SDK 管理。
+ * [POS]: Select 的展示适配层；不访问 Tauri、不预选语言，不保留第二套交互状态机；离线 SDK 由 build_ui_sdk.js 生成。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachSelectControl(global) {
   'use strict';
 
   function createSelectControl({ root, select, trigger, value, popup, popupPlaceholder, list, onValueChange = () => {} }) {
-    let open = false;
-    let activeIndex = -1;
     let options = [];
     let placeholder = '';
-    let typeahead = '';
-    let typeaheadTimer = null;
 
     function normalizeBadge(badge) {
       if (typeof badge === 'string') return { label: badge, kind: '', ariaLabel: badge };
-      if (!badge || typeof badge !== 'object') return null;
-      const label = typeof badge.label === 'string'
-        ? badge.label
-        : typeof badge.text === 'string'
-          ? badge.text
-          : '';
-      if (!label) return null;
+      if (!badge || typeof badge !== 'object' || !badge.label && !badge.text) return null;
       return {
-        label,
-        kind: typeof badge.kind === 'string'
-          ? badge.kind
-          : typeof badge.tone === 'string'
-            ? badge.tone
-            : typeof badge.variant === 'string'
-              ? badge.variant
-              : '',
-        ariaLabel: typeof badge.ariaLabel === 'string' ? badge.ariaLabel : label,
+        label: String(badge.label || badge.text),
+        kind: badge.kind || badge.tone || badge.variant || '',
+        ariaLabel: badge.ariaLabel || badge.label || badge.text,
       };
     }
 
-    function selectedIndex() {
-      return options.findIndex((option) => option.value === select.value);
-    }
-
-    function firstEnabledIndex() {
-      return options.findIndex((option) => !option.disabled);
-    }
-
-    function lastEnabledIndex() {
-      return options.findLastIndex((option) => !option.disabled);
-    }
-
-    function nextEnabledIndex(fromIndex, direction) {
-      if (!options.length || firstEnabledIndex() < 0) return -1;
-      for (let offset = 1; offset <= options.length; offset += 1) {
-        const index = (fromIndex + direction * offset + options.length) % options.length;
-        if (!options[index].disabled) return index;
-      }
-      return -1;
-    }
-
-    function alignPopupItemToTrigger(item) {
-      if (!item || !popup.style || typeof trigger.getBoundingClientRect !== 'function' || typeof item.getBoundingClientRect !== 'function') return;
-
-      // Base UI 默认让选中项的视觉中心与 Trigger 对齐。这里先归零，再由真实布局盒推导偏移，
-      // 避免复制一组只对单一字体或语言成立的位置魔法数。
-      popup.style.top = '0px';
-      const triggerRect = trigger.getBoundingClientRect();
-      const itemRect = item.getBoundingClientRect();
-      const alignedTop = triggerRect.top + triggerRect.height / 2 - itemRect.top - itemRect.height / 2;
-      popup.style.top = `${alignedTop}px`;
-    }
-
-    function renderState() {
-      root.dataset.state = open ? 'open' : 'closed';
-      popup.dataset.state = open ? 'open' : 'closed';
-      trigger.setAttribute('aria-expanded', String(open));
-      popup.hidden = !open;
-      const selected = selectedIndex();
-      const hasSelection = selected >= 0;
+    function renderValue() {
+      const option = options.find((item) => item.value === select.value);
+      const hasSelection = Boolean(option);
       root.dataset.placeholder = String(!hasSelection);
       value.dataset.placeholder = String(!hasSelection);
       value.replaceChildren();
-      if (hasSelection) {
-        value.append(createOptionCopy(options[selected]));
-        value.setAttribute('aria-label', optionAccessibleLabel(options[selected]));
+      if (option) {
+        value.append(createOptionCopy(option));
+        value.setAttribute('aria-label', optionAccessibleLabel(option));
       } else {
         value.textContent = placeholder;
         value.removeAttribute('aria-label');
       }
-      popupPlaceholder.hidden = !(open && !hasSelection);
       popupPlaceholder.textContent = placeholder;
-
-      for (const [index, item] of Array.from(list.children).entries()) {
-        const isSelected = index === selected;
-        const isActive = open && index === activeIndex;
-        item.dataset.highlighted = String(isActive);
-        item.setAttribute('aria-selected', String(isSelected));
-      }
-
-      if (open && activeIndex >= 0) {
-        trigger.setAttribute('aria-activedescendant', list.children[activeIndex].id);
-      } else {
-        trigger.removeAttribute('aria-activedescendant');
-        popup.style?.removeProperty?.('top');
-      }
+      popupPlaceholder.hidden = hasSelection;
     }
 
-    function setOpen(nextOpen) {
-      if (trigger.disabled) nextOpen = false;
-      open = nextOpen;
-      if (open) {
-        const selected = selectedIndex();
-        activeIndex = selected >= 0 && !options[selected].disabled ? selected : firstEnabledIndex();
-        renderState();
-        // Base UI 的 item-aligned positioner 只在弹层开启时确定锚点。
-        // 指针移动只改变 active item；若随 activeIndex 重算 top，菜单会在鼠标下跳动。
-        alignPopupItemToTrigger(selected >= 0 ? list.children[activeIndex] : popupPlaceholder);
-        return;
+    function optionAccessibleLabel(option) {
+      return option.ariaLabel || [option.label, option.badge?.ariaLabel].filter(Boolean).join(', ');
+    }
+
+    function createOptionCopy(option) {
+      const copy = document.createElement('span');
+      copy.className = 'select-item-copy';
+      const label = document.createElement('span');
+      label.className = 'select-item-label';
+      label.textContent = option.label;
+      copy.append(label);
+
+      if (option.badge) {
+        const badge = document.createElement('cv-badge');
+        badge.className = 'badge select-item-badge';
+        if (option.badge.kind) badge.dataset.kind = option.badge.kind;
+        badge.textContent = option.badge.label;
+        badge.setAttribute('aria-hidden', 'true');
+        copy.append(badge);
       }
-      renderState();
-    }
-
-    function setActive(nextIndex) {
-      if (nextIndex < 0 || nextIndex >= options.length || options[nextIndex].disabled) return;
-      activeIndex = nextIndex;
-      renderState();
-      list.children[activeIndex]?.scrollIntoView?.({ block: 'nearest' });
-    }
-
-    function commit(index) {
-      if (index < 0 || index >= options.length || options[index].disabled) return;
-      select.value = options[index].value;
-      activeIndex = index;
-      setOpen(false);
-      onValueChange(select.value);
-      trigger.focus();
+      return copy;
     }
 
     function createItem(option, index) {
-      const item = document.createElement('div');
+      const item = document.createElement('cv-select-item');
       item.id = `languageSelectOption-${index}`;
       item.className = 'select-item';
-      item.dataset.value = option.value;
-      item.dataset.disabled = String(option.disabled);
-      item.setAttribute('role', 'option');
-      item.setAttribute('aria-disabled', String(option.disabled));
-      const accessibleLabel = optionAccessibleLabel(option);
-      if (accessibleLabel) item.setAttribute('aria-label', accessibleLabel);
-      item.addEventListener('pointermove', () => {
-        if (!option.disabled && activeIndex !== index) setActive(index);
-      });
-      item.addEventListener('pointerdown', (event) => event.preventDefault());
-      item.addEventListener('click', () => commit(index));
-
+      item.setAttribute('value', option.value);
+      item.setAttribute('label', option.label);
+      if (option.disabled) item.setAttribute('disabled', '');
+      item.setAttribute('aria-label', optionAccessibleLabel(option));
       item.append(createOptionCopy(option));
-
       const indicator = document.createElement('span');
       indicator.className = 'select-item-indicator';
       indicator.setAttribute('aria-hidden', 'true');
@@ -172,38 +88,12 @@
       return item;
     }
 
-    // ---- 菜单项与选中值共享内容，状态由同一 option 提供 ------------------
-    function optionAccessibleLabel(option) {
-      return option.ariaLabel || [option.label, option.badge?.ariaLabel].filter(Boolean).join(', ');
-    }
-
-    function createOptionCopy(option) {
-      const copy = document.createElement('span');
-      copy.className = 'select-item-copy';
-      const label = document.createElement('span');
-      label.className = 'select-item-label';
-      label.textContent = option.label;
-      copy.append(label);
-
-      if (option.badge) {
-        const badge = document.createElement('span');
-        badge.className = 'badge select-item-badge';
-        if (option.badge.kind) badge.dataset.kind = option.badge.kind;
-        badge.textContent = option.badge.label;
-        badge.setAttribute('aria-hidden', 'true');
-        copy.append(badge);
-      }
-      return copy;
-    }
-
     function setOptions(nextOptions) {
       const previousValue = select.value;
-      options = nextOptions.map(({ value: optionValue, label, disabled = false, badge = null, ariaLabel = '' }) => ({
-        value: String(optionValue),
-        label: String(label),
-        disabled: Boolean(disabled),
-        badge: normalizeBadge(badge),
-        ariaLabel: typeof ariaLabel === 'string' ? ariaLabel : '',
+      options = nextOptions.map((option) => ({
+        value: String(option.value), label: String(option.label),
+        disabled: Boolean(option.disabled), badge: normalizeBadge(option.badge),
+        ariaLabel: typeof option.ariaLabel === 'string' ? option.ariaLabel : '',
       }));
       select.replaceChildren();
       list.replaceChildren();
@@ -216,80 +106,46 @@
         list.append(createItem(option, index));
       }
       select.value = options.some((option) => option.value === previousValue) ? previousValue : '';
-      renderState();
+      syncSdkValue();
+      renderValue();
+    }
+
+    function syncSdkValue() {
+      // main允许后端刷新在禁用期同步值，Core primitive保持这一程序接口。
+      root.value = select.value || null;
     }
 
     function setValue(nextValue) {
       select.value = String(nextValue || '');
-      renderState();
+      syncSdkValue();
+      renderValue();
       onValueChange(select.value);
     }
 
     function setPlaceholder(nextPlaceholder) {
       placeholder = String(nextPlaceholder || '');
-      renderState();
+      renderValue();
     }
 
     function setDisabled(disabled) {
       select.disabled = disabled;
+      if (disabled) root.open = false;
+      root.api.setDisabled(disabled);
+      root.toggleAttribute('disabled',disabled);
       trigger.disabled = disabled;
-      if (disabled) setOpen(false);
     }
 
-    function moveTypeahead(key) {
-      clearTimeout(typeaheadTimer);
-      typeahead += key.toLocaleLowerCase();
-      const start = activeIndex < 0 ? 0 : activeIndex + 1;
-      for (let offset = 0; offset < options.length; offset += 1) {
-        const index = (start + offset) % options.length;
-        if (!options[index].disabled && options[index].label.toLocaleLowerCase().startsWith(typeahead)) {
-          setActive(index);
-          break;
-        }
-      }
-      typeaheadTimer = setTimeout(() => { typeahead = ''; }, 500);
-    }
-
-    trigger.addEventListener('click', () => setOpen(!open));
-    trigger.addEventListener('keydown', (event) => {
-      if (event.key === 'Tab') {
-        setOpen(false);
-        return;
-      }
-      if (event.key === 'Escape') {
-        if (open) event.preventDefault();
-        setOpen(false);
-        return;
-      }
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-        event.preventDefault();
-        if (!open) setOpen(true);
-        else setActive(nextEnabledIndex(activeIndex, event.key === 'ArrowDown' ? 1 : -1));
-        return;
-      }
-      if (event.key === 'Home' || event.key === 'End') {
-        event.preventDefault();
-        if (!open) setOpen(true);
-        setActive(event.key === 'Home' ? firstEnabledIndex() : lastEnabledIndex());
-        return;
-      }
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        if (open) commit(activeIndex);
-        else setOpen(true);
-        return;
-      }
-      if (event.key.length === 1 && !event.metaKey && !event.ctrlKey && !event.altKey) {
-        if (!open) setOpen(true);
-        moveTypeahead(event.key);
-      }
+    root.addEventListener('valuechange', (event) => {
+      select.value = event.detail.value || '';
+      renderValue();
+      onValueChange(select.value);
     });
-
-    document.addEventListener('pointerdown', (event) => {
-      if (open && !root.contains(event.target)) setOpen(false);
+    root.addEventListener('openchange', (event) => {
+      root.dataset.state = event.detail.value ? 'open' : 'closed';
+      popup.dataset.state = root.dataset.state;
+      renderValue();
     });
-
-    renderState();
+    renderValue();
     return Object.freeze({ setOptions, setValue, setPlaceholder, setDisabled });
   }
 

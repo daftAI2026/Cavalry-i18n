@@ -152,7 +152,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.doesNotMatch(workspace, /revision && next !== revision\) frame\.contentWindow\.location\.reload/);
   assert.match(reviewServerSource, /for \(const request of reviewModuleRequests\) delete require\.cache\[require\.resolve\(request\)\]/);
   assert.match(reviewServerSource, /const reviewSourcePaths = Object\.freeze\(reviewModuleRequests\.map\(\(request\) => require\.resolve\(request\)\)\)/);
-  assert.match(reviewServerSource, /return \[\.\.\.rendererSources, \.\.\.reviewSourcePaths\]/);
+  assert.match(reviewServerSource, /return \[\.\.\.rendererSources, \.\.\.sdkSources, \.\.\.reviewSourcePaths\]/);
+  assert.match(reviewServerSource, /JSON\.parse\(fs\.readFileSync\(sdkManifest, 'utf8'\)\)\.files/);
   assert.match(reviewServerSource, /process\.env\.CAVALRY_UI_REVIEW_REFERENCE_ROOT/);
   assert.match(reviewServerSource, /path\.join\(os\.tmpdir\(\), 'cavalry-i18n-ui-review'\)/);
   assert.match(reviewServerSource, /'\/local-reference\/hint-arrow\.png'/);
@@ -367,7 +368,7 @@ const REQUIRED_API_METHODS = [
   'minimizeWindow', 'toggleMaximizeWindow', 'isWindowMaximized', 'closeWindow',
 ];
 
-test('semantic icon registry is frozen, defensive, and returns independent accessible SVG nodes', () => {
+test('semantic icon registry returns frozen SDK parts with independent accessible SVG nodes', () => {
   const createNode = () => ({
     attributes: new Map(), children: [],
     setAttribute(key, value) { this.attributes.set(key, String(value)); },
@@ -376,10 +377,11 @@ test('semantic icon registry is frozen, defensive, and returns independent acces
   const window = {};
   vm.runInNewContext(read('renderer/icons.js'), {
     window,
-    document: { createElementNS: createNode },
+    document: { createElementNS: createNode, createElement: createNode },
   });
-  const first = window.cavalryIcons.create('verify');
-  const second = window.cavalryIcons.create('verify');
+  const firstPart = window.cavalryIcons.create('verify');
+  const first = firstPart.children[0];
+  const second = window.cavalryIcons.create('verify').children[0];
   assert.equal(Object.isFrozen(window.cavalryIcons), true);
   assert.notEqual(first, second, 'each consumer must receive an independent SVG node');
   assert.deepEqual(Object.fromEntries(first.attributes), {
@@ -387,11 +389,11 @@ test('semantic icon registry is frozen, defensive, and returns independent acces
   });
   assert.ok(first.children[0].attributes.get('d'));
   assert.equal(
-    window.cavalryIcons.create('restore').children[0].attributes.get('d'),
+    window.cavalryIcons.create('restore').children[0].children[0].attributes.get('d'),
     RESTORE_ICON_PATH,
     'Restore must use the pinned Phosphor Regular FloppyDiskBack path'
   );
-  assert.ok(window.cavalryIcons.create('dragUp')?.children[0]?.attributes.get('d'), 'permission drag hint must resolve through the shared icon registry');
+  assert.ok(window.cavalryIcons.create('dragUp')?.children[0]?.children[0]?.attributes.get('d'), 'permission drag hint must resolve through the shared icon registry');
   assert.equal(window.cavalryIcons.create('unknown'), null, 'unknown semantic names must fail closed');
 });
 
@@ -405,14 +407,13 @@ test('Toast follows the pinned shadcn/Base UI timing while consuming local desig
 
   assert.match(control, /const DEFAULT_TIMEOUT_MS = 5000;/);
   assert.match(control, /const DEFAULT_LIMIT = 3;/);
-  assert.match(control, /record\.type === 'loading'/, 'loading Toast must not auto-dismiss');
-  assert.match(control, /record\.remaining = Math\.max\(record\.remaining - \(now - record\.startedAt\), 0\)/);
-  assert.match(control, /viewport\.addEventListener\('mouseenter',[\s\S]*?pauseTimers\(\)/);
-  assert.match(control, /viewport\.addEventListener\('focusin',[\s\S]*?pauseTimers\(\)/);
-  assert.match(control, /global\.addEventListener\('blur',[\s\S]*?pauseTimers\(\)/);
-  assert.match(control, /event\.key !== 'F6'/);
-  assert.match(control, /event\.key === 'Escape'/);
-  assert.match(control, /while \(records\.length > limit\)/);
+  assert.match(control, /global\.cavalryUi\.createToaster\(\{ duration: timeout \}\)/);
+  assert.match(control, /type === 'loading' \|\| duration <= 0 \? Infinity/);
+  assert.match(control, /setAttribute\('max-visible', String\(limit\)\)/);
+  assert.match(control, /setAttribute\('shortcut', ''\)/);
+  assert.match(control, /event.key !== 'F6'/);
+  assert.doesNotMatch(control, /addEventListener\('(?:mouseenter|focusin)'/, 'SDK owns notification attention; F6 follows main');
+  assert.match(control, /details\.cancel\(\)/, 'main presence stage postpones SDK removal through its public cancellation API');
 
   assert.match(tokens, /--toast-viewport-inset:\s*var\(--space-4\)/, 'Toast keeps the approved 16px source inset');
   assert.match(tokens, /--toast-content-padding:\s*var\(--space-4\)/);
@@ -485,7 +486,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(icons, /@import|url\([\"']?https?:/i, 'icon registry must not load remote resources');
   assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
-  assert.match(html, /<footer id="supportFooter" class="support-footer">[\s\S]*?id="supportFooterMessage"[\s\S]*?id="supportFooterLinks"[\s\S]*?id="supportGithubLink"[\s\S]*?id="supportTwitterLink"[\s\S]*?id="supportXiaohongshuLink"[\s\S]*?<\/footer>/);
+  assert.match(html, /<cv-support-footer id="supportFooter" class="support-footer">[\s\S]*?id="supportFooterMessage"[\s\S]*?id="supportFooterLinks"[\s\S]*?id="supportGithubLink"[\s\S]*?id="supportTwitterLink"[\s\S]*?id="supportXiaohongshuLink"[\s\S]*?<\/cv-support-footer>/);
   assert.match(styles, /grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\) var\(--support-footer-height\)/, 'footer occupies a separate shell track below existing content');
   assert.doesNotMatch(supportStyles, /border-top:/, 'footer shares the content gap without a divider');
   assert.match(tokens, /--support-footer-height:\s*calc\(/, 'footer derives its height from actual shared geometry');
@@ -498,7 +499,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(uiText, /supportFooterMessage: '关注我们'/);
   assert.match(buttonStyles, /\.ui-button\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center;[\s\S]*?justify-content:\s*center;[\s\S]*?appearance:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?white-space:\s*nowrap;[\s\S]*?user-select:\s*none;[\s\S]*?cursor:\s*pointer/);
   assert.match(buttonStyles, /\.ui-button:disabled\s*\{[\s\S]*?pointer-events:\s*none;[\s\S]*?opacity:\s*var\(--opacity-control-disabled\)/);
-  assert.match(buttonStyles, /\.ui-button > svg\s*\{[\s\S]*?flex:\s*0 0 auto;[\s\S]*?pointer-events:\s*none/);
+  assert.match(buttonStyles, /\.ui-button svg\s*\{[\s\S]*?flex:\s*0 0 auto;[\s\S]*?pointer-events:\s*none/);
   assert.match(thirdPartyNotices, /## shadcn\/ui[\s\S]*Licensed under the MIT License/);
   assert.match(thirdPartyNotices, /## Phosphor Icons[\s\S]*Licensed under the MIT License/);
   assert.match(thirdPartyNotices, /simple-icons\/simple-icons\/blob\/4d29a35c954699b389a834aacc97dd6e7e74143c\/icons\/github\.svg[\s\S]*CC0 1\.0/);
@@ -509,7 +510,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-follow-hand\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/ui-sdk\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-follow-hand\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
     'renderer scripts must load bridge, copy, policies, components, then app'
   );
   assert.match(profileText, /const NATIVE_USER_PROFILE_TEXT = Object\.freeze\(/);
@@ -542,7 +543,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}\n${supportFooter}\n${supportFollowHand}`;
+  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}\n${supportFooter}\n${supportFollowHand}\n${read('tools/ui_sdk_primitives.mjs')}`;
   assert.deepEqual(
     tokenDefinitions.filter(
       (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
@@ -567,7 +568,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const statusPanelRule = cssRule(operationStyles, '.status-panel');
   const statusPanelWithPermissionRule = cssRule(
     operationStyles,
-    '.status-panel:has(> .status-action-button:not([hidden]))'
+    '.status-panel:has(.status-action-button:not([hidden]))'
   );
   assert.match(statusPanelRule, /grid-template-rows:\s*minmax\(0,\s*1fr\);/);
   assert.match(statusPanelRule, /gap:\s*0;/, 'hidden status actions must not retain a grid gap');
@@ -612,7 +613,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.ok(pathMatch, 'update icon path missing');
   assert.equal(pathMatch[1], UPDATE_ICON_PATH, 'update icon path must remain exact');
   assert.match(html, /id="updateControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
-  assert.match(html, /id="updateTooltip"[^>]*data-slot="tooltip-content"[^>]*role="tooltip"[^>]*aria-hidden="true"[\s\S]*?<div class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"><\/div>/);
+  assert.match(html, /id="updateTooltip"[^>]*data-slot="tooltip-content"[\s\S]*?<cv-tooltip-arrow class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"><\/cv-tooltip-arrow>/);
   assert.match(html, /id="updateAnnouncement"[^>]*role="status"[^>]*aria-live="polite"/);
   assert.match(updateButton, /class="ui-button update-button"[^>]*data-variant="ghost"[^>]*data-size="icon-xs"/);
   assert.match(styles, /\.ui-button\.update-button\s*\{[\s\S]*?color: var\(--tone-update\)/);
@@ -634,12 +635,10 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tooltipArrowRule, /left:\s*var\(--tooltip-arrow-inline\)/);
   assert.match(tooltipArrowRule, /top:\s*var\(--tooltip-arrow-bottom-inset\)/);
   assert.match(tooltipArrowRule, /width:\s*var\(--tooltip-arrow-size\)/);
-  assert.match(tooltipControl, /document\.body\.append\(popup\)/, 'Tooltip popup must use a body portal');
-  assert.match(tooltipControl, /event\.pointerType !== 'touch'/, 'touch must not synthesize a Tooltip');
-  assert.match(tooltipControl, /trigger\.setAttribute\('aria-describedby', descriptionId\)/);
-  assert.match(tooltipControl, /trigger\.removeAttribute\('aria-describedby'\)/);
-  assert.match(tooltipControl, /side === 'bottom'/);
-  assert.match(tooltipControl, /Math\.min\([\s\S]*?Math\.max\(idealLeft, collisionPadding\)/, 'Tooltip must shift inside the viewport');
+  assert.match(html, /<cv-tooltip-content/);
+  assert.match(tooltipControl, /document\.body\.append\(popup\)/);
+  assert.match(tooltipControl, /popup\.setAttribute\('for',root\.id\)/);
+
   assert.match(pathDisplay, /Math\.max\(path\.lastIndexOf\('\/'\), path\.lastIndexOf\('\\\\'\)\)/);
   assert.match(pathDisplay, /leaf:\s*path\.slice\(slash\)/, 'path display must preserve the final separator and leaf');
   assert.match(styles, /\.app-path-prefix\s*\{[\s\S]*?text-overflow:\s*ellipsis/);
@@ -652,27 +651,26 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(selectFocusBlock, /border-color:[\s\S]*?background:/);
   assert.doesNotMatch(selectFocusBlock, /outline:|box-shadow:/, 'select must not draw a focus ring');
   assert.match(styles, /\.select-popup\s*\{[\s\S]*?top:\s*0;/);
-  assert.match(selectControl, /renderState\(\);[\s\S]*?alignPopupItemToTrigger\(selected >= 0 \? list\.children\[activeIndex\] : popupPlaceholder\);[\s\S]*?return;/);
-  const selectRenderState = selectControl.match(/function renderState\(\)\s*\{([\s\S]*?)\n\s*\}\n\n\s*function setOpen/)?.[1];
-  assert.ok(selectRenderState, 'Select renderState boundary missing');
-  assert.doesNotMatch(selectRenderState, /alignPopupItemToTrigger/, 'pointer movement must not reposition the popup through renderState');
+  assert.match(html, /<cv-select-content[^>]*class="select-popup"/);
+  assert.match(selectControl, /root\.addEventListener\('valuechange'/);
+  assert.doesNotMatch(selectControl, /addEventListener\('(?:keydown|pointermove|click)'/, 'SDK owns interaction events');
   const modalPrimaryFocusBlock = styles.match(/\.modal-actions \.button-primary:focus-visible\s*\{([^}]*)\}/)?.[1];
   assert.ok(modalPrimaryFocusBlock, 'AlertDialog primary focus override missing');
   assert.match(modalPrimaryFocusBlock, /outline:\s*none/);
   assert.match(modalPrimaryFocusBlock, /outline-offset:\s*0/);
   assert.match(styles, /:where\(button:not\(\.select-trigger\)\):focus-visible\s*\{/);
-  assert.match(app, /modalBackdrop\.showModal\(\);\s*modalPrimaryButton\.focus\(\)/);
-  assert.match(app, /modalBackdrop\.addEventListener\('close', finalizeModalClose\)/);
-  assert.match(app, /modalBackdrop\.addEventListener\('cancel', \(event\) => event\.preventDefault\(\)\)/);
-  assert.match(app, /const returnFocus = modalReturnFocus;[\s\S]*?returnFocus\.focus\(\)/);
+  assert.match(app, /confirmationDialog\.open = true/);
+  assert.match(app, /confirmationDialog\.addEventListener\('openchangecomplete'/);
+  assert.match(html, /id="confirmationDialog"/);
+  assert.match(read('tools/ui_sdk_primitives.mjs'), /content\.showModal\(\);content\.querySelector\('#modalPrimaryButton'\)\.focus\(\)/);
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
   assert.match(html, /id="languageSelectValue"[^>]*data-placeholder="true"[^>]*>Choose a language<\/span>/);
   assert.match(html, /id="languageSelectPopupPlaceholder"[^>]*aria-hidden="true"[^>]*hidden>Choose a language<\/div>/);
   assert.match(html, /class="select-chevron"[^>]*>[\s\S]*?<svg[^>]*viewBox="0 0 24 24"[\s\S]*?<path d="m6 9 6 6 6-6"><\/path>/);
-  assert.match(html, /id="languageSelectList"[^>]*role="listbox"/);
+  assert.match(html, /id="languageSelectList"[^>]*role="presentation"/);
   assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"[^>]*>Restore English<\/button>/);
-  assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
+  assert.match(html, /<dialog id="modalBackdrop"[^>]*[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
   assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"[^>]*hidden[\s\S]*?id="legacyReleaseButton"[^>]*hidden[\s\S]*?id="reportIssueButton"[^>]*hidden/, 'idle, fixed intro, bounded live log, fixed outcome, and conditional recovery/report actions must remain in source order');
   assert.match(tokens, /--control-height:\s*36px/);
@@ -695,9 +693,10 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--select-item-padding-trailing:\s*var\(--space-8\)/);
   assert.match(tokens, /--select-indicator-size:\s*16px/);
   assert.match(styles, /\.select-popup\s*\{[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*var\(--radius-select-popup\)[\s\S]*?box-shadow:\s*var\(--shadow-select-popup\)/);
-  assert.match(selectControl, /function alignPopupItemToTrigger\(item\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?alignedTop/);
-  assert.match(selectControl, /popupPlaceholder\.hidden = !\(open && !hasSelection\)/);
-  assert.match(selectControl, /alignPopupItemToTrigger\(selected >= 0 \? list\.children\[activeIndex\] : popupPlaceholder\)/);
+  assert.match(selectControl, /popupPlaceholder\.hidden = hasSelection/);
+  assert.match(read('tools/ui_sdk_primitives.mjs'), /focus: 'virtual'/);
+  assert.match(read('tools/ui_sdk_primitives.mjs'), /const target=selected\?active:el\.querySelector\('\.select-popup-placeholder'\)/);
+  assert.match(read('tools/ui_sdk_primitives.mjs'), /const anchor=trigger\.getBoundingClientRect\(\),row=target\?\.getBoundingClientRect\(\)/);
   assert.match(selectControl, /root\.dataset\.placeholder = String\(!hasSelection\)/);
   assert.match(selectControl, /select\.value = options\.some\([\s\S]*?\? previousValue : '';/);
   assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|TwitterLink|TwitterLabel|XiaohongshuLink|XiaohongshuLabel|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
@@ -719,14 +718,14 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutPage, /class="window-title"[^>]*data-tauri-drag-region[^>]*aria-hidden="true"><\/span>/);
   assert.match(aboutPage, /id="aboutWindowControls"[^>]*class="windows-window-controls"[^>]*hidden/);
   assert.match(aboutPage, /id="aboutWindowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-size="icon-sm"/);
-  assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
+  assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/ui-sdk\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
   assert.match(aboutPage, /<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>/);
   assert.match(aboutPage, /<img class="about-app-icon" src="\.\/app-icon\.png" alt="" aria-hidden="true" \/>/);
   const socialRow = aboutPage.match(/<div class="about-social-links">([\s\S]*?)<\/div>/)?.[1] || '';
   const twitterRow = socialRow.match(/<a id="aboutTwitterLink"[\s\S]*?<\/a>/)?.[0] || '';
   const xiaohongshuRow = socialRow.match(/<a id="aboutXiaohongshuLink"[\s\S]*?<\/a>/)?.[0] || '';
-  assert.match(aboutPage, /<div class="about-social-links">[\s\S]*?<a id="aboutTwitterLink" class="about-link" href="#twitter"[\s\S]*?<span id="aboutTwitterLabel">Follow<\/span>\s*<span id="aboutTwitterIcon" class="about-link-icon" aria-hidden="true"><\/span>[\s\S]*?<\/a>[\s\S]*?<a id="aboutXiaohongshuLink" class="about-link" href="#xiaohongshu"[\s\S]*?<span id="aboutXiaohongshuLabel">Follow<\/span>\s*<span id="aboutXiaohongshuIcon" class="about-link-icon about-link-icon-xiaohongshu" aria-hidden="true"><\/span>[\s\S]*?<\/a>[\s\S]*?<\/div>\s*<a id="aboutRepositoryLink" class="about-link"[\s\S]*?<a id="aboutLicenseLink" class="about-link"/);
-  assert.match(twitterRow, /<span id="aboutTwitterLabel">Follow<\/span>\s*<span id="aboutTwitterIcon" class="about-link-icon" aria-hidden="true"><\/span>/);
+  assert.match(aboutPage, /<div class="about-social-links">[\s\S]*?<a id="aboutTwitterLink" class="about-link" href="#twitter"[\s\S]*?<span id="aboutTwitterLabel">Follow<\/span>\s*<cv-icon id="aboutTwitterIcon" class="about-link-icon" aria-hidden="true"><\/cv-icon>[\s\S]*?<\/a>[\s\S]*?<a id="aboutXiaohongshuLink" class="about-link" href="#xiaohongshu"[\s\S]*?<span id="aboutXiaohongshuLabel">Follow<\/span>\s*<cv-icon id="aboutXiaohongshuIcon" class="about-link-icon about-link-icon-xiaohongshu" aria-hidden="true"><\/cv-icon>[\s\S]*?<\/a>[\s\S]*?<\/div>\s*<ui-button><a id="aboutRepositoryLink" class="about-link"[\s\S]*?<a id="aboutLicenseLink" class="about-link"/);
+  assert.match(twitterRow, /<span id="aboutTwitterLabel">Follow<\/span>\s*<cv-icon id="aboutTwitterIcon" class="about-link-icon" aria-hidden="true"><\/cv-icon>/);
   assert.doesNotMatch(aboutPage, /@daftAI|daftai/i, 'About follow buttons must not show an account name');
   assert.match(aboutWindow, /\['#aboutTwitterIcon', 'xLogo'\]/);
   assert.equal(
@@ -735,7 +734,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
     'About must use the upstream Phosphor Regular XLogo path, not a generic close X or the retired Twitter bird'
   );
   assert.doesNotMatch(twitterRow, /M23\.953 4\.57/, 'About must not regress to the Twitter bird');
-  assert.match(xiaohongshuRow, /<span id="aboutXiaohongshuIcon" class="about-link-icon about-link-icon-xiaohongshu" aria-hidden="true"><\/span>/);
+  assert.match(xiaohongshuRow, /<cv-icon id="aboutXiaohongshuIcon" class="about-link-icon about-link-icon-xiaohongshu" aria-hidden="true"><\/cv-icon>/);
   assert.match(aboutWindow, /\['#aboutXiaohongshuIcon', 'xiaohongshuLogo'\]/);
   assert.match(aboutStyles, /\.about-link-icon-xiaohongshu\s*\{\s*width:\s*calc\(var\(--about-link-icon-size\) \* 2\)/);
   assert.match(tokens, /--brand-xiaohongshu:\s*#ff2442/);
@@ -864,7 +863,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--operation-scroll-fade-none:\s*0px/);
   assert.match(tokens, /--operation-scroll-fade-size:\s*var\(--space-2\)/);
   assert.match(tokens, /--duration-message-delta:\s*40ms/);
-  assert.match(tokens, /--operation-live-edge-tolerance:\s*var\(--space-1\)/);
+  assert.match(html, /id="statusScrollArea"[^>]*stick-to-end/);
   assert.match(tokens, /--operation-scroll-edge-tolerance:\s*var\(--stroke-hairline\)/);
   assert.doesNotMatch(tokens, /--operation-scroll-fade-reveal:/);
   assert.match(tokens, /--operation-shimmer-angle:\s*20deg/);
@@ -901,8 +900,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(operationStyles, /var\(--text-primary\)/, 'Activity must consume the canonical text token rather than a missing alias');
   assert.match(operationStyles, /\.status-viewport\s*\{[\s\S]*?overflow-y:\s*auto/);
   assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\][\s\S]*?mask-image:\s*linear-gradient/);
-  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-at-start="true"\]\s*\{[\s\S]*?--operation-scroll-fade-top:\s*var\(--operation-scroll-fade-none\)/);
-  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-at-end="true"\]\s*\{[\s\S]*?--operation-scroll-fade-bottom:\s*var\(--operation-scroll-fade-none\)/);
+  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-fade-at-start="true"\]\s*\{[\s\S]*?--operation-scroll-fade-top:\s*var\(--operation-scroll-fade-none\)/);
+  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-fade-at-end="true"\]\s*\{[\s\S]*?--operation-scroll-fade-bottom:\s*var\(--operation-scroll-fade-none\)/);
   assert.doesNotMatch(operationStyles, /animation-timeline:\s*scroll\(self y\)/);
   assert.match(operationStyles, /\.status-text\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column/);
   assert.doesNotMatch(operationStyles, /\.operation-event:first-child\s*\{[\s\S]*?margin-top:\s*auto/, 'short event streams must begin at the padded top edge');
@@ -921,8 +920,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationStyles, /@keyframes operation-shimmer\s*\{[\s\S]*?from\s*\{\s*background-position:\s*100% 0;\s*\}[\s\S]*?to\s*\{\s*background-position:\s*0 0;\s*\}/);
   assert.match(operationLog, /DEFAULT_ICON_BY_STATE[\s\S]*?running:\s*'spinner'/);
   assert.match(icons, /const ICONS = Object\.freeze\(\{/);
-  assert.match(operationLog, /const remaining = viewport\.scrollHeight - viewport\.clientHeight - viewport\.scrollTop;[\s\S]*?followLiveEdge = remaining <= cssNumber\('--operation-live-edge-tolerance'\)/);
-  assert.match(operationLog, /function syncScrollFade\(\)[\s\S]*?viewport\.dataset\.atStart[\s\S]*?viewport\.dataset\.atEnd/);
+  assert.match(operationLog, /cssNumber\('--operation-live-edge-tolerance'\)/, 'follow policy retains the main tolerance independently of SDK mechanics');
+  assert.match(operationLog, /function syncScrollFade\(\)[\s\S]*?viewport\.dataset\.fadeAtStart[\s\S]*?viewport\.dataset\.fadeAtEnd/);
   assert.match(operationLog, /String\(text \|\| ''\)\.match\(\/\\S\+\\s\*\/g\)/);
   assert.match(operationLog, /motionDuration\('--duration-message-delta'\)/);
   assert.match(operationLog, /motionDuration\('--duration-operation-running-min'\)/);
@@ -935,7 +934,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationLog, /async function presentBlocking\(event\)[\s\S]*?urgent: true[\s\S]*?--duration-operation-blocking-dwell/);
   assert.match(operationLog, /remeasure: syncAfterLayout/);
   assert.match(app, /permissionButton\.hidden =[\s\S]*?operationLog\.remeasure\(\)/);
-  assert.match(operationLog, /cssNumber\('--operation-live-edge-tolerance'\)/);
+  assert.match(operationLog, /scrollArea\.api\.scrollToEnd\(\{behavior:'instant'\}\)/);
   assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'open'/);
   assert.match(app, /restoring && phase === 'applyTransaction' \? 'restore' : PHASE_ICONS\[phase\]/);
   assert.match(updateProgress, /updateDownloadCompletedTitle[\s\S]*?icon:\s*'download'/);
@@ -949,7 +948,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /id="windowMinimizeButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
   assert.match(html, /id="windowMaximizeButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
   assert.match(html, /id="windowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
-  const windowControlsMarkup = html.match(/<div id="windowsWindowControls"[\s\S]*?<\/div>\s*<\/header>/)?.[0];
+  const windowControlsMarkup = html.match(/<cv-window-controls id="windowsWindowControls"[\s\S]*?<\/cv-window-controls>\s*<\/cv-window-frame>/)?.[0];
   assert.ok(windowControlsMarkup, 'Windows caption markup missing');
   assert.doesNotMatch(windowControlsMarkup, /<svg/, 'Windows caption glyphs must come from the shared icon registry');
   assert.match(windowControls, /platform === 'windows'/);
@@ -1014,7 +1013,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(read('renderer/styles.css'), /\.badge\[data-kind="green-subtle"\]/);
   assert.match(read('renderer/styles.css'), /\.select-item-badge[\s\S]*?pointer-events:\s*none/);
   assert.match(selectControl, /nativeOption\.disabled = option\.disabled/);
-  assert.match(selectControl, /aria-disabled/);
+  assert.match(selectControl, /item\.setAttribute\('disabled', ''\)/);
   const restoreConfirmationFunction = sourceFunction(
     app,
     'function showRestoreConfirmation() {',
@@ -1108,6 +1107,9 @@ test('Tauri configuration disables global injection and declares a local-only CS
   assert.equal(typeof config.app.security.csp, 'string');
   assert.match(config.app.security.csp, /default-src 'self'/);
   assert.match(config.app.security.csp, /script-src 'self'/);
+  for (const page of ['index.html', 'about.html']) {
+    assert.match(read(`renderer/${page}`), /<meta property="csp-nonce"\s*\/>/, 'SDK uses constructed sheets with the packaged CSP');
+  }
   assert.doesNotMatch(config.app.security.csp, /https?:\/\//);
   const window = config.app.windows.find((candidate) => candidate.label === 'main');
   assert.equal(window.decorations, true);

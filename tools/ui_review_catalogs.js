@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 renderer/tokens.css、renderer/styles.css、renderer/operation-log.css、renderer/toast.css 的生产视觉契约，依赖 renderer/user-profile-text.js→ui-text.js四语文案、renderer/icons.js语义图标注册表与renderer/tauri-bridge.js语言清单
+ * [INPUT]: 依赖离线SDK parts与CSP nonce元标记、 renderer/tokens.css、renderer/styles.css、renderer/operation-log.css、renderer/toast.css 的生产视觉契约，依赖 renderer/user-profile-text.js→ui-text.js四语文案、renderer/icons.js语义图标注册表与renderer/tauri-bridge.js语言清单
  * [OUTPUT]: 对外提供 feedbackCatalogHtml、iconCatalogHtml、badgeCatalogHtml 三个离线 UI 审查页生成函数；页面运行时直接读取生产 token、组件 CSS、UI_TEXT 与图标工厂
  * [POS]: tools 的独立审查目录生成器；只描述和展示生产真相，不复制 Badge 样式、产品文案或 SVG path，不进入 Tauri 运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -452,6 +452,7 @@ function scriptLinks() {
     '<script src="/renderer/user-profile-text.js"></script>',
     '<script src="/renderer/ui-text.js"></script>',
     '<script src="/renderer/icons.js"></script>',
+    '<script src="/renderer/ui-sdk.js"></script>',
   ].join('\n  ');
 }
 function pageDocument({ title, extraStyles = [], body, script }) {
@@ -459,6 +460,7 @@ function pageDocument({ title, extraStyles = [], body, script }) {
 <html class="catalog-document" lang="zh-CN">
 <head>
   <meta charset="utf-8" />
+  <meta property="csp-nonce" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>${title}</title>
   ${assetLinks(extraStyles)}

@@ -80,6 +80,9 @@ Cavalry-i18n/
 
 ### Renderer
 
+- 本试验分支的组件统一使用固定 UI SDK，映射见 `tools/ui_sdk_components.json`。修改前阅读 SDK 自带 llms/组件文档；定制组件另读 Core/rendering 文档，只用公开 API。`build:ui-sdk` 生成离线包，`check:ui-sdk` 核对；不手改生成包或 SDK 内部状态。
+- 视觉、交互和状态转换以固定最新 main 的同一套黑盒测试为准，见 `tools/ui-parity/README.md`。先让 main 通过，再让 SDK 通过；不得用 SDK 默认行为替代既有合同或放宽预期。业务事务与权限边界保持单一源。
+
 - `app.js` must not know Tauri internals. It talks only to `window.cavalryI18n`.
 - `tauri-bridge.js` normalizes camelCase payloads only. Do not reintroduce snake_case fallbacks or debug fields.
 - `window-controls.js` is the only platform-window consumer. Keep it limited to the fixed `main` label and the explicit minimize/toggle-maximize/is-maximized/close surface.
@@ -226,14 +229,15 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 | Tool | Version / Source | Notes |
 | --- | --- | --- |
-| Node.js / npm | 24.22.1 / 12.2.1 in CI and local development | `.node-version` + `packageManager`; CI explicitly installs npm after each Node setup; no pnpm/yarn |
-| npm packages | `package-lock.json` | `@tauri-apps/cli` and `@tauri-apps/api` pinned to 2.10.1 |
+| Node.js / npm | 24.22.3 / 12.2.2 in CI and local development | `.node-version` + `packageManager`; CI explicitly installs npm after each Node setup; no pnpm/yarn |
+| npm packages | `package-lock.json` | `@tauri-apps/cli` and `@tauri-apps/api` pinned to 2.12.4 |
 | Rust | stable, edition 2021 | Tauri backend crate `cavalry-i18n-tauri` |
-| Tauri | Rust `tauri` 2.10.3 | npm CLI/API minor aligned with Rust runtime |
-| `tauri-build` | 2.5.6 exact | Build script dependency |
+| Tauri | Rust `tauri` 2.12.4 | npm CLI/API minor aligned with Rust runtime |
+| `tauri-build` | 2.7.4 exact | Build script dependency |
+| Updater | 2.14.1 exact; minisign-verify 0.3.0 | Require signed app version; CLI 2.12.4 signs future updater assets |
 | Qt SDK | 6.9.2 | Current macOS arm64 and Windows x64 Cavalry 2.8.1 runtime; Intel ABI/build remains pending; 6.6.3 is legacy only |
 | Cavalry target | 2.8.1 macOS arm64 + Windows x64 | Release tag prefix `cavalry-2.8.1-p`; Intel and complete three-platform release closure remain pending |
-| Python | python3 | Translation validator and `aqtinstall` setup |
+| Python | 3.14.10 | CI/local build tooling; explicit `PYTHON` selects the pinned interpreter |
 | macOS tools | `codesign`, `hdiutil`, `xattr`, `osascript` | Required for package/sign/quarantine/runtime capture |
 | Windows build tools | Windows 10 x64+, Node.js 24+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, pinned CMake 4.4.3, Qt 6.9.2 `msvc2022_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |
 

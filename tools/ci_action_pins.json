@@ -32,7 +32,7 @@
     "dtolnay/rust-toolchain": {
       "ref": "stable",
       "sha": "4360b52568e2003a75bf9bc1d59f33a8e3fc893c",
-      "note": "stable tip resolved 2026-08-09; rust-toolchain.toml pins channel 1.98.0"
+      "note": "stable tip resolved 2026-08-09; rust-toolchain.toml pins channel 1.98.1"
     },
     "Swatinem/rust-cache": {
       "ref": "v2.9.3",
@@ -41,11 +41,11 @@
     }
   },
   "python": {
-    "version": "3.12.6"
+    "version": "3.14.10"
   },
   "node": {
-    "version": "24.22.1",
-    "npmVersion": "12.2.1"
+    "version": "24.22.3",
+    "npmVersion": "12.2.2"
   },
   "aqtinstall": {
     "inputFile": "requirements-ci.in",
@@ -71,10 +71,10 @@
   },
   "rust": {
     "toolchainFile": "rust-toolchain.toml",
-    "channel": "1.98.0"
+    "channel": "1.98.1"
   },
   "dependencyVulnerabilityGate": {
     "policyFile": "tools/dependency_vulnerability_gate.json",
-    "note": "npm audit fails on any known vulnerable dependency returned by the fixed registry, but registry transport outages are warnings after bounded retry; cargo-audit uses the immutable RustSec DB commit. Fixed runner labels and recorded ImageOS/ImageVersion preserve traceability without a separately maintained release allowlist."
+    "note": "npm audit and both hash-locked Python closures fail closed on missing, incomplete or vulnerable reports; cargo-audit uses an immutable RustSec commit reviewed within 30 days. Fixed runner labels and recorded ImageOS/ImageVersion preserve traceability."
   }
 }

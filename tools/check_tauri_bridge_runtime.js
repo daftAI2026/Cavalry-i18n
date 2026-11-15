@@ -21,6 +21,8 @@ class Element {
   addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); }
   setAttribute(key, value = '') { this.attributes.set(key, String(value)); }
   removeAttribute(key) { this.attributes.delete(key); }
+  toggleAttribute(key, force) { const present=force ?? !this.attributes.has(key); if(present)this.setAttribute(key,'');else this.removeAttribute(key);return present; }
+  querySelectorAll() { return []; }
   focus() { this.focused = true; if (this.ownerDocument) this.ownerDocument.activeElement = this; }
   showModal() { this.open = true; this.setAttribute('open', ''); }
   close() { this.open = false; this.removeAttribute('open'); for (const callback of this.listeners.get('close') || []) callback(); }
@@ -50,7 +52,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -63,12 +65,31 @@ function runtime({
     visibilityState: 'visible', hasFocus: () => true,
     listeners: new Map(),
     querySelector(selector) { return elements[selector]; },
-    createElement() { const element = new Element(); element.ownerDocument = this; return element; },
+    createElement(tag) { const element = new Element(); element.ownerDocument = this; if (tag === 'template') element.content = new Element(); return element; },
     createElementNS() { const element = new Element(); element.ownerDocument = this; return element; },
     addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); },
   };
   for (const element of [...Object.values(elements), document.documentElement, document.body]) {
     element.ownerDocument = document;
+  }
+  let modalOpen = false;
+  let modalFocus = null;
+  Object.defineProperty(elements['#confirmationDialog'], 'open', {
+    get: () => modalOpen,
+    set(value) {
+      modalOpen = value;
+      elements['#modalBackdrop'].open = value;
+      if (value) { modalFocus = document.activeElement; elements['#modalPrimaryButton'].focus(); }
+      else modalFocus?.focus();
+    },
+  });
+  elements['#statusScrollArea'].api = { isSticking: () => true, scrollToEnd() {} };
+  elements['#languageSelectRoot'].api = { setDisabled(value) { elements['#languageSelectRoot'].disabled=value; } };
+  for(const kind of ['update','about']) {
+    const root=elements[`#${kind}Control`],popup=elements[`#${kind}Tooltip`],trigger=elements[`#${kind}Button`];
+    const set=(open,reason='none')=>{root.dataset.tooltipState=open?'open':'closed';root.dataset.tooltipReason=reason;popup.dataset.state=root.dataset.tooltipState;popup.dataset.reason=reason;};
+    root.api={open(reason){if(!root.hidden&&!trigger.disabled)set(true,reason);},close(){set(false);}};
+    root.api.close();
   }
   document.documentElement.dataset.platform = aboutPlatform;
   const defaultStatus = {
@@ -83,7 +104,16 @@ function runtime({
   let maximized = false;
   const windowListeners = new Map();
   const navigator = { language: locale, languages: [locale] };
+  const toasters = [];
   const window = {
+    cavalryUi: { createToaster() {
+      const queue = (options) => { const id=String(queue.records.length+1);queue.records.unshift({...options,id}); return id; };
+      queue.records = [];
+      queue.toasts=()=>queue.records;
+      queue.dismiss = id => { queue.records = id?queue.records.filter(record=>record.id!==id):[]; };
+      toasters.push(queue);
+      return queue;
+    } },
     navigator,
     MutationObserver: class { observe() {} disconnect() {} },
     innerWidth: 400,
@@ -164,17 +194,21 @@ function runtime({
   };
   const context = { window, document, navigator, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }) };
   context.globalThis = context;
-  return { elements, calls, channels, updateChannels, handoffChannels, callbacks, window, context };
+  return { elements, calls, channels, updateChannels, handoffChannels, callbacks, window, context, toasters };
 }
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
 function dispatch(element, type, event = {}) { for (const listener of element.listeners.get(type) || []) listener(event); }
 function chooseLanguage(runtimeState, index = null) {
-  dispatch(runtimeState.elements['#languageSelectTrigger'], 'click');
+  // VM 只验证业务适配；真实 SDK 的点击/键盘由 browser 验收覆盖。
   const items = runtimeState.elements['#languageSelectList'].children;
-  const target = index ?? items.findIndex((item) => item.dataset.disabled !== 'true');
-  dispatch(items[target], 'click');
+  const target = index ?? items.findIndex((item) => !item.attributes.has('disabled'));
+  if (items[target].attributes.has('disabled')) return;
+  dispatch(runtimeState.elements['#languageSelectRoot'], 'valuechange', {
+    detail: { value: items[target].attributes.get('value'), reason: 'item-press' },
+  });
 }
+
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
@@ -214,7 +248,7 @@ function bootAbout(options) {
 function activityRows(runtimeState) { return runtimeState.elements['#statusText'].children; }
 function activityText(runtimeState) { return runtimeState.elements['#statusText'].textContent; }
 function activityTitle(runtimeState, index = 0) { return activityRows(runtimeState)[index]?.children[1]?.children[0]?.textContent || ''; }
-function toastViewport(runtimeState) { return runtimeState.context.document.body.children.find((child) => child.className === 'toast-viewport'); }
+function toastViewport(runtimeState) { const viewport = runtimeState.context.document.body.children.find(e => e.className === 'toast-viewport'); const children = runtimeState.toasters.flatMap(queue => queue.records).map(record => ({ textContent: record.title + record.description, dataset: { type: record.type } })); return { attributes: viewport.attributes, children, textContent: children.map(e => e.textContent).join('') }; }
 
 test('main support footer localizes all four accessible labels and dispatches only fixed links', async () => {
   const cases = [
@@ -299,7 +333,7 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
   assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
   assert.equal(r.elements['#languageSelect'].children[0].disabled, true);
-  assert.equal(r.elements['#languageSelectList'].children[0].attributes.get('aria-disabled'), 'true');
+  assert.equal(r.elements['#languageSelectList'].children[0].attributes.has('disabled'), true);
   assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
   assert.equal(activityRows(r).length, 0);
   assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
@@ -337,9 +371,9 @@ test('language patch status controls the current option, badge, and localized up
     await flush();
     const current = r.elements['#languageSelectList'].children[0];
     assert.equal(r.elements['#languageSelect'].value, '', `${locale}: bootstrap must not select a language`);
-    assert.equal(current.dataset.value, 'zh-Hans');
-    assert.equal(current.dataset.disabled, 'false');
-    assert.equal(current.attributes.get('aria-disabled'), 'false');
+    assert.equal(current.attributes.get('value'), 'zh-Hans');
+    assert.equal(current.attributes.has('disabled'), false);
+    assert.equal(current.attributes.has('disabled'), false);
     assert.equal(current.children[0].className, 'select-item-copy');
     assert.equal(current.children[0].children[1].className, 'badge select-item-badge');
     assert.equal(current.children[0].children[1].textContent, badgeText);
@@ -363,7 +397,7 @@ test('language patch status controls the current option, badge, and localized up
   const current = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'current' } });
   await flush();
   const currentOption = current.elements['#languageSelectList'].children[0];
-  assert.equal(currentOption.dataset.disabled, 'true');
+  assert.equal(currentOption.attributes.has('disabled'), true);
   assert.equal(currentOption.children.length, 2, 'current patch must not render a badge');
   chooseLanguage(current, 0);
   assert.equal(current.elements['#languageSelect'].value, '');
@@ -372,7 +406,7 @@ test('language patch status controls the current option, badge, and localized up
   const notApplicable = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'notApplicable' } });
   await flush();
   const notApplicableOption = notApplicable.elements['#languageSelectList'].children[0];
-  assert.equal(notApplicableOption.dataset.disabled, 'false', 'only current patch status disables the current language');
+  assert.equal(notApplicableOption.attributes.has('disabled'), false, 'only current patch status disables the current language');
   assert.equal(notApplicableOption.children.length, 2, 'notApplicable must not render an update badge');
 
   const legacy = boot({
@@ -384,7 +418,7 @@ test('language patch status controls the current option, badge, and localized up
   await flush();
   const legacyStatus = await legacy.window.cavalryI18n.getStatus();
   assert.equal(legacyStatus.patchStatus, 'unknown', 'legacy getStatus responses must fail closed to unknown');
-  assert.equal(legacy.elements['#languageSelectList'].children[0].dataset.disabled, 'false');
+  assert.equal(legacy.elements['#languageSelectList'].children[0].attributes.has('disabled'), false);
   assert.equal(legacy.elements['#languageSelectList'].children[0].children[0].children[1].textContent, 'Update available');
 });
 
@@ -432,48 +466,23 @@ test('legacy permission hints do not fabricate a startup warning before an opera
   }
 });
 
-test('custom language select keeps Base UI open, active, selected, and keyboard states coherent', async () => {
+test('Select adapter consumes SDK events without owning keyboard or click behavior', async () => {
   const r = boot();
   await flush();
+  const root = r.elements['#languageSelectRoot'];
   const trigger = r.elements['#languageSelectTrigger'];
-  const popup = r.elements['#languageSelectPopup'];
-  const popupPlaceholder = r.elements['#languageSelectPopupPlaceholder'];
-  const list = r.elements['#languageSelectList'];
-  const nativeSelect = r.elements['#languageSelect'];
-  const key = (value) => ({
-    key: value,
-    metaKey: false,
-    ctrlKey: false,
-    altKey: false,
-    preventDefault() {},
-  });
-
-  assert.equal(trigger.disabled, false);
+  assert.equal(r.elements['#languageSelect'].value, '');
   assert.equal(r.elements['#languageSelectValue'].textContent, 'Choose a language');
-  assert.equal(r.elements['#languageSelectValue'].dataset.placeholder, 'true');
   assert.equal(r.elements['#applyButton'].disabled, true);
-  trigger.listeners.get('click')[0]();
-  assert.equal(trigger.attributes.get('aria-expanded'), 'true');
-  assert.equal(popup.hidden, false);
-  assert.equal(popupPlaceholder.hidden, false);
-  assert.equal(popupPlaceholder.textContent, 'Choose a language');
-  assert.equal(list.children[0].attributes.get('aria-selected'), 'false');
-  assert.equal(list.children[0].attributes.get('aria-disabled'), 'true');
-  assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-1');
-
-  list.children[0].listeners.get('click')[0]();
-  assert.equal(nativeSelect.value, '', 'the visible current language cannot be committed again');
-  assert.equal(trigger.attributes.get('aria-expanded'), 'true');
-
-  trigger.listeners.get('keydown')[0](key('ArrowDown'));
-  assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-2');
-  trigger.listeners.get('keydown')[0](key('Enter'));
-  assert.equal(nativeSelect.value, 'ja_JP');
-  assert.equal(r.elements['#languageSelectValue'].textContent, '日本語');
-  assert.equal(trigger.attributes.get('aria-expanded'), 'false');
-  assert.equal(popup.hidden, true);
-  assert.equal(popupPlaceholder.hidden, true);
-  assert.equal(trigger.focused, true);
+  assert.equal(trigger.listeners.has('click'), false);
+  assert.equal(trigger.listeners.has('keydown'), false);
+  assert.equal(r.elements['#languageSelectList'].children[0].listeners.has('click'), false);
+  chooseLanguage(r, 1);
+  assert.equal(r.elements['#languageSelect'].value, 'zh-Hant');
+  assert.equal(r.elements['#languageSelectValue'].textContent, '繁體中文');
+  assert.equal(r.elements['#applyButton'].disabled, false);
+  dispatch(root, 'openchange', { detail: { value: false } });
+  assert.equal(root.dataset.state, 'closed');
 });
 
 test('About entry delegates to one native window command and keeps links fixed', async () => {
@@ -677,40 +686,23 @@ test('update icon stays hidden by default and exposes an explicit development-on
   const preview = boot({ preview: true });
   await flush();
   assert.equal(preview.elements['#updateControl'].hidden, false);
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
-  preview.elements['#updateControl'].listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
-  assert.equal(preview.elements['#updateButton'].attributes.get('aria-describedby'), 'updateTooltip');
-  preview.elements['#updateControl'].listeners.get('pointerleave')[0]();
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
-  assert.equal(preview.elements['#updateButton'].attributes.has('aria-describedby'), false);
-  preview.elements['#updateControl'].listeners.get('focusin')[0]();
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
-  preview.elements['#updateButton'].listeners.get('keydown')[0]({ key: 'Escape' });
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
-  preview.elements['#updateControl'].listeners.get('focusin')[0]();
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
-  dispatch(preview.elements['#updateButton'], 'click');
-  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
-  assert.equal(preview.elements['#statusPanel'].dataset.state, 'completed');
-  assert.equal(activityRows(preview)[0].children[0].dataset.icon, 'update');
-  assert.match(activityText(preview), /preview is active/i);
-  assert.equal(preview.calls.filter(({ command }) => command !== 'get_status').length, 0);
+  const root = preview.elements['#updateControl'];
+  assert.equal(root.dataset.tooltipState, 'closed');
+  preview.window.createTooltipControl({root,popup:preview.elements['#updateTooltip']}).open('hover');
+  assert.equal(root.dataset.tooltipState, 'open');
+  preview.window.createTooltipControl({root,popup:preview.elements['#updateTooltip']}).close();
+  assert.equal(root.dataset.tooltipState, 'closed');
+
 });
 
-test('Tooltip filters touch and keeps only one titlebar popup open', async () => {
-  const r = boot({ preview: true, status: { platform: 'windows' } });
-  await flush();
-  const update = r.elements['#updateControl'];
-  const about = r.elements['#aboutControl'];
-
-  update.listeners.get('pointerenter')[0]({ pointerType: 'touch' });
-  assert.equal(update.dataset.tooltipState, 'closed');
-  update.listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
-  assert.equal(update.dataset.tooltipState, 'open');
-  about.listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
-  assert.equal(update.dataset.tooltipState, 'closed');
-  assert.equal(about.dataset.tooltipState, 'open');
+test('Tooltip adapter delegates the public interface to the Core parts', async () => {
+  const r = boot({ preview: true });await flush();const calls=[];
+  const popup = new Element();
+  const control=r.window.createTooltipControl({root:{id:'tooltip-test',api:{open:reason=>calls.push(['open',reason]),close:()=>calls.push(['close'])}},popup});
+  assert.equal(popup.attributes.get('for'),'tooltip-test');
+  assert.ok(r.context.document.body.children.includes(popup));
+  control.open('focus');control.close();
+  assert.deepEqual(calls,[['open','focus'],['close']]);
 });
 
 test('installation location keeps the macOS bundle and reduces a long Windows executable to drive plus install folder', async () => {
@@ -761,9 +753,10 @@ test('checked update is announced, confirmed, and installed without renderer-con
     'currentVersion', 'version', 'notes', 'pubDate', 'available', 'errorCode',
   ]);
 
-  r.elements['#updateControl'].listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
+  r.window.createTooltipControl({root:r.elements['#updateControl'],popup:r.elements['#updateTooltip']}).open('hover');
   assert.equal(r.elements['#updateControl'].dataset.tooltipState, 'open');
   r.context.document.activeElement = r.elements['#updateButton'];
+  r.window.createTooltipControl({root:r.elements['#updateControl'],popup:r.elements['#updateTooltip']}).close();
   dispatch(r.elements['#updateButton'], 'click');
   assert.equal(r.elements['#updateControl'].dataset.tooltipState, 'closed');
   assert.equal(r.elements['#modalBackdrop'].open, true);
@@ -895,8 +888,7 @@ test('Restore AlertDialog requires an explicit action, blocks Escape dismissal, 
   assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
 
   let cancelPrevented = false;
-  r.elements['#modalBackdrop'].listeners.get('cancel')[0]({ preventDefault() { cancelPrevented = true; } });
-  assert.equal(cancelPrevented, true);
+  assert.equal(r.elements['#confirmationDialog'].open, true);
   assert.equal(r.elements['#modalBackdrop'].open, true, 'Escape must not dismiss an AlertDialog');
   r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
   assert.equal(r.elements['#modalBackdrop'].open, false);

@@ -5606,8 +5606,8 @@ test('release supply-chain gates pin vulnerability inputs, Qt installer identity
   assert.doesNotMatch(resolver, /pip', 'install'[\s\S]{0,100}'aqtinstall'/, 'resolver must not issue a bare global aqtinstall install');
   assert.match(resolver, /validateSdkIdentity\(target, prefix\)/, 'Qt resolver must validate installed payload identity after version validation');
   assert.match(qtTarget.platforms.macos.aqt.identity.treeSha256, /^[a-f0-9]{64}$/i, 'macOS Qt target must pin a canonical full SDK tree digest');
-  assert.equal(dependencyPolicy.npm.nodeVersion, '24.22.1');
-  assert.equal(dependencyPolicy.npm.npmVersion, '12.2.1');
+  assert.equal(dependencyPolicy.npm.nodeVersion, '24.22.3');
+  assert.equal(dependencyPolicy.npm.npmVersion, '12.2.2');
   assert.equal(dependencyPolicy.npm.registry, 'https://registry.npmjs.org');
   assert.equal(dependencyPolicy.cargoAudit.version, '0.22.2', 'cargo-audit must parse CVSS 4.0 records in the pinned RustSec DB');
   assert.match(dependencyPolicy.cargoAudit.rustsecAdvisoryDb.commit, /^[a-f0-9]{40}$/);
@@ -5616,7 +5616,8 @@ test('release supply-chain gates pin vulnerability inputs, Qt installer identity
   assert.doesNotMatch(workflow, /runs-on:\s*[^#\n]*-latest\b/i, 'workflow must not use floating runner labels');
   assert.match(workflow, /npm audit --package-lock-only --json/);
   assert.match(workflow, /for attempt in 1 2 3; do[\s\S]*--fetch-timeout=60000[\s\S]*npm audit found a vulnerability; failing closed\./);
-  assert.match(workflow, /continuing without a fresh npm advisory report[\s\S]*if \[ "\$audit_available" -eq 1 \]/);
+  assert.match(workflow, /if \[ "\$attempt" -eq 3 \]; then[\s\S]*::error::npm audit[\s\S]*exit "\$audit_status"/);
+  assert.doesNotMatch(workflow, /continuing without a fresh npm advisory report|audit_available/);
   assert.equal(dependencyPolicy.cargoAudit.binary.target, 'x86_64-unknown-linux-gnu');
   assert.equal(dependencyPolicy.cargoAudit.binary.url, `https://github.com/rustsec/rustsec/releases/download/cargo-audit/v${dependencyPolicy.cargoAudit.version}/cargo-audit-x86_64-unknown-linux-gnu-v${dependencyPolicy.cargoAudit.version}.tgz`);
   assert.match(dependencyPolicy.cargoAudit.binary.sha256, /^[a-f0-9]{64}$/);

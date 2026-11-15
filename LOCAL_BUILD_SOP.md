@@ -13,11 +13,16 @@
 
 ## 1. 核心依赖
 
-- Node 依赖：`@tauri-apps/cli`、`@tauri-apps/api` 固定在 `2.10.1`。
-- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.98.0`）。
+- Node 依赖：`@tauri-apps/cli`、`@tauri-apps/api` 固定在 `2.12.4`。
+- Rust 依赖：`tauri` 固定在 `2.12.4`，`tauri-build` 固定在 `2.7.4`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.98.1`）。
+- Python解释器固定`3.14.10`安全维护版，三平台沿用官方`setup-python`。本地通过`PYTHON`指定该解释器；Windows CI显式`PYTHON=python`消费setup-python的PATH，避免Launcher另选版本。hash锁仅移除3.14不再需要的backports-zstd/typing-extensions，其余包版本不变；当前构建/审计工具active set分别23/28项。
 - Qt bootstrap：`requirements-ci.txt` 固定 `aqtinstall==3.3.0` 及其完整依赖摘要；SoupSieve固定4.0以修复上游两项选择器复杂度问题，保持原aqt/BeautifulSoup入口；旧 `prepare:qt-sdk` 创建 ignored 的 repo-local venv 并以 `--require-hashes` 安装，绝不信任全局 aqt。Windows CMake bootstrap 由 `tools/resolve_windows_cmake.js` 消费 `tools/ci_action_pins.json` 中官方 Kitware/CMake v4.4.3 Windows x64 zip 的固定 URL/SHA-256，重新解包，执行 `cmake --version` 并验证 CTest 同包布局；不会消费 runner PATH 中的预装版本。GitHub Actions 全量 pin 见 `tools/ci_action_pins.json`。
 - 2.8.1 macOS ARM依赖：使用官方Cavalry 2.8.1 Qt `6.9.2` 与同源码已验的arm64 native runtime绝对路径。主构建直接打包该dylib，不运行旧Qt `6.6.3` 的 `build:injector`。此证据不覆盖尚无281 ABI的Intel构建。
 - 历史injector依赖：`tools/cavalry_qt_target.json` 保留版本化SDK投影。旧2.7 injector使用Qt `6.6.3`；Windows路径另按其既有配置执行。不要用旧injector替代2.8.1 native runtime。
+
+`package-lock.json`参与native resource输入摘要。依赖升级后，从当前官方2.8.1资产重新执行`node tools/native_resource_bundle.js --assets-root <official Contents/assets> --profile production-2.8`；纯依赖升级应保留三语payload SHA/字节/键数，不手改派生manifest来跳过新鲜度门。
+
+依赖审计区分项目闭包与工具自身：当前项目npm闭包、Python构建及pip-audit自身闭包均需通过零漏洞门。官方npm `12.2.2` 仍内置受 [GHSA-3g3m-2fjr-6pw4](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) 与 [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249) 影响的glob/minimatch；这是待上游修复的两项中危工具告警，不进入App包，不能用项目npm audit零结果声称工具自身零漏洞。保留官方CLI，避免原地替换其跨主版本内置依赖。RustSec的glib/proc-macro-error提示来自Linux GTK链，当前macOS/Windows目标图不包含它们。
 
 本地dev使用 `debug = "line-tables-only"`。
 test继承dev；release默认不变。
@@ -50,6 +55,9 @@ npm run prepare:qt-sdk:windows  # Windows x64
 本地构建产物不是浏览器下载文件，默认不会携带 Chrome/GitHub 下载写入的 `com.apple.quarantine` 标记。
 
 ## 3. Release 版本协议
+
+Updater使用2.14.1并启用`requireSignedVersion`。CLI2.12.4构建的更新包签名会认证应用SemVer；manifest版本必须相同。手工`tauri signer sign`必须传`--app-version`，真实制品验签门会检查该注释。新客户端只接受未来更高版本，不重签或修改历史release资产。
+
 
 发布版本分两层，不能混用：
 
@@ -206,7 +214,7 @@ Windows临时源码目录的原生C++构建使用`--clean-first`，确保共享�
 
 #### 4.1.1 macOS App Management 用途说明资源闭环（本地验证）
 
-Tauri CLI `2.10.1` 的 macOS schema 将 `bundle.macOS.infoPlist` 定义为可选覆盖路径，并且会自动发现与 `tauri.macos.conf.json` 同目录的 `Info.plist`。本项目采用后者：`src-tauri/Info.plist` 只提供默认英文 `NSAppBundlesUsageDescription`，不把权限逻辑或运行时状态写进 plist。
+Tauri CLI `2.12.4` 的 macOS schema 将 `bundle.macOS.infoPlist` 定义为可选覆盖路径，并且会自动发现与 `tauri.macos.conf.json` 同目录的 `Info.plist`。本项目采用后者：`src-tauri/Info.plist` 只提供默认英文 `NSAppBundlesUsageDescription`，不把权限逻辑或运行时状态写进 plist。
 
 `InfoPlist.strings` 不能只留在源码目录；Tauri 的 `bundle.macOS.files` 是相对于 `Contents` 的目标映射。因此 `tauri.macos.conf.json` 将四个源文件明确写入：
 
@@ -315,7 +323,7 @@ Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出
 
 该 gate 会真实安装、同版本更新并卸载 **Cavalry Language Switcher 自身**，但不会启动或写入真实 Cavalry；三文件哨兵只是一份独立的临时字节合同，不代表任意用户 Cavalry 安装根都已经实测。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。静态 hooks 无 Cavalry/QPA 写入入口与这次真实 install → 同版本 `/UPDATE` → uninstall 哨兵不变证据共同守住安装器边界，但不能替代真实 Cavalry GUI、Program Files/UAC、任意安装路径或跨版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
 
-Windows开发机使用Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带x64 MSVC v143的Visual Studio 2022+及固定CMake 4.4.3。Qt 6.6.3 `msvc2019_64`仅属于2.7.2历史injector链路；当前Windows 2.8.1构建使用Qt 6.9.2 `msvc2022_64`，历史SDK不作为其前置。CI与漏洞证据精确固定Node.js 24.22.1 / npm 12.2.1；本地使用`.node-version`固定Node 24.22.1，`packageManager`固定npm 12.2.1。CI在每个Node setup后显式安装并核验npm。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
+Windows开发机使用Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3.14.10、stable MSVC Rust、带x64 MSVC v143的Visual Studio 2022+及固定CMake 4.4.3。Qt 6.6.3 `msvc2019_64`仅属于2.7.2历史injector链路；当前Windows 2.8.1构建使用Qt 6.9.2 `msvc2022_64`，历史SDK不作为其前置。CI与漏洞证据精确固定Node.js 24.22.3 / npm 12.2.2；本地使用`.node-version`固定Node 24.22.3，`packageManager`固定npm 12.2.2。CI在每个Node setup后显式安装并核验npm。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
 ## 6. DMG 增强修饰（卷标与卷宗图标）
 

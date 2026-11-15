@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+ui-parity/: 从显式 main commit 导出只读基线，同一套黑盒用例验证两种实现的状态轨迹、几何、像素与业务调用；证据在仓库外，详见该目录 CLAUDE.md。
 ui_review_workspace.js / ui_review_server.js 的followHand场景：工作台显式“成功后播放/重播”沿真实app成功流程；仅本地fixture清除审查origin的已播标记，生产不提供重播/重置入口，Reduce Motion仍跳过。
 support_follow_hand.test.js: fake clock/DOM执行真实footer控制器，验证完整成功结果+前台落稳才触发、一次性持久化、后台延期、输入/新事务取消、Reduce Motion及三个随机落点；布局/像素另由真实renderer和Mac App审图。
 cavalry_native_target.json / native_281_delta.test.js: 当前Cavalry 2.8.1完整source lock与33键三语增补/12移除合同；生产target锁定17个catalog、runtime与schema source摘要。历史2.8.0 source fixture只供旧审批合同测试。
@@ -18,6 +19,8 @@ prepare_cavalry_28_windows_ci_inputs.test.js: 锁定官方2.8.1 MSI/五项文件
 check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证当前版本通过、旧2.8.0拒绝与manifest/payload漂移拒绝；不执行安装。
 check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
 check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
+build_ui_sdk.js / ui_sdk_entry.mjs / ui_sdk_primitives.mjs / ui_sdk_components.json: 固定SDK/esbuild与15组件/6组合映射；Web标准组件和Core公开扩展保持main的焦点/布局/原生dialog/Toast追加顺序及文字拖选，按需生成并逐字节复核单个离线包、许可证和摘要；Mac/Windows标准npm构建入口都先核对生成包。
+ui_review_workspace.js / ui_review_server.js 的 componentsSdk 场景：Cavalry 2.8.1 全组件实验入口，使用真实 renderer；revision 包含 SDK manifest 及其全部离线资源。
 cavalry_native_windows_target.json: 锁定官方Cavalry 2.8.1 MSI、Cavalry/API/Core/QtCore/vendor QPA五项x64摘要；仅供Windows宿主与运行时准入，译文沿共享native catalog。
 acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。
 generate_demo_reader_tables.js: 构建期将批准示例投影为有限native表；Windows显式CRLF须还原完整批准LF身份后映射实际SHA/偏移，不修改厂商文件。
@@ -174,7 +177,7 @@ runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资�
 resolve_cavalry_qt_sdk.js: 从单一 Cavalry/Qt 版本真相解析宿主默认或显式 macOS/Windows SDK 投影；无论本地是否已有全局 aqt，都以 repo-local venv 和 `requirements-ci.txt` 完整 hash-lock bootstrap `aqtinstall==3.3.0`；stdout 只输出 shell env/JSON，venv/pip/aqt 诊断统一转 stderr，避免污染 `eval`；macOS 除版本还校验 `cavalry_qt_target.json` 固定的完整 SDK tree SHA-256（所有目录、普通文件内容和 symlink target 的 canonical projection），不匹配即拒绝。
 resolve_windows_cmake.js: 从 `ci_action_pins.json` 的官方 Kitware/CMake v4.4.3 Windows x64 zip pin 下载并校验 archive SHA-256，重新解包受控缓存，执行 `cmake --version` 并验证 CTest 同包布局；stdout 只输出机器可解析路径或 identity JSON，拒绝 runner PATH、低版本、floating URL、缺摘要和 archive 漂移。
 record_windows_toolchain_evidence.js: 读取已验证 Windows CMake identity，复核 archive/可执行文件摘要与实际 `cmake --version`，并 fail-closed 记录 Windows x64 producer 的 CMake 来源、版本、SHA-256、Node/npm/Rust/Python 与 runner identity；不涉及 Authenticode。
-dependency_vulnerability_gate.json / dependency_vulnerability_gate.js / dependency_vulnerability_gate.test.js: 三生态依赖漏洞门；Node 24.22.1/npm 12.2.1与锁文件摘要共同准入；certifi双锁最低2026.10.19，排除受损emSign信任链；Brotli CPython/PyPy绑定同补CVE-2026-111497；版本同步也会改变 package-lock 字节，必须核验依赖差异并同步 npm 摘要，不能跳过 audit；通过共享 npm 命令边界固定 Node/npm 与 registry，hash-lock `pip-audit==2.10.1` 并要求报告精确等于 CPython 3.12.6/Linux 的 24 项 canonical active lock（拒绝截断/增项/重复/漏洞），Cargo 固定 cargo-audit 与 immutable RustSec commit/timestamp，并要求 30 天内重审 snapshot。
+dependency_vulnerability_gate.json / dependency_vulnerability_gate.js / dependency_vulnerability_gate.test.js: 三生态依赖漏洞门；Node 24.22.3/npm 12.2.2与锁文件摘要共同准入；certifi双锁最低2026.10.19，排除受损emSign信任链；Brotli CPython/PyPy绑定同补CVE-2026-111497；版本同步也会改变 package-lock 字节，必须核验依赖差异并同步 npm 摘要，不能跳过 audit；通过共享 npm 命令边界固定 Node/npm 与 registry，hash-lock `pip-audit==2.10.1` 并要求报告精确等于 CPython 3.14.10/Linux 的 23项构建与独立28项审计工具canonical active lock（各自SHA绑定，拒绝截断/增项/重复/漏洞）；审计器自身urllib3/filelock/msgpack同样修复并扫描，Cargo 固定 cargo-audit 与 immutable RustSec commit/timestamp，并要求 30 天内重审 snapshot。
 verify_runner_image.js: 规范化 GitHub `ImageOS`/`ImageVersion` 及 runner OS/arch；PR/main 记录，tag 在受保护 environment 的 allowlist 缺失或不匹配时 fail-closed。
 dmg_volume_identity.js: DMG 挂载身份真相源，从 package SemVer 与 `_aarch64`/`_x64` 文件名后缀生成 `Cavalry Switcher <SemVer> <arch>`，由 producer/verifier 共同消费并拒绝未知架构。
 stamp_dmg_icon.test.js: 执行真实盖章脚本的离线生命周期合同；只虚拟化系统命令，覆盖忙卷三次等待、非忙错误直退及挂载 backing 保全。
@@ -301,8 +304,8 @@ dependency_vulnerability_gate.json: 固定审计工具、RustSec快照和Python�
 
 验收场景范围：scene-scope显式归档195个未填展开项；Timeline保留180观察索引与15父场景。macOS当前表2630项，不新增GUI或产品门。
 
-CI动作pin与漏洞策略固定Node 24.22.1、npm 12.2.1。
-verify_ci_action_pins逐job核验紧邻Node的npm安装。
+CI动作pin与漏洞策略固定Node 24.22.3、npm 12.2.2。
+verify_ci_action_pins逐job核验紧邻Node的npm安装，并要求Windows PYTHON=python消费setup-python的PATH。
 安装与Node同条件，错序或忽略失败均拒绝。
 native_dg_context_menu_data.js: 声明5个2.8.1 TransformTool helper/source审批；Group复用native key、无&项目复用精确TS、Lock绑定AGY refined复核记录。
 build_native_dg_context_menu_table.js: 校验官方281 assets catalog SHA和native/TS source身份，仓外生成菜单投影表；不改官方catalog或language pack统计。

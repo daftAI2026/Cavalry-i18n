@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/ci_action_pins.json、dependency_vulnerability_gate.json、两套 hash-locked Python requirements 与 .github/workflows/build.yml
- * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、同job紧邻且同条件的npm安装与核验、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 消费版本与SHA-256锁定的官方预编译包，并记录 runner ImageOS/ImageVersion 供构建追踪
+ * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、同job紧邻且同条件的npm安装与核验、Windows显式Python绑定、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 消费版本与SHA-256锁定的官方预编译包，并记录 runner ImageOS/ImageVersion 供构建追踪
  * [POS]: tools 的 GitHub Actions 供应链 pin 守门器（P2.5 / P2.6 / P2.8）；injector 检查固定 macos-15。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -187,9 +187,9 @@ function main() {
   verifyHashedRequirements(auditRequirements, 'requirements-audit.txt', 'pip-audit==2.10.1');
   if (
     pins.rust?.toolchainFile !== 'rust-toolchain.toml' ||
-    pins.rust?.channel !== '1.98.0'
+    pins.rust?.channel !== '1.98.1'
   ) {
-    fail('tools/ci_action_pins.json must exactly pin Rust 1.98.0 via rust-toolchain.toml.');
+    fail('tools/ci_action_pins.json must exactly pin Rust 1.98.1 via rust-toolchain.toml.');
   }
   const rustToolchainPath = path.join(rootDir, pins.rust.toolchainFile);
   if (!fs.existsSync(rustToolchainPath)) {
@@ -221,8 +221,8 @@ function main() {
       );
     }
   }
-  if (pins.node?.version !== '24.22.1' || pins.node?.npmVersion !== '12.2.1') {
-    fail('tools/ci_action_pins.json must exactly pin Node 24.22.1 and npm 12.2.1 for the vulnerability gate.');
+  if (pins.node?.version !== '24.22.3' || pins.node?.npmVersion !== '12.2.2') {
+    fail('tools/ci_action_pins.json must exactly pin Node 24.22.3 and npm 12.2.2 for the vulnerability gate.');
   }
   verifyExactActionInput('actions/setup-node', 'node-version', pins.node.version, 5);
   // ---- npm 不随 setup-node 的版本声明升级，逐 job 验证真实安装 ----
@@ -238,10 +238,13 @@ function main() {
       }
     }
   }
-  if (pins.python.version !== '3.12.6') {
-    fail('tools/ci_action_pins.json must pin Python 3.12.6 exactly.');
+  if (pins.python.version !== '3.14.10') {
+    fail('tools/ci_action_pins.json must pin Python 3.14.10 exactly.');
   }
   verifyExactActionInput('actions/setup-python', 'python-version', pins.python.version, 4);
+  if (workflowValue.jobs.windows_check?.env?.PYTHON !== 'python') {
+    fail('Windows Python commands must use setup-python through PYTHON=python.');
+  }
   if (/pip install\s+--upgrade\s+pip/.test(workflow)) {
     fail('CI must not mutate pip with an unpinned upgrade step.');
   }

@@ -41,14 +41,15 @@ fn tauri_versions_are_pinned_to_one_v2_minor() {
 
     let deps = package_json["dependencies"].as_object().unwrap();
     let dev_deps = package_json["devDependencies"].as_object().unwrap();
-    assert_eq!(deps["@tauri-apps/api"], "2.10.1");
-    assert_eq!(dev_deps["@tauri-apps/cli"], "2.10.1");
-    assert_eq!(dependency_version(&cargo_toml, "tauri"), "=2.10.3");
-    assert_eq!(dependency_version(&cargo_toml, "tauri-build"), "=2.5.6");
+    assert_eq!(deps["@tauri-apps/api"], "2.12.4");
+    assert_eq!(dev_deps["@tauri-apps/cli"], "2.12.4");
+    assert_eq!(dependency_version(&cargo_toml, "tauri"), "=2.12.4");
+    assert_eq!(dependency_version(&cargo_toml, "tauri-build"), "=2.7.4");
     assert_eq!(
         dependency_version(&cargo_toml, "tauri-plugin-updater"),
-        "=2.10.1"
+        "=2.14.1"
     );
+    assert_eq!(dependency_version(&cargo_toml, "minisign-verify"), "=0.3.0");
     assert!(!dependency_version(&cargo_toml, "tauri").starts_with('^'));
     assert!(!dependency_version(&cargo_toml, "tauri-build").starts_with('^'));
 }

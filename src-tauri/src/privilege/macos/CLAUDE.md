@@ -8,7 +8,7 @@ native_runtime_fingerprint_reuse_tests.rs: apply_transaction生产phase回归；
 native_runtime_transaction_tests.rs: apply_transaction隔离合同；验证CodeResources准入、schema 6/7互斥、验签失败、验源一次、deferred App写未完成时拒发proof、proof跨事务拒绝、Committed后固定槽漂移保留journal、payload drift、owner/source intent校验与crash recovery；提供NRT临时fixture供phase回归复用。
 native_runtime_terminal.rs: NRT来源终结器；live commit消费同事务最终postimage proof与固定槽检查；恢复入口不预读manifest，内核校验同份manifest的kind/schema/intent；只在四个有效App回滚phase消费profile callback；旧owner→新owner更新只接受精确旧像或同事务新像；Restored验证旧owner，第三态保留journal；原厂restore回滚复核旧归属。
 native_runtime_owner.rs: v1/v2八槽owner仍可读取与原厂恢复；v3记录source SHA并将Extension纳入九槽；hint只读owned/source摘要，供status与同源profile判路；不读journal、App槽或签名，不授权App写或恢复；完整准入复核owner版本对应槽、baseline与签名；语言切换和启动不读整树摘要；终态原子写owner后退役journal，同新owner重放幂等；旧像比较不是OS CAS；原厂恢复撤销匹配归属。
-native_runtime_terminal_tests.rs: NRT终结器的owner/source/原厂恢复fixture合同；以父模块私有fixture供preflight子模块复用，不访问真实App/profile。
+native_runtime_terminal_tests.rs: NRT终结器的owner/source/原厂恢复fixture合同；fake宿主沿当前native目标版本抵达真实验源门，避免旧版本提前拒绝掩盖目标测试；以父模块私有fixture供preflight子模块复用，不访问真实App/profile。
 native_runtime_preflight_tests.rs: 复用父测试fixture的恢复回调时序合同；四有效phase只调一次，终态/坏journal不调，读错不写App；隔离schema 6兼容，不证明厂商。
 native_runtime_finalizer_sentinel_tests.rs: generic finalizer 的独立隔离合同；验证 NRT Restored、RuntimeCommitted、Committed 均被拒绝，canonical journal 与备份保持；只使用临时 bundle。
 bundle.rs: Cavalry.app签名与quarantine操作；legacy helper保留逐对象写后验；NRT专用端口只签明确nested名单与app seal，transaction再验最终postimage；直接命令拒绝管理员shell fallback；status-only 5秒runner只向Apple验证精确Developer-ID requirement；外置签名组件只按自有regular-file路径识别兼容残留。

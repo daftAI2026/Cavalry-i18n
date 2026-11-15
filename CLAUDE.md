@@ -1,6 +1,8 @@
 # Cavalry-i18n - Cavalry 的 macOS / Windows Tauri 桌面语言补丁器
 HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows generic translator + QPA delegate)
 
+UI SDK实验按固定最新main对照：15类基础组件与6类业务组合使用Web/Core parts，任务序列、权限交接与原生事务保留单一业务源。ui_sdk_components.json是映射；tools/ui-parity以同一黑盒输入核视觉、交互、状态、动画及实例覆盖。ui_sdk_entry/primitives只用公开API，经build_ui_sdk生成单个离线包。
+
 当前macOS arm64与Windows x64 production输入为Cavalry 2.8.1；Intel ABI/build仍待验证；Windows实屏与包生命周期独立记账；33键三语增补/12移除与完整官方target绑定，生产沿用既有native resource mode与用户状态域。
 公开的Cavalry 2.8.0 release保留为历史下载；2.7 p12是终版，只保留历史下载。
 Windows原生Apply在profile/runtime写入前持久化已验安装选择；GUI、--launch-cavalry和卸载共用native模式状态域及操作锁。卸载先解析必要目标，缺状态零profile写入，宿主已移除仍幂等恢复自有profile。
@@ -33,7 +35,7 @@ output/ - 只跟踪稳定地图与派生产物规则；实跑证据在仓外sess
 </directory>
 
 <config>
-.node-version - 本机Node 24.22.1；packageManager固定npm 12.2.1
+.node-version - 本机Node 24.22.3；packageManager固定npm 12.2.2
 src-tauri/tauri.native-windows-2.8.conf.json - Windows production-2.8模式的2.8.1运行时资源映射；官方MSI/PE身份独立锁定，语言包沿共享2.8.1 source digest门，历史2.8.0输入拒绝
 .gitignore - 排除依赖、构建、实跑和output派生产物；output仅保留CLAUDE与README稳定规则
 CAVALRY_2_8_MIGRATION_PLAN.md - 单2.8.0迁移唯一44项主账，44完成/0待办；§66.193记录2.8.0 p1正式发行及七资产/统一feed回读；Windows D-6/G-5按§66.189收口；§66.191记录2.8.0首发授权、1.1.0及生产tag启用；§5.2是待办导航，§66.149–151记录NRT Keychain、同源profile快路与真实恢复进度，§66.159–177记录四语footer、ARM内部包/恢复、5.367GiB清理、Save caption、验收复用纠偏、Intel隔离编译与Graph/官方示例新缺口；原动画不动。Intel实机不阻断，编译/反馈留XIA-187；Windows已在合批流程稳定后完成本机验收。完整225不变；普通GUI繁1.449秒、简4.309秒，不抵冷首装/恢复/完整性能/首帧。Guide79/79/79；本profile首启已完成，限定N/A各19、待验0，源分母各98。旧STOP§126限当次私档发布；新归档独立执行，功能分支已合入PR54，2.8.0 p1已按§66.193公开发行。私档不作为构建输入。
@@ -51,7 +53,7 @@ release.config.json - 冻结2.7.2 p12读取与合同profile；共享latest.json 
 release-2.8.config.json - 当前2.8.1统一latest.json release profile；固定cavalry-2.8.1-pN和三平台资产名，Intel/Windows生产闭包仍未就绪
 SECURITY.md - 支持渠道、私密漏洞上报、平台签名边界与 supply-chain 控制说明
 rust-toolchain.toml - CI/本地 Rust channel 固定入口，禁止 tag 构建漂移到浮动 stable
-requirements-ci.in / requirements-ci.txt - certifi 2026.10.19排除受损emSign信任链，Brotli双绑定锁定安全补丁；Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
+requirements-ci.in / requirements-ci.txt - certifi 2026.10.19排除受损emSign信任链，Brotli双绑定锁定安全补丁；Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.14.10/Linux active set 另由漏洞策略精确绑定
 requirements-audit.in / requirements-audit.txt - certifi与Qt构建锁同版；`pip-audit==2.10.1` 自身的独立顶层声明与 universal hash-locked 工具闭包，避免漏洞扫描器通过未锁定安装进入 CI
 src-tauri/Cargo.toml - Rust crate、Tauri v2 与后端依赖声明；dev调试行表由test继承，release默认不变
 src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
@@ -162,10 +164,10 @@ M88统一根因：同一CI候选在runner旧dyld_info中符号错位，LLVM绑�
 
 ## Node 工具链
 
-本机与CI固定Node 24.22.1、npm 12.2.1。
+本机与CI固定Node 24.22.3、npm 12.2.2。
 每个CI Node setup后显式安装并核验npm。
 工具链迁移保留main的1.1.2版本。
-Tauri CLI/API 2.10.1与Rust 2.10.3同minor。
+Tauri CLI/API与Rust统一2.12.4，tauri-build固定2.7.4；updater2.14.1要求已签版本。
 Node合同在原生编译前拒绝单边升级。
 
 2.8.1当前生产以950e713的2.8.0产品源码为代码基线，并由ARM 281 composer选择生产ABI与共享显示实现；默认resource target和release profile已切到2.8.1。Intel仍缺281 ABI/build，Windows官方输入/runtime仍留2.8.0且会被当前共享source digest门拒绝；两者不继承ARM实屏结果。

@@ -1,6 +1,6 @@
 ; [INPUT]: 依赖 Tauri NSIS 模板的 PRODUCTNAME、VERSION 与 English 语言常量
 ; [OUTPUT]: 对外提供 English 安装/卸载消息，并在确认页限定应用数据为 Switcher 设置
-; [POS]: nsis-languages 的 English 消息表；键集合与 Tauri 2.10.3 默认表同构，只收窄 deleteAppData 的产品语义
+; [POS]: nsis-languages 的 English 消息表；键集合与 Tauri CLI 2.12.4 默认表同构，只收窄 deleteAppData 的产品语义
 ; [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 LangString addOrReinstall ${LANG_ENGLISH} "Add/Reinstall components"
@@ -9,7 +9,7 @@ LangString alreadyInstalledLong ${LANG_ENGLISH} "${PRODUCTNAME} ${VERSION} is al
 LangString appRunning ${LANG_ENGLISH} "{{product_name}} is running! Please close it first then try again."
 LangString appRunningOkKill ${LANG_ENGLISH} "{{product_name}} is running!$\nClick OK to kill it"
 LangString chooseMaintenanceOption ${LANG_ENGLISH} "Choose the maintenance option to perform."
-LangString choowHowToInstall ${LANG_ENGLISH} "Choose how you want to install ${PRODUCTNAME}."
+LangString chooseHowToInstall ${LANG_ENGLISH} "Choose how you want to install ${PRODUCTNAME}."
 LangString createDesktop ${LANG_ENGLISH} "Create desktop shortcut"
 LangString dontUninstall ${LANG_ENGLISH} "Do not uninstall"
 LangString dontUninstallDowngrade ${LANG_ENGLISH} "Do not uninstall (Downgrading without uninstall is disabled for this installer)"

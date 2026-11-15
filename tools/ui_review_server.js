@@ -115,7 +115,7 @@ function fixtureSource() {
   const nativeProfileScenarios = Object.freeze([
     'nativeUnknown', 'nativeResourceUnavailable', 'nativeRecoveryNoResources', 'nativeLegacyRelease',
     'nativeRestoreOnly', 'nativeRestoreOnlyHostFailure', 'nativeDefaultEnglish',
-    'nativeOfficialDefaultEnglish', 'nativeOwnedHans',
+    'nativeOfficialDefaultEnglish', 'nativeOwnedHans', 'componentsSdk',
   ]);
   const nativeProfileScenario = nativeProfileScenarios.includes(scenario);
   const nativeOfficialScenario = ['nativeOfficialDefaultEnglish'].includes(scenario);
@@ -123,6 +123,7 @@ function fixtureSource() {
     nativeDefaultEnglish: 'unset',
     nativeOfficialDefaultEnglish: 'unset',
     nativeOwnedHans: 'explicit',
+    componentsSdk: 'unset',
   });
   let nativeLocaleState = nativeLocaleStateByScenario[scenario];
   const windowsScenario = ['windowsClean', 'permissionWindows', 'aboutOpenToast'].includes(scenario);
@@ -177,8 +178,8 @@ function fixtureSource() {
     permissionAction: scenario === 'permissionWindows' ? 'requestElevation' : scenario === 'permissionMac' ? 'openPrivacy' : 'none',
     platform: windowsScenario ? 'windows' : 'macos',
     reconciliationRequired: false,
-    supportedVersion: scenario === 'followHand' ? '2.8.1' : nativeProfileScenario ? '2.8.0' : '2.7.2',
-    version: scenario === 'followHand' ? '2.8.1' : nativeProfileScenario && scenario !== 'nativeLegacyRelease'
+    supportedVersion: ['followHand', 'componentsSdk'].includes(scenario) ? '2.8.1' : nativeProfileScenario ? '2.8.0' : '2.7.2',
+    version: ['followHand', 'componentsSdk'].includes(scenario) ? '2.8.1' : nativeProfileScenario && scenario !== 'nativeLegacyRelease'
       ? '2.8.0'
       : scenario === 'olderVersion' ? '2.7.1' : scenario === 'newerVersion' ? '2.7.3' : '2.7.2',
     versionCompatibility: scenario === 'nativeLegacyRelease' || scenario === 'olderVersion'
@@ -340,7 +341,10 @@ function reviewRevision() {
   const rendererSources = fs.readdirSync(rendererRoot)
     .filter((name) => /\.(?:css|html|js)$/.test(name))
     .map((name) => path.join(rendererRoot, name));
-  return [...rendererSources, ...reviewSourcePaths]
+  const sdkManifest = path.join(rendererRoot, 'ui-sdk.manifest.json');
+  const sdkSources = [sdkManifest, ...JSON.parse(fs.readFileSync(sdkManifest, 'utf8')).files
+    .map((file) => path.join(rendererRoot, file.path))];
+  return [...rendererSources, ...sdkSources, ...reviewSourcePaths]
     .map((source) => fs.statSync(source).mtimeMs)
     .reduce((latest, mtime) => Math.max(latest, mtime), 0)
     .toString(36);

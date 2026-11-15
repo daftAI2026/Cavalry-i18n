@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖标准 DOM 的文本/滚动节点与 icons.js 的冻结语义 SVG 工厂，消费 app.js 提供的本地化任务引言、整体结果、阶段说明、状态与可选图标名
+ * [INPUT]: 依赖 SDK ScrollArea/Progress 与标准 DOM 的文本/滚动节点与 icons.js 的冻结语义 SVG 工厂，消费 app.js 提供的本地化任务引言、整体结果、阶段说明、状态与可选图标名
  * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且在浏览器完成布局后复测中段溢出与 live edge，真实阶段按稳定 id 串行投影并让错误或显式阻塞项立即抢占；阻断项可返回完成落位后的共享可读停顿，外部权限轨显隐后可显式触发同一重测
  * [POS]: renderer 的任务反馈状态机；位于业务语义映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，不阻塞后端事务，只把已到达的机器事件按可读节奏投影
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -18,7 +18,7 @@
     return String(text || '').match(/\S+\s*/g) || [];
   }
 
-  function createOperationLog({ root, idleMessage, intro, viewport, list, outcome }) {
+  function createOperationLog({ root, idleMessage, intro, viewport, list, outcome, scrollArea }) {
     const entries = new Map();
     const messageTokens = { intro: 0, outcome: 0 };
     const visualQueue = [];
@@ -115,10 +115,11 @@
       entries.clear();
       list.replaceChildren();
       viewport.dataset.overflowing = 'false';
-      viewport.dataset.atStart = 'true';
-      viewport.dataset.atEnd = 'true';
+      viewport.dataset.fadeAtStart = 'true';
+      viewport.dataset.fadeAtEnd = 'true';
       viewport.scrollTop = 0;
       followLiveEdge = true;
+      scrollArea.api.scrollToEnd({behavior:'instant'});
     }
 
     function setMode(mode) {
@@ -133,8 +134,8 @@
       const edgeTolerance = cssNumber('--operation-scroll-edge-tolerance');
       const overflowing = maxScroll > edgeTolerance;
       viewport.dataset.overflowing = overflowing ? 'true' : 'false';
-      viewport.dataset.atStart = String(!overflowing || viewport.scrollTop <= edgeTolerance);
-      viewport.dataset.atEnd = String(!overflowing || viewport.scrollTop >= maxScroll - edgeTolerance);
+      viewport.dataset.fadeAtStart = String(!overflowing || viewport.scrollTop <= edgeTolerance);
+      viewport.dataset.fadeAtEnd = String(!overflowing || viewport.scrollTop >= maxScroll - edgeTolerance);
       return overflowing;
     }
 
@@ -144,7 +145,7 @@
         viewport.scrollTop = 0;
         followLiveEdge = true;
       } else if (followLiveEdge) {
-        viewport.scrollTop = viewport.scrollHeight;
+        scrollArea.api.scrollToEnd({behavior:'instant'});
         syncScrollFade();
       }
     }
@@ -162,19 +163,19 @@
       const row = document.createElement('li');
       row.className = 'operation-event';
       row.dataset.eventId = id;
-      const marker = document.createElement('span');
+      const marker = document.createElement('cv-marker');
       marker.className = 'operation-event-marker';
       marker.setAttribute('aria-hidden', 'true');
       const copy = document.createElement('span');
       copy.className = 'operation-event-copy';
-      const title = document.createElement('span');
+      const title = document.createElement('cv-shimmer');
       title.className = 'operation-event-title';
-      const description = document.createElement('span');
+      const description = document.createElement('cv-message');
       description.className = 'operation-event-description';
       copy.append(title, description);
       row.append(marker, copy);
       list.append(row);
-      const entry = { row, marker, title, description };
+      const entry = { row, marker, title, description, copy, progress: null };
       entries.set(id, entry);
       return entry;
     }
@@ -186,7 +187,7 @@
       entry.marker.replaceChildren(...(icon ? [icon] : []));
     }
 
-    function renderEvent({ id, title, description = '', state = 'neutral', icon }) {
+    function renderEvent({ id, title, description = '', state = 'neutral', icon, progress }) {
       if (!id || !title) return;
       if (root.dataset.mode === 'idle') setMode('events');
       const entry = entries.get(id) || createEntry(id);
@@ -194,6 +195,16 @@
       entry.row.dataset.state = state;
       entry.row.dataset.hasDescription = description ? 'true' : 'false';
       entry.title.textContent = title;
+      if (Number.isFinite(progress)) {
+        if (!entry.progress) {
+          entry.progress = document.createElement('ui-progress');
+          entry.progress.className = 'operation-event-progress';
+          entry.copy.append(entry.progress);
+          entry.progress.append(entry.description);
+        }
+        entry.progress.setAttribute('value', String(progress));
+        entry.progress.setAttribute('aria-label', title);
+      }
       entry.description.textContent = description;
       entry.description.hidden = !description;
       setMarker(entry, iconName);

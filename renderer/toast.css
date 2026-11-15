@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 button.css/tokens.css 的共享 Button 状态、排印、4px 间距、弹层层级、颜色、圆角、阴影与 Toast 专属时序角色。
- * [OUTPUT]: 对外提供 shadcn Base Toast 的右下视窗、底部堆叠、状态图标、标题/说明/关闭槽位及进入退出视觉；16px 视窗 inset 是组件源码例外。
+ * [OUTPUT]: 对外提供 SDK Toast 的既有右下视窗、底部堆叠、状态图标、标题/说明/关闭槽位及进入退出视觉；16px 视窗 inset 是组件源码例外。
  * [POS]: renderer 的共享短时通知视觉层；主窗口与 About 页面共同消费，不改变 20px 主内容网格，也不复用 Activity 的持久反馈外框。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -16,6 +16,7 @@
 }
 
 .toast {
+  text-align: start;
   position: absolute;
   right: 0;
   bottom: 0;
@@ -37,10 +38,12 @@
   will-change: transform;
 }
 
-.toast-viewport[data-expanded="true"] .toast {
-  transform: translateY(calc(var(--toast-offset-y) * -1));
+.toast-viewport[data-expanded] .toast {
+  transform: translateY(calc(calc(var(--toast-offset) + var(--toast-index) * var(--toast-stack-gap)) * -1));
 }
 
+.toast[data-starting-style],
+.toast[data-ending-style],
 .toast[data-state="starting"],
 .toast[data-state="ending"] {
   transform: translateY(var(--toast-entry-distance));
@@ -133,3 +136,10 @@
     transition-duration: var(--duration-reduced-motion);
   }
 }
+
+.toast-viewport > [data-slot="toast-list"] { margin: 0; padding: 0; list-style: none; }
+.toast { z-index: calc(100 - var(--toast-index)); }
+ui-toast-close { display: contents; }
+
+/* main 的空说明行仍保留 copy gap；SDK隐藏空part时保持同一几何。 */
+@layer ui-sdk { .toast-description[hidden] { display: block !important; } }

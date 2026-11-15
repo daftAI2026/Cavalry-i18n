@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖native runtime终结器、source SHA intent、owner前像和typed baseline fixture。
- * [OUTPUT]: 锁定live proof消费、commit、owner回滚/重放、第三态拒绝与原厂恢复。
+ * [OUTPUT]: 锁定live proof消费、commit、owner回滚/重放、第三态拒绝与原厂恢复；宿主fixture使用当前目标版本以抵达真实验源门。
  * 新增恢复回调时序合同由子模块native_runtime_preflight_tests复用fixture。
  * [POS]: recovery独立验源；generic finalizer拒绝NRT。
  * fixture source不证明厂商身份；不访问用户App/profile。
@@ -120,9 +120,14 @@ fn assert_journal_and_backup_exist(journal: &Path) {
 }
 
 fn write_observable_non_vendor_identity(app: &Path) {
+    let target: serde_json::Value = serde_json::from_str(include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../tools/cavalry_native_target.json"
+    )))
+    .unwrap();
     fs::write(
         app.join("Contents/Info.plist"),
-        br#"<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.scenegroup.cavalry</string><key>CFBundleShortVersionString</key><string>2.8.0</string><key>CFBundleExecutable</key><string>Cavalry</string></dict></plist>"#,
+        format!(r#"<?xml version="1.0"?><plist version="1.0"><dict><key>CFBundleIdentifier</key><string>com.scenegroup.cavalry</string><key>CFBundleShortVersionString</key><string>{}</string><key>CFBundleExecutable</key><string>Cavalry</string></dict></plist>"#, target["cavalryVersion"].as_str().unwrap()),
     )
     .unwrap();
 }

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL；显式macOS native模式另读固定target工件manifest、官方域摘要及目标架构dylib，并将BuildMode写入OUT_DIR。
- * [OUTPUT]: 按BuildMode固化当前2.8.1原生资源；Windows x64 production复用资源manifest；Mac继续验证目标架构runtime。
+ * [OUTPUT]: 按BuildMode固化当前2.8.1原生资源；Windows x64 production复用资源manifest；Mac继续验证目标架构runtime；Windows MSVC仅给集成测试补Common Controls v6清单。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -54,7 +54,37 @@ fn main() {
     embed_native_build_mode(native_mode);
     embed_native_resource_manifest(native_mode);
     embed_native_runtime_injector(native_mode);
+    embed_windows_test_manifest();
     tauri_build::build();
+}
+
+// tauri-build 2.7 links its normal manifest only to app binaries. The real
+// MockRuntime updater test also imports TaskDialogIndirect, which needs v6.
+// Keep this linker input scoped to integration tests; production stays Tauri-owned.
+fn embed_windows_test_manifest() {
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows")
+        || env::var("CARGO_CFG_TARGET_ENV").as_deref() != Ok("msvc")
+    {
+        return;
+    }
+    let manifest = PathBuf::from(env::var_os("OUT_DIR").expect("OUT_DIR is required"))
+        .join("windows-test.manifest");
+    fs::write(
+        &manifest,
+        r#"<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <dependency><dependentAssembly>
+    <assemblyIdentity type="win32" name="Microsoft.Windows.Common-Controls"
+      version="6.0.0.0" processorArchitecture="*" publicKeyToken="6595b64144ccf1df" language="*" />
+  </dependentAssembly></dependency>
+</assembly>
+"#,
+    )
+    .expect("Windows integration-test manifest could not be written");
+    println!("cargo:rustc-link-arg-tests=/MANIFEST:EMBED");
+    println!(
+        "cargo:rustc-link-arg-tests=/MANIFESTINPUT:{}",
+        manifest.display()
+    );
 }
 
 // -- 将构建模式固定进OUT_DIR；运行时不读取环境变量 --------------------
