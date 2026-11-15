@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 Tauri AppHandle/IPC Channel、官方 tauri-plugin-updater 2.10.1 的 Update、Updater 单飞状态，以及安装阶段复用的 bundle operation lock。
+ * [INPUT]: 依赖 Tauri AppHandle/IPC Channel、官方 tauri-plugin-updater 2.14.1 的签名版本绑定 Update、Updater 单飞状态，以及安装阶段复用的 bundle operation lock。
  * [OUTPUT]: 提供check_update/install_update；两平台native production只允许正式identifier与统一latest.json。
  * [POS]: commands 的更新领域边界；检查网络不占用 Cavalry bundle 锁，检查与安装彼此单飞；安装只消费 Rust State 中最近一次签名验证通过的 Update，并以 Channel 观察下载、安装和重启边界。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -267,6 +267,10 @@ fn production_updater_config_matches(identifier: &str, config: Option<&serde_jso
     identifier == NATIVE_PRODUCTION_IDENTIFIER
         && endpoints.len() == 1
         && endpoints[0].as_str() == Some(NATIVE_PRODUCTION_ENDPOINT)
+        && config
+            .and_then(|value| value.get("requireSignedVersion"))
+            .and_then(serde_json::Value::as_bool)
+            == Some(true)
 }
 
 fn updater_is_configured(app: &AppHandle) -> bool {
@@ -466,7 +470,7 @@ mod tests {
 
     #[test]
     fn production_feed_requires_exact_identity_and_single_latest_endpoint() {
-        let exact = serde_json::json!({"endpoints":[
+        let exact = serde_json::json!({"requireSignedVersion":true,"endpoints":[
             "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json"
         ]});
         assert!(production_updater_config_matches(
@@ -478,6 +482,8 @@ mod tests {
             Some(&exact)
         ));
         for rejected in [
+            serde_json::json!({"endpoints":[NATIVE_PRODUCTION_ENDPOINT]}),
+            serde_json::json!({"requireSignedVersion":false,"endpoints":[NATIVE_PRODUCTION_ENDPOINT]}),
             serde_json::json!({"endpoints":[]}),
             serde_json::json!({"endpoints":["https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest-cavalry-2.8.json"]}),
             serde_json::json!({"endpoints":[NATIVE_PRODUCTION_ENDPOINT, "https://example.invalid/feed.json"]}),

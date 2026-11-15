@@ -25,6 +25,19 @@ const {
 
 test.after(cleanupTempDirs);
 
+test('NSIS custom language tables retain the Tauri 2.12.4 message slots', () => {
+  // Official tauri-cli-v2.12.4 English.nsh, blob 50354a1fcf4e0c0145477d5992ff509fff138499.
+  const expected = ['addOrReinstall', 'alreadyInstalled', 'alreadyInstalledLong', 'appRunning', 'appRunningOkKill',
+    'chooseMaintenanceOption', 'chooseHowToInstall', 'createDesktop', 'dontUninstall', 'dontUninstallDowngrade',
+    'failedToKillApp', 'installingWebview2', 'newerVersionInstalled', 'older', 'olderOrUnknownVersionInstalled',
+    'silentDowngrades', 'unableToUninstall', 'uninstallApp', 'uninstallBeforeInstalling', 'unknown', 'webview2AbortError',
+    'webview2DownloadError', 'webview2DownloadSuccess', 'webview2Downloading', 'webview2InstallError', 'webview2InstallSuccess', 'deleteAppData'].sort();
+  for (const language of ['English', 'SimpChinese', 'TradChinese', 'Japanese']) {
+    const text = fs.readFileSync(path.join(__dirname, '../src-tauri/nsis-languages', `${language}.nsh`), 'utf8');
+    assert.deepEqual([...text.matchAll(/^LangString\s+(\w+)/gm)].map(match => match[1]).sort(), expected, language);
+  }
+});
+
 const repoRoot = path.resolve(__dirname, '..');
 
 function readJson(relativePath) {
@@ -2625,7 +2638,7 @@ test('release supply-chain pins, source completeness, and provenance schema are 
   assert.match(requirementsInput, /^aqtinstall==3\.3\.0$/m);
   assert.match(requirements, /^aqtinstall==3\.3\.0/m);
   assert.match(requirements, /--hash=sha256:[a-f0-9]{64}/);
-  assert.match(rustToolchain, /channel\s*=\s*"1\.98\.0"/);
+  assert.match(rustToolchain, /channel\s*=\s*"1\.98\.1"/);
   assert.match(readText('SECURITY.md'), /ad-hoc signed and not notarized/);
   assert.match(readText('SECURITY.md'), /Tauri Updater signature/);
   assert.match(readText('.github/CODEOWNERS'), /@singkia/);

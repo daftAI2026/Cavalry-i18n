@@ -133,19 +133,19 @@ test('every Rust setup and rust-toolchain.toml must match the exact manifest cha
   try {
     const workflowPath = path.join(temp, '.github/workflows/build.yml');
     const workflow = fs.readFileSync(workflowPath, 'utf8');
-    fs.writeFileSync(workflowPath, workflow.replaceAll("toolchain: '1.98.0'", 'toolchain: stable'));
+    fs.writeFileSync(workflowPath, workflow.replaceAll("toolchain: '1.98.1'", 'toolchain: stable'));
     const floating = run(temp);
     assert.notEqual(floating.status, 0);
-    assert.match(floating.stderr, /must declare exactly toolchain: '1\.98\.0'/);
+    assert.match(floating.stderr, /must declare exactly toolchain: '1\.98\.1'/);
 
     fs.writeFileSync(workflowPath, workflow);
     fs.writeFileSync(
       path.join(temp, 'rust-toolchain.toml'),
-      fs.readFileSync(path.join(temp, 'rust-toolchain.toml'), 'utf8').replace('1.98.0', 'stable')
+      fs.readFileSync(path.join(temp, 'rust-toolchain.toml'), 'utf8').replace('1.98.1', 'stable')
     );
     const fileDrift = run(temp);
     assert.notEqual(fileDrift.status, 0);
-    assert.match(fileDrift.stderr, /must declare exactly channel = "1\.98\.0"/);
+    assert.match(fileDrift.stderr, /must declare exactly channel = "1\.98\.1"/);
 
     fs.copyFileSync(path.join(root, 'rust-toolchain.toml'), path.join(temp, 'rust-toolchain.toml'));
     const pinsPath = path.join(temp, 'tools/ci_action_pins.json');
@@ -154,7 +154,7 @@ test('every Rust setup and rust-toolchain.toml must match the exact manifest cha
     fs.writeFileSync(pinsPath, `${JSON.stringify(pins, null, 2)}\n`);
     const manifestDrift = run(temp);
     assert.notEqual(manifestDrift.status, 0);
-    assert.match(manifestDrift.stderr, /must exactly pin Rust 1\.98\.0/);
+    assert.match(manifestDrift.stderr, /must exactly pin Rust 1\.98\.1/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 
@@ -185,17 +185,17 @@ test('Node and Python pins belong to their own setup steps, not global decoy cou
       mutate(workflow) {
         return workflow
           .replace("python-version: '3.12.6'", "python-version: '3.13.0'")
-          .replace('node-version: 24.22.1', "node-version: 24.22.1\n          python-version: '3.12.6'");
+          .replace('node-version: 24.22.3', "node-version: 24.22.3\n          python-version: '3.12.6'");
       },
       expected: /actions\/setup-python step .*python-version: '3\.12\.6'/,
     },
     {
       mutate(workflow) {
         return workflow
-          .replace('node-version: 24.22.1', 'node-version: 23.0.0')
-          .replace("python-version: '3.12.6'", "python-version: '3.12.6'\n          node-version: 24.22.1");
+          .replace('node-version: 24.22.3', 'node-version: 23.0.0')
+          .replace("python-version: '3.12.6'", "python-version: '3.12.6'\n          node-version: 24.22.3");
       },
-      expected: /actions\/setup-node step .*node-version: '24\.22\.1'/,
+      expected: /actions\/setup-node step .*node-version: '24\.22\.3'/,
     },
   ]) {
     const temp = fixture();

@@ -60,6 +60,10 @@ fn tauri_updater_uses_the_final_public_key_and_release_manifest_endpoint() {
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let release_config = read_json(&manifest_dir.join("../release.config.json"));
     let updater = &config["plugins"]["updater"];
+    assert_eq!(
+        updater["requireSignedVersion"], true,
+        "announced versions must be covered by the package signature"
+    );
     let expected_endpoint = format!(
         "{}/{}",
         release_config["updater"]["downloadBaseUrl"]

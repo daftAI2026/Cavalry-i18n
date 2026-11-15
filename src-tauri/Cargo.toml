@@ -1,5 +1,5 @@
 # [INPUT]: 依赖 Cargo.lock 与 build.rs 平台资源入口；Windows启用ToolHelp只读进程快照与既有文件/COM/Shell能力。
-# [OUTPUT]: 定义后端 crate；dev/test 只保留调试行表。
+# [OUTPUT]: 定义后端 crate；Tauri/updater固定安全版本，发布验签沿用同版minisign；dev/test只保留调试行表。
 # [POS]: Tauri 后端唯一 Cargo manifest；release profile 保持默认。
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
@@ -16,7 +16,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 [build-dependencies]
 cc = "=1.2.60"
 sha2 = "0.10"
-tauri-build = { version = "=2.5.6", features = [] }
+tauri-build = { version = "=2.7.4", features = [] }
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
@@ -26,10 +26,10 @@ rfd = "=0.17.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
-tauri = { version = "=2.10.3", features = [] }
+tauri = { version = "=2.12.4", features = [] }
 
 [target.'cfg(any(target_os = "macos", windows, target_os = "linux"))'.dependencies]
-tauri-plugin-updater = { version = "=2.10.1" }
+tauri-plugin-updater = { version = "=2.14.1" }
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "=0.61.3", features = [
@@ -44,7 +44,8 @@ windows = { version = "=0.61.3", features = [
 
 [dev-dependencies]
 base64 = "=0.22.1"
-minisign-verify = "=0.2.5"
+minisign-verify = "=0.3.0"
+tauri = { version = "=2.12.4", features = ["test"] }
 tempfile = "3"
 
 [profile.dev]

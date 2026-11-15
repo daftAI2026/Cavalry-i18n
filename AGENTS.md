@@ -229,11 +229,12 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 | Tool | Version / Source | Notes |
 | --- | --- | --- |
-| Node.js / npm | 24.22.1 / 12.2.1 in CI and local development | `.node-version` + `packageManager`; CI explicitly installs npm after each Node setup; no pnpm/yarn |
-| npm packages | `package-lock.json` | `@tauri-apps/cli` and `@tauri-apps/api` pinned to 2.10.1 |
+| Node.js / npm | 24.22.3 / 12.2.2 in CI and local development | `.node-version` + `packageManager`; CI explicitly installs npm after each Node setup; no pnpm/yarn |
+| npm packages | `package-lock.json` | `@tauri-apps/cli` and `@tauri-apps/api` pinned to 2.12.4 |
 | Rust | stable, edition 2021 | Tauri backend crate `cavalry-i18n-tauri` |
-| Tauri | Rust `tauri` 2.10.3 | npm CLI/API minor aligned with Rust runtime |
-| `tauri-build` | 2.5.6 exact | Build script dependency |
+| Tauri | Rust `tauri` 2.12.4 | npm CLI/API minor aligned with Rust runtime |
+| `tauri-build` | 2.7.4 exact | Build script dependency |
+| Updater | 2.14.1 exact; minisign-verify 0.3.0 | Require signed app version; CLI 2.12.4 signs future updater assets |
 | Qt SDK | 6.9.2 | Current macOS arm64 and Windows x64 Cavalry 2.8.1 runtime; Intel ABI/build remains pending; 6.6.3 is legacy only |
 | Cavalry target | 2.8.1 macOS arm64 + Windows x64 | Release tag prefix `cavalry-2.8.1-p`; Intel and complete three-platform release closure remain pending |
 | Python | python3 | Translation validator and `aqtinstall` setup |

@@ -187,9 +187,9 @@ function main() {
   verifyHashedRequirements(auditRequirements, 'requirements-audit.txt', 'pip-audit==2.10.1');
   if (
     pins.rust?.toolchainFile !== 'rust-toolchain.toml' ||
-    pins.rust?.channel !== '1.98.0'
+    pins.rust?.channel !== '1.98.1'
   ) {
-    fail('tools/ci_action_pins.json must exactly pin Rust 1.98.0 via rust-toolchain.toml.');
+    fail('tools/ci_action_pins.json must exactly pin Rust 1.98.1 via rust-toolchain.toml.');
   }
   const rustToolchainPath = path.join(rootDir, pins.rust.toolchainFile);
   if (!fs.existsSync(rustToolchainPath)) {
@@ -221,8 +221,8 @@ function main() {
       );
     }
   }
-  if (pins.node?.version !== '24.22.1' || pins.node?.npmVersion !== '12.2.1') {
-    fail('tools/ci_action_pins.json must exactly pin Node 24.22.1 and npm 12.2.1 for the vulnerability gate.');
+  if (pins.node?.version !== '24.22.3' || pins.node?.npmVersion !== '12.2.2') {
+    fail('tools/ci_action_pins.json must exactly pin Node 24.22.3 and npm 12.2.2 for the vulnerability gate.');
   }
   verifyExactActionInput('actions/setup-node', 'node-version', pins.node.version, 5);
   // ---- npm 不随 setup-node 的版本声明升级，逐 job 验证真实安装 ----

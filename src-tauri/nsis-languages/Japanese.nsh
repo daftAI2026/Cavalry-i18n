@@ -1,6 +1,6 @@
 ; [INPUT]: 依赖 Tauri NSIS 模板的 PRODUCTNAME、VERSION 与 Japanese 语言常量
 ; [OUTPUT]: 对外提供日语安装/卸载消息，并在确认页限定应用数据为切换器设置
-; [POS]: nsis-languages 的日语消息表；键集合与 Tauri 2.10.3 默认表同构，只收窄 deleteAppData 的产品语义
+; [POS]: nsis-languages 的日语消息表；键集合与 Tauri CLI 2.12.4 默认表同构，只收窄 deleteAppData 的产品语义
 ; [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 LangString addOrReinstall ${LANG_JAPANESE} "コンポーネントの追加・再インストール"
@@ -9,7 +9,7 @@ LangString alreadyInstalledLong ${LANG_JAPANESE} "${PRODUCTNAME} ${VERSION} は�
 LangString appRunning ${LANG_JAPANESE} "{{product_name}} は動作中です。動作中のプログラムを終了し、もう一度やり直してください。"
 LangString appRunningOkKill ${LANG_JAPANESE} "{{product_name}} は動作中です。$\n「OK」を押すと動作中のプログラムを終了します。"
 LangString chooseMaintenanceOption ${LANG_JAPANESE} "メンテナンスオプションを選択して実行します。"
-LangString choowHowToInstall ${LANG_JAPANESE} "${PRODUCTNAME} のインストール方法を選択してください。"
+LangString chooseHowToInstall ${LANG_JAPANESE} "${PRODUCTNAME} のインストール方法を選択してください。"
 LangString createDesktop ${LANG_JAPANESE} "デスクトップショートカットを作成する"
 LangString dontUninstall ${LANG_JAPANESE} "アンインストールしない"
 LangString dontUninstallDowngrade ${LANG_JAPANESE} "アンインストールしない (このインストーラーでは、アンインストールをせずにダウングレードすることはできません)"
