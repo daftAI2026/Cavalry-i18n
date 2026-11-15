@@ -2648,7 +2648,7 @@ test('release supply-chain pins, source completeness, and provenance schema are 
     /pip install[^\n]*--require-hashes[^\n]*--only-binary=:all:[^\n]*-r requirements-ci\.txt/
   );
   assert.doesNotMatch(workflow, /pip install\s+--upgrade\s+pip/);
-  assert.match(workflow, /python-version:\s*'3\.12\.6'/);
+  assert.match(workflow, /python-version:\s*'3\.14\.10'/);
   assert.match(workflow, /concurrency:/);
 
   const pinCheck = spawnSync(process.execPath, ['tools/verify_ci_action_pins.js'], {

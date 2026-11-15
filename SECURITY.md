@@ -46,7 +46,7 @@ Do **not** attach updater/release private keys, future Apple/Windows certificate
 
 - GitHub Actions are pinned to full commit SHAs (`tools/ci_action_pins.json`).
 - Rust channel is pinned in `rust-toolchain.toml`.
-- CI Python Qt bootstrap is hash-locked in `requirements-ci.txt`; `pip-audit` itself is separately hash-locked in `requirements-audit.txt`, and its report must exactly cover the canonical CPython 3.12.6/Linux active dependency set.
+- CI Python Qt bootstrap is hash-locked in `requirements-ci.txt`; `pip-audit` itself is separately hash-locked in `requirements-audit.txt`, and its report must exactly cover the canonical CPython 3.14.10/Linux active dependency set.
 - Tag releases must point to a commit already contained in `origin/main`; fixed-label platform jobs rebuild the artifacts and verify the updater closure.
 - Release publication uses a private draft, uploads all expected assets, downloads every asset for byte comparison, and only then makes the Release public (`tools/release_publish.js`).
 - Existing public releases are immutable under the publisher: missing, extra, or conflicting assets fail closed instead of being overwritten.

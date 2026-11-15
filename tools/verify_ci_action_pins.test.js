@@ -2,7 +2,7 @@
 /**
  * [INPUT]: verify_ci_action_pins.js 与临时复制的 workflow/policy/requirements/toolchain inputs
  * [OUTPUT]: 证明 baseline 通过，同时拒绝 unknown/wrong-SHA action、floating Rust setup、toolchain manifest/file 漂移与绕过预编译 cargo-audit 摘要或版本核验
- * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试；固定 runner 回归拒绝退役镜像，npm 回归拒绝缺失、错序和条件漂移。
+ * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试；固定 runner 回归拒绝退役镜像，npm 回归拒绝缺失、错序和条件漂移，Windows Python拒绝Launcher绕开固定解释器。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -179,21 +179,36 @@ test('cargo-audit prebuilt archive fails closed without checksum and version che
   }
 });
 
+test('Windows Python commands consume the setup-python PATH instead of the Launcher', () => {
+  for (const command of [undefined, 'py']) {
+    const temp = fixture();
+    try {
+      const workflowPath = path.join(temp, '.github/workflows/build.yml');
+      const workflow = fs.readFileSync(workflowPath, 'utf8');
+      fs.writeFileSync(workflowPath, workflow.replace('      PYTHON: python\n',
+        command === undefined ? '' : `      PYTHON: ${command}\n`));
+      const result = run(temp);
+      assert.notEqual(result.status, 0, 'a declared setup version must also be consumed by Python helpers');
+      assert.match(result.stderr, /Windows Python commands must use setup-python through PYTHON=python/);
+    } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+  }
+});
+
 test('Node and Python pins belong to their own setup steps, not global decoy counts', () => {
   for (const fixtureCase of [
     {
       mutate(workflow) {
         return workflow
-          .replace("python-version: '3.12.6'", "python-version: '3.13.0'")
-          .replace('node-version: 24.22.3', "node-version: 24.22.3\n          python-version: '3.12.6'");
+          .replace("python-version: '3.14.10'", "python-version: '3.13.0'")
+          .replace('node-version: 24.22.3', "node-version: 24.22.3\n          python-version: '3.14.10'");
       },
-      expected: /actions\/setup-python step .*python-version: '3\.12\.6'/,
+      expected: /actions\/setup-python step .*python-version: '3\.14\.10'/,
     },
     {
       mutate(workflow) {
         return workflow
           .replace('node-version: 24.22.3', 'node-version: 23.0.0')
-          .replace("python-version: '3.12.6'", "python-version: '3.12.6'\n          node-version: 24.22.3");
+          .replace("python-version: '3.14.10'", "python-version: '3.14.10'\n          node-version: 24.22.3");
       },
       expected: /actions\/setup-node step .*node-version: '24\.22\.3'/,
     },
@@ -225,7 +240,7 @@ test('an unnamed setup action is still a distinct step and cannot use default ru
     );
     const result = run(temp);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /actions\/setup-python step .*python-version: '3\.12\.6'.*none/);
+    assert.match(result.stderr, /actions\/setup-python step .*python-version: '3\.14\.10'.*none/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 
@@ -246,7 +261,7 @@ test('a setup step whose first key is if is still isolated from the preceding pi
     );
     const result = run(temp);
     assert.notEqual(result.status, 0);
-    assert.match(result.stderr, /actions\/setup-python step .*python-version: '3\.12\.6'.*none/);
+    assert.match(result.stderr, /actions\/setup-python step .*python-version: '3\.14\.10'.*none/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 

@@ -237,7 +237,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 | Updater | 2.14.1 exact; minisign-verify 0.3.0 | Require signed app version; CLI 2.12.4 signs future updater assets |
 | Qt SDK | 6.9.2 | Current macOS arm64 and Windows x64 Cavalry 2.8.1 runtime; Intel ABI/build remains pending; 6.6.3 is legacy only |
 | Cavalry target | 2.8.1 macOS arm64 + Windows x64 | Release tag prefix `cavalry-2.8.1-p`; Intel and complete three-platform release closure remain pending |
-| Python | python3 | Translation validator and `aqtinstall` setup |
+| Python | 3.14.10 | CI/local build tooling; explicit `PYTHON` selects the pinned interpreter |
 | macOS tools | `codesign`, `hdiutil`, `xattr`, `osascript` | Required for package/sign/quarantine/runtime capture |
 | Windows build tools | Windows 10 x64+, Node.js 24+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, pinned CMake 4.4.3, Qt 6.9.2 `msvc2022_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |
 
