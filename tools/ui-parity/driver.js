@@ -166,7 +166,8 @@ async function createDriver(context, origin, locale, dir, probe) {
     assert.equal(await page.evaluate(()=>Date.now()),frozenTime,`${name}: capture must not advance the test clock`);
     if (omitFocus) delete observed.focus;
     checkpoints.push({ name, observed, geometry, file });
-    const seen=await page.evaluate(entries=>entries.map(({name,selector})=>[name,[...document.querySelectorAll(selector)].some(element=>
+      const seen=await page.evaluate(entries=>entries.map(({name,selector,mode,factory})=>[name,[...document.querySelectorAll(selector)].some(element=>
+      mode==='business'?element.isConnected:mode==='core-behavior'?typeof window.cavalryUi?.[factory]==='function'&&element.isConnected:
       !!customElements.get(element.localName) && (element.hasAttribute('data-slot') || element.firstElementChild?.hasAttribute('data-slot')))]),
       [...inventory.primitives,...inventory.compositions]);
     for(const [name,present]of seen)coverage[name]=coverage[name]||present;

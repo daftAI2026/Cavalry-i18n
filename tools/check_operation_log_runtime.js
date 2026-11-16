@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer/icons.js 与 renderer/operation-log.js、最小 DOM/时钟 fixture。
+ * [INPUT]: renderer/icons.js与operation-log.js、最小DOM/时钟及SDK日志跟随公开API fixture。
  * [OUTPUT]: 验证 Marker 稳定 upsert、浏览器下一帧布局收敛后的 live-edge、首尾 Message 或外部权限轨改变布局后的溢出/起止边缘回算、快事件可读串行、结果排队与错误立即抢占。
  * [POS]: tools 的任务反馈专属运行时合同；从综合 bridge 测试拆出，避免 renderer 业务 fixture 承担组件内部时序。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -36,6 +36,7 @@ function fixture(styleValues = {}) {
   let nextFrameId = 1;
   const animationFrames = new Map();
   const window = {
+    addEventListener() {},
     requestAnimationFrame(callback) {
       const id = nextFrameId++;
       animationFrames.set(id, callback);
@@ -51,11 +52,10 @@ function fixture(styleValues = {}) {
   vm.runInNewContext(read('renderer/operation-log.js'), context, { filename: 'operation-log.js' });
   let sticking = true;
   elements.viewport.addEventListener('scroll', () => {
-    sticking = elements.viewport.scrollHeight - elements.viewport.clientHeight - elements.viewport.scrollTop <= 1;
+    sticking = elements.viewport.scrollHeight - elements.viewport.clientHeight - elements.viewport.scrollTop <= 4;
   });
-  const scrollArea = { api: { isSticking: () => sticking, scrollToEnd() { elements.viewport.scrollTop = elements.viewport.scrollHeight; sticking = true; } } };
+  window.cavalryUi = { createStickToBottom: () => ({ connect: () => () => {}, get: () => ({ following: sticking }), scrollToBottom() { elements.viewport.scrollTop = elements.viewport.scrollHeight; sticking = true; } }) };
   const log = window.createOperationLog({
-    scrollArea,
     root: elements.root, idleMessage: elements.idle, intro: elements.intro,
     viewport: elements.viewport, list: elements.list, outcome: elements.outcome,
   });
@@ -80,7 +80,7 @@ async function waitUntil(predicate, timeoutMs = 500) {
 }
 
 test('Marker swaps Spinner in place and follows only while the reader stays at the live edge', () => {
-  const { elements, log } = fixture();
+  const { elements, log, flushAnimationFrames } = fixture();
   elements.viewport.clientHeight = 20;
   Object.defineProperty(elements.viewport, 'scrollHeight', {
     configurable: true, get: () => elements.list.children.length * 20,
@@ -91,6 +91,7 @@ test('Marker swaps Spinner in place and follows only while the reader stays at t
   assert.equal(elements.list.children.length, 1);
   assert.equal(elements.list.children[0].children[0].dataset.icon, 'verify');
   log.upsert({ id: 'baseline', title: 'Preparing recovery files', state: 'running' });
+  flushAnimationFrames();
   assert.equal(elements.viewport.scrollTop, 40);
   assert.equal(elements.viewport.dataset.fadeAtEnd, 'true');
   elements.viewport.scrollTop = 0;
@@ -98,11 +99,12 @@ test('Marker swaps Spinner in place and follows only while the reader stays at t
   assert.equal(elements.viewport.dataset.fadeAtStart, 'true');
   assert.equal(elements.viewport.dataset.fadeAtEnd, 'false');
   log.upsert({ id: 'apply', title: 'Applying', state: 'running' });
+  flushAnimationFrames();
   assert.equal(elements.viewport.scrollTop, 0);
 });
 
 test('outcome track recalculates overflow when it shrinks the middle viewport', () => {
-  const { elements, log } = fixture();
+  const { elements, log, flushAnimationFrames } = fixture();
   Object.defineProperty(elements.viewport, 'clientHeight', {
     configurable: true,
     get: () => elements.root.dataset.hasOutcome === 'true' ? 20 : 40,
@@ -118,6 +120,7 @@ test('outcome track recalculates overflow when it shrinks the middle viewport', 
   assert.equal(elements.viewport.dataset.overflowing, 'false');
 
   log.complete('Task complete.');
+  flushAnimationFrames();
   assert.equal(elements.root.dataset.hasOutcome, 'true');
   assert.equal(elements.viewport.dataset.overflowing, 'true');
   assert.equal(elements.viewport.dataset.fadeAtEnd, 'true');

@@ -80,9 +80,10 @@ Cavalry-i18n/
 
 ### Renderer
 
-- 本试验分支的组件统一使用固定 UI SDK，映射见 `tools/ui_sdk_components.json`。修改前阅读 SDK 自带 llms/组件文档；定制组件另读 Core/rendering 文档，只用公开 API。`build:ui-sdk` 生成离线包，`check:ui-sdk` 核对；不手改生成包或 SDK 内部状态。
-- 视觉、交互和状态转换以固定最新 main 的同一套黑盒测试为准，见 `tools/ui-parity/README.md`。先让 main 通过，再让 SDK 通过；不得用 SDK 默认行为替代既有合同或放宽预期。业务事务与权限边界保持单一源。
+- 组件统一使用固定 UI SDK 的默认 Web Components，映射见 `tools/ui_sdk_components.json`。修改前阅读 SDK 自带 llms/组件文档；定制组件另读 Core/rendering 文档，只用公开 API。`build:ui-sdk` 生成离线包，`check:ui-sdk` 核对；不手改生成包或 SDK 内部状态。
+- 遵循维护者 2026-11-16 裁决：组件交互与状态机以 SDK 官方默认约定为准，不再用 Core 扩展复刻旧控件；颜色、排版、400×504 默认窗口及业务/权限边界继续回归。使用公开 action/waitUntil 接异步业务，不自写焦点、搜索、队列或弹层逻辑。`tools/ui-parity/README.md` 区分当前 SDK 验收与历史 main 像素对照。
 
+- Select验收必须包含初始空值的pointerdown/up和已选后重开；收起状态像素一致不能替代展开首帧。展示/位置使用SDK公开配置，点击时机与拖动由SDK拥有。
 - `app.js` must not know Tauri internals. It talks only to `window.cavalryI18n`.
 - `tauri-bridge.js` normalizes camelCase payloads only. Do not reintroduce snake_case fallbacks or debug fields.
 - `window-controls.js` is the only platform-window consumer. Keep it limited to the fixed `main` label and the explicit minimize/toggle-maximize/is-maximized/close surface.

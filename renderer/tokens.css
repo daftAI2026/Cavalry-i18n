@@ -182,8 +182,6 @@
 
   /* ---------- Tooltip / Dialog / 辅助交互 ---------- */
   /* shadcn Base UI Tooltip Positioner 的 sideOffset=4。 */
-  --tooltip-side-offset: var(--space-1);
-  --tooltip-collision-padding: var(--space-2);
   --tooltip-max-width: 320px;
   /* shadcn Base Nova Tooltip 的 px-3/py-1.5。 */
   --tooltip-padding-block: 6px;

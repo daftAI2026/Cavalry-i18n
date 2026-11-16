@@ -2,8 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-ui-parity/: 从显式 main commit 导出只读基线，同一套黑盒用例验证两种实现的状态轨迹、几何、像素与业务调用；证据在仓库外，详见该目录 CLAUDE.md。
-ui_review_workspace.js / ui_review_server.js 的followHand场景：工作台显式“成功后播放/重播”沿真实app成功流程；仅本地fixture清除审查origin的已播标记，生产不提供重播/重置入口，Reduce Motion仍跳过。
+ui-parity/: 当前sdk-default验SDK默认组件与业务接线，legacy合同保留历史main精确对照；真实时钟浏览器/原生AB测性能、工作量和资源，所有证据写仓库外。
+ui_review_server.js: 只读真实renderer审查服务；nativeWindows281复用官方userProfile状态、Windows根与2.8.1目标验证SDK连续切换/禁用期同步；followHand仅清审查origin已播标记，不写宿主。
+ui_review_workspace.js: 工作台显式“成功后播放/重播”沿真实app成功流程；生产不提供重播/重置入口，Reduce Motion仍跳过。
 support_follow_hand.test.js: fake clock/DOM执行真实footer控制器，验证完整成功结果+前台落稳才触发、一次性持久化、后台延期、输入/新事务取消、Reduce Motion及三个随机落点；布局/像素另由真实renderer和Mac App审图。
 cavalry_native_target.json / native_281_delta.test.js: 当前Cavalry 2.8.1完整source lock与33键三语增补/12移除合同；生产target锁定17个catalog、runtime与schema source摘要。历史2.8.0 source fixture只供旧审批合同测试。
 watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建按翻译影响范围验收的兼容评估issue，不改变产品准入，不将CLI/后台渲染或Intel实机设为默认门槛；离线合同覆盖网络/源漂移、数值版本、范围清单及重复运行。
@@ -19,7 +20,7 @@ prepare_cavalry_28_windows_ci_inputs.test.js: 锁定官方2.8.1 MSI/五项文件
 check_windows_native_nsis.test.js: 核PS接线与BOM；Windows临时三语包调用真实PS校验器，验证当前版本通过、旧2.8.0拒绝与manifest/payload漂移拒绝；不执行安装。
 check_app_syntax.js: Node短入口按固定清单逐文件执行--check；保留原顺序，不经shell拼接，首个失败返回非零。
 check_app_syntax.test.js: 短入口与原218项顺序摘要合同；实际语法错/缺文件验证非零退出和停止后续检查。
-build_ui_sdk.js / ui_sdk_entry.mjs / ui_sdk_primitives.mjs / ui_sdk_components.json: 固定SDK/esbuild与15组件/6组合映射；Web标准组件和Core公开扩展保持main的焦点/布局/原生dialog/Toast追加顺序及文字拖选，按需生成并逐字节复核单个离线包、许可证和摘要；Mac/Windows标准npm构建入口都先核对生成包。
+build_ui_sdk.js / ui_sdk_entry.mjs / ui_sdk_components.json: 固定SDK/esbuild；从原生组件公开入口生成并逐字节复核离线包、许可证和摘要。映射区分7类Web组件、createStickToBottom及6类业务组合；禁止将纯展示节点包装成Core状态根。
 ui_review_workspace.js / ui_review_server.js 的 componentsSdk 场景：Cavalry 2.8.1 全组件实验入口，使用真实 renderer；revision 包含 SDK manifest 及其全部离线资源。
 cavalry_native_windows_target.json: 锁定官方Cavalry 2.8.1 MSI、Cavalry/API/Core/QtCore/vendor QPA五项x64摘要；仅供Windows宿主与运行时准入，译文沿共享native catalog。
 acceptance/: 44主项整轮单表；schema2分离源键库存与实屏项，显式迁移保留历史；Python按平台编排，离线自测不启动产品。

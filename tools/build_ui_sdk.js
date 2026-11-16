@@ -17,7 +17,7 @@ const sha = (data) => crypto.createHash('sha256').update(data).digest('hex');
 const pkg = (name) => JSON.parse(fs.readFileSync(path.resolve(path.dirname(require.resolve(name)), '../package.json')));
 const sdkVersion = pkg('@ui-sdk/web').version;
 assert.equal(pkg('@ui-sdk/core').version, sdkVersion);
-assert.equal(sdkVersion, '0.1.0-beta.2');
+assert.equal(sdkVersion, '0.1.0-beta.5');
 const result = esbuild.buildSync({
   absWorkingDir: repo, entryPoints: ['tools/ui_sdk_entry.mjs'], outfile: 'ui-sdk.js',
   bundle: true, format: 'iife', platform: 'browser', target: ['safari16.4', 'chrome120'],

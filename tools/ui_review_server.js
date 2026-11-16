@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，notFound 给出两条固定候选以审查逐路径截断，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
+ * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，nativeWindows281复用官方用户级语言状态并绑定Windows 2.8.1，notFound 给出两条固定候选以审查逐路径截断，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
  * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、双列社交入口和全宽 GitHub/License 行的 About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告状态矩阵，以及 nativeLocaleState 的 unset+en/unknown、unset+en/official、explicit+zh-Hans/unknown 三种 Cavalry 2.8 userProfile 预览，与缺少语言资源、恢复协调、2.7.2 固定旧版入口、owned hostless restoreOnly 和宿主探测失败后 restoreOnly fixture；厂商来源不由语言码推断；只有后端合成投影 official 才显示原厂徽章，userProfile 不伪造官方恢复或英语恢复权限；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入同一 handoff 合同的 fake API，更新 fixture 不向真实确认框注入审查占位文案，并以 applyTransaction 提交作为 success cleanup、只让显式 Back reverse 到持久 Activity 动作；三个固定 local-reference 路由分别承载落稳 helper、箭头与系统行，缺图即 404，浏览器默认 favicon 请求静默返回空响应。
  * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock、运行时 DOM clone 与不入库的本机视觉参考，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -87,7 +87,8 @@ function fixtureSource() {
   return String.raw`(() => {
   'use strict';
   const params = new URLSearchParams(location.search);
-  const scenario = params.get('scenario') || 'translated';
+  const nativeWindows281 = params.get('scenario') === 'nativeWindows281';
+  const scenario = nativeWindows281 ? 'nativeOfficialDefaultEnglish' : params.get('scenario') || 'translated';
   // Explicit review replay only. Production never loads fixture.js or resets this marker.
   if (scenario === 'followHand') localStorage.removeItem('cavalry-i18n:follow-hand-seen');
   const locale = params.get('locale') || 'zh-Hans';
@@ -126,7 +127,7 @@ function fixtureSource() {
     componentsSdk: 'unset',
   });
   let nativeLocaleState = nativeLocaleStateByScenario[scenario];
-  const windowsScenario = ['windowsClean', 'permissionWindows', 'aboutOpenToast'].includes(scenario);
+  const windowsScenario = nativeWindows281 || ['windowsClean', 'permissionWindows', 'aboutOpenToast'].includes(scenario);
   const permissionScenario = ['permissionMac', 'permissionWindows'].includes(scenario);
   const permissionReviewMessage = 'cavalry-ui-review:permission-retry';
   const permissionReviewSettledMessage = 'cavalry-ui-review:permission-retry-settled';
@@ -178,8 +179,8 @@ function fixtureSource() {
     permissionAction: scenario === 'permissionWindows' ? 'requestElevation' : scenario === 'permissionMac' ? 'openPrivacy' : 'none',
     platform: windowsScenario ? 'windows' : 'macos',
     reconciliationRequired: false,
-    supportedVersion: ['followHand', 'componentsSdk'].includes(scenario) ? '2.8.1' : nativeProfileScenario ? '2.8.0' : '2.7.2',
-    version: ['followHand', 'componentsSdk'].includes(scenario) ? '2.8.1' : nativeProfileScenario && scenario !== 'nativeLegacyRelease'
+    supportedVersion: nativeWindows281 || ['followHand', 'componentsSdk'].includes(scenario) ? '2.8.1' : nativeProfileScenario ? '2.8.0' : '2.7.2',
+    version: nativeWindows281 || ['followHand', 'componentsSdk'].includes(scenario) ? '2.8.1' : nativeProfileScenario && scenario !== 'nativeLegacyRelease'
       ? '2.8.0'
       : scenario === 'olderVersion' ? '2.7.1' : scenario === 'newerVersion' ? '2.7.3' : '2.7.2',
     versionCompatibility: scenario === 'nativeLegacyRelease' || scenario === 'olderVersion'
@@ -283,7 +284,7 @@ function fixtureSource() {
   async function waitForReady(selector) {
     for (let attempt = 0; attempt < timing.readyAttempts; attempt += 1) {
       const element = document.querySelector(selector);
-      if (element && !element.hidden && !element.disabled) return element;
+      if (element && !element.hidden && !element.disabled && element.getClientRects().length) return element;
       await wait(timing.readyPoll);
     }
     return null;
@@ -326,7 +327,7 @@ function fixtureSource() {
     if (!selector) return;
     if (selector === '#applyButton' && scenario !== 'patchDrift') {
       (await waitForReady('#languageSelectTrigger'))?.click();
-      (await waitForReady('#languageSelectOption-0'))?.click();
+      (await waitForReady('#languageSelectList [role="option"]:not([aria-disabled="true"])'))?.click();
     }
     const trigger = await waitForReady(selector);
     trigger?.click();
