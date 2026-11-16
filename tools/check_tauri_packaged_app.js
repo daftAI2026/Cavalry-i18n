@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖PACKAGED_EXPECTED_ARCH选定的macOS .app、Tauri Brotli codegen assets、profile对应runtime、native pack资源及renderer源码
- * [OUTPUT]: 对外提供默认历史资源检查与2.8 production native pack、显式macOS架构runtime嵌入、JS/CSS闭包、HTML路由壳、签名和size report验证
+ * [OUTPUT]: 对外提供默认历史资源检查与2.8 production native pack、显式macOS架构runtime嵌入、JS/CSS闭包、更新说明block逐字节同一性、HTML路由壳、签名和size report验证
  * [POS]: tools 的 Phase 6 packaged 资源守门，把未追踪的 macOS 原生构建物与最终 bundle 建立哈希同一性，失败即说明不能宣称 packaged 可用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -186,7 +186,7 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
   for (const token of [
     'index.html', '/styles.css', '/support-footer.css', '/project-link-control.js', '/support-footer.js', '/operation-log.css', '/user-profile-text.js', '/ui-text.js',
     '/support-follow-hand.js', '/follow-hand.webp', '/THIRD_PARTY_NOTICES.md',
-    '/icons.js', '/operation-log.js', '/permission-handoff.js', '/update-progress.js', '/app.js',
+    '/icons.js', '/operation-log.js', '/permission-handoff.js', '/update-progress.js', '/update-dialog.js', '/update-dialog.css', '/app.js',
   ]) {
     assert.ok(binaryText.includes(token), `Tauri executable should embed route token ${token}`);
   }
@@ -196,6 +196,27 @@ test('tauri binary embeds the current permission handoff controller byte-for-byt
   requirePackagedApp();
   const { compressed } = currentEmbeddedAsset('permission-handoff.js');
   assert.ok(compressed.length > 0, 'embedded permission handoff asset is empty');
+});
+
+test('tauri binary embeds the current update notes block byte-for-byte', () => {
+  requirePackagedApp();
+  for (const name of ['update-dialog.js', 'update-dialog.css', 'styles.css', 'app.js', 'ui-text.js', 'tauri-bridge.js']) {
+    assert.ok(currentEmbeddedAsset(name).compressed.length > 0, `${name} is embedded`);
+  }
+  const binary = fs.readFileSync(packagedBinary());
+  const html = Array.from(walk(releaseBuildRoot)).filter(file =>
+    path.basename(path.dirname(file)) === 'tauri-codegen-assets' && path.extname(file) === '.html'
+  ).flatMap(file => {
+    const compressed = fs.readFileSync(file);
+    if (!binary.includes(compressed)) return [];
+    const content = zlib.brotliDecompressSync(compressed).toString('utf8');
+    return content.includes('id="updateDialog"') ? [content] : [];
+  });
+  assert.ok(html.length > 0, 'the packaged main HTML contains the update dialog');
+  for (const content of html) {
+    assert.match(content, /<body\b[^>]*\btabindex="-1"/);
+    assert.match(content, /<ui-dialog-content\b[^>]*\bfinal-focus="body"/);
+  }
 });
 
 if (productionNativeProfile) {

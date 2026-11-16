@@ -248,6 +248,7 @@ const APP_SYNTAX_FILES = Object.freeze([
   'tools/ui-parity/sdk-default-cases.js',
   'tools/ui-parity/benchmark.js',
   'tools/ui-parity/native-benchmark.js',
+  'renderer/update-dialog.js',
 ]);
 
 function runAppSyntaxCheck(files = APP_SYNTAX_FILES, options = {}) {

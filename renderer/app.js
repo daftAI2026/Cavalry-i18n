@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖冻结 bridge 的 installation/userProfile 状态投影、有序阶段事件、language-scope/version-guidance 策略、project-link-control固定外链适配、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、两平台原生profile的后端Official投影、结构化默认安装候选显示、用户级Switch直达事务与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater、固定外链适配和成功后的一次性关注手势。
+ * [INPUT]: 依赖冻结 bridge 的 installation/userProfile 状态投影、有序阶段事件、language-scope/version-guidance 策略、project-link-control固定外链适配、Permission handoff、Select/Tooltip/Path/Activity/Updater/UpdateDialog/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
+ * [OUTPUT]: 对外提供跨平台单任务流、按 scope 呈现当前语言或 userProfile 英文默认状态与确认/恢复策略、两平台原生profile的后端Official投影、结构化默认安装候选显示、用户级Switch直达事务与跨副本退出提示、资源不可用时仅禁 Switch、用户级英文恢复的宿主无关验证阶段、严格 nativeRestoreOnly 结果的未启动终态、失败回执触发的只读 reconciliation 刷新、精确版本门控的 legacyRelease 下载入口，以及既有安装级 Switch/Restore、权限分流、Updater、版本Tooltip、固定外链适配和成功后的一次性关注手势。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读 scope/版本/语言/回执投影，appPath 始终是重启目标；固定 userProfile 预览提示逐批资源边界，事务错误只映射本地固定文案，Windows 与 installation 文案/路径保持原样。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -60,6 +60,10 @@ const operationLog = window.createOperationLog({
   list: statusText, outcome: document.querySelector('#statusOutcome'),
 });
 const updateProgress = window.createUpdateProgress({ log: operationLog, text: t });
+const updateDialog = window.createUpdateDialog({
+  root: document.querySelector('#updateDialog'), text: t, icons: window.cavalryIcons,
+  onInstall: update => { void installCheckedUpdate(update); },
+});
 const pathDisplay = window.createPathDisplay({ root: appPathText, prefix: appPathPrefix, leaf: appPathLeaf });
 const updateTooltipControl = window.createTooltipControl({
   root: updateControl,
@@ -322,7 +326,7 @@ function localizeShell() {
   updateControl.hidden = !(updatePreviewEnabled || state.updateInfo?.available);
   updateTooltipControl.close();
   updateButton.setAttribute('aria-label', t('updateButtonAria'));
-  updateTooltipText.textContent = t('updateTooltip');
+  updateTooltipCopy();
   languageSectionLabel.setAttribute('aria-label', t('switchTo'));
   currentLabel.textContent = t('current');
   switchToLabel.textContent = t('switchTo');
@@ -364,6 +368,12 @@ function syncInstallationBadges() {
   }
 }
 
+function updateTooltipCopy() {
+  updateTooltipText.textContent = state.updateInfo?.available
+    ? t('updateTooltipVersion', { version: state.updateInfo.version })
+    : t('updateTooltip');
+}
+
 function showUpdatePreview() {
   if (!updatePreviewEnabled) return;
   updateTooltipControl.close();
@@ -372,12 +382,6 @@ function showUpdatePreview() {
 
 function updateErrorKey(errorCode, fallback = 'updateCheckFailed') {
   return UPDATE_ERROR_TEXT_KEYS[errorCode] || fallback;
-}
-
-function updateConfirmationBody(update) {
-  const parts = [t('updateConfirmBody', { version: update.version })];
-  if (state.platform === 'macos') parts.push(t('updateMacAdhocNote'));
-  return parts.join('\n\n');
 }
 
 function showUpdateFailure(errorCode = 'updateInstallFailed') {
@@ -398,18 +402,7 @@ function showUpdateConfirmation() {
     return;
   }
   if (!state.updateInfo?.available) return;
-  const update = state.updateInfo;
-  showModal({
-    title: t('updateConfirmTitle'),
-    body: updateConfirmationBody(update),
-    primary: t('installUpdate'),
-    secondary: t('cancel'),
-    onPrimary: () => {
-      closeModal();
-      void installCheckedUpdate(update);
-    },
-    onSecondary: closeModal,
-  });
+  updateDialog.show(state.updateInfo);
 }
 
 async function checkForUpdates() {
@@ -422,6 +415,7 @@ async function checkForUpdates() {
       return;
     }
     state.updateInfo = result;
+    updateTooltipCopy();
     updateControl.hidden = false;
     updateAnnouncement.textContent = t('updateAvailableAnnouncement', {
       version: result.version,

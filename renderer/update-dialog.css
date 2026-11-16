@@ -1,0 +1,242 @@
+/**
+ * [INPUT]: 依赖 renderer/tokens.css、button.css 与 update-dialog.js 固定 DOM；Scroll Area 的状态属性由 ui-sdk/web 公共 API 提供
+ * [OUTPUT]: 对外提供居中的固定尺寸更新说明卡片、独立可滚动正文及SDK边缘变量驱动的8px渐隐、稳定标题/操作区与共享 Button/token 皮肤
+ * [POS]: renderer 更新说明 Dialog 的独立视觉层；不改变主窗 400×504 尺寸，也不重写 SDK 弹层或滚动行为
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+@layer ui-sdk;
+
+.update-dialog-backdrop {
+  position: fixed;
+  inset: var(--titlebar-height) 0 0;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--dialog-backdrop);
+  backdrop-filter: blur(var(--dialog-backdrop-blur));
+  transition: opacity var(--duration-feedback) ease;
+}
+
+html[data-platform="windows"] .update-dialog-backdrop {
+  inset: calc(var(--titlebar-height) + var(--window-shadow-inset)) var(--window-shadow-inset) var(--window-shadow-inset);
+}
+
+html[data-platform="windows"] body[data-maximized="true"] .update-dialog-backdrop {
+  inset: var(--titlebar-height) 0 0;
+}
+
+.update-dialog-backdrop[data-starting-style],
+.update-dialog-backdrop[data-ending-style] {
+  opacity: 0;
+}
+
+.update-dialog {
+  position: fixed;
+  top: calc(50% + var(--titlebar-height) / 2);
+  left: 50%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  gap: var(--dialog-content-gap);
+  width: calc(100vw - var(--space-8));
+  height: calc(100dvh - var(--titlebar-height) - var(--space-8));
+  max-height: calc(100dvh - var(--titlebar-height) - var(--space-8));
+  margin: 0;
+  padding: var(--padding-dialog);
+  overflow: hidden;
+  border: var(--stroke-hairline) solid var(--border-strong);
+  border-radius: var(--radius-dialog);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-dialog);
+  transform: translate(-50%, -50%);
+  transition: opacity var(--duration-feedback) ease, transform var(--duration-control) ease;
+}
+
+.update-dialog::backdrop {
+  background: transparent;
+}
+
+.update-dialog[data-starting-style],
+.update-dialog[data-ending-style] {
+  opacity: 0;
+  transform: translate(-50%, calc(-50% + var(--space-2)));
+}
+
+.update-dialog:focus-visible {
+  outline: none;
+}
+
+body[tabindex="-1"]:focus-visible {
+  outline: none;
+}
+
+.update-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+#updateDialogTitle {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--type-heading);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--tracking-heading);
+}
+
+#updateDialogClose {
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+}
+
+#updateDialogClose svg {
+  width: var(--about-caption-icon-size);
+  height: var(--about-caption-icon-size);
+}
+
+.update-dialog-meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: var(--type-metadata);
+  line-height: var(--line-height-metadata);
+}
+
+#updateDialogVersion {
+  overflow-wrap: anywhere;
+  font-weight: var(--weight-medium);
+}
+
+#updateDialogDate {
+  color: var(--text-secondary);
+}
+
+.update-notes-scroll {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.update-notes-scroll [data-slot="scroll-area-viewport"] {
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.update-notes-scroll [data-slot="scroll-area-viewport"]::-webkit-scrollbar {
+  display: none;
+}
+
+.update-notes-scroll [data-slot="scroll-area-viewport"] {
+  --scroll-area-overflow-y-start: inherit;
+  --scroll-area-overflow-y-end: inherit;
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent,
+    var(--mask-opaque) min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-start)),
+    var(--mask-opaque) calc(100% - min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-end))),
+    transparent);
+  mask-image: linear-gradient(to bottom,
+    transparent,
+    var(--mask-opaque) min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-start)),
+    var(--mask-opaque) calc(100% - min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-end))),
+    transparent);
+}
+
+.update-notes-content {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-2) calc(var(--space-2) + var(--operation-scrollbar-size));
+  color: var(--text-secondary);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+#updateDialogNotes {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+#updateDialogNotes h3,
+#updateDialogNotes p,
+#updateDialogNotes ul {
+  margin: 0;
+}
+
+#updateDialogNotes h3 {
+  color: var(--text);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
+  white-space: normal;
+}
+
+#updateDialogNotes ul {
+  display: grid;
+  gap: var(--space-1);
+  padding-inline-start: var(--space-4);
+}
+
+#updateDialogNotes .update-notes-empty {
+  color: var(--text-secondary);
+}
+
+.update-notes-scroll [data-slot="scroll-area-scrollbar"][data-orientation="vertical"] {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  display: flex;
+  width: var(--operation-scrollbar-size);
+  padding: var(--space-1) var(--stroke-hairline);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-feedback) ease;
+}
+
+.update-notes-scroll [data-slot="scroll-area-scrollbar"][data-orientation="vertical"][data-visible] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.update-notes-scroll [data-slot="scroll-area-thumb"] {
+  flex: 1;
+  border-radius: var(--radius-pill);
+  background: var(--operation-scrollbar-thumb);
+}
+
+
+.update-dialog-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--dialog-actions-gap);
+  margin: 0 calc(-1 * var(--padding-dialog)) calc(-1 * var(--padding-dialog));
+  padding: var(--padding-dialog);
+  border-top: var(--stroke-hairline) solid var(--border);
+  background: var(--surface-interactive);
+}
+
+.update-dialog-actions .button {
+  width: 100%;
+  padding-inline: var(--space-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .update-dialog,
+  .update-dialog-backdrop,
+  .update-notes-scroll [data-slot="scroll-area-scrollbar"] {
+    transition-duration: var(--duration-reduced-motion);
+  }
+}

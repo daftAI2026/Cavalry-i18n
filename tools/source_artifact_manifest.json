@@ -99,7 +99,9 @@
     "tools/ui-parity/CLAUDE.md",
     "tools/ui-parity/sdk-default-cases.js",
     "tools/ui-parity/benchmark.js",
-    "tools/ui-parity/native-benchmark.js"
+    "tools/ui-parity/native-benchmark.js",
+    "renderer/update-dialog.js",
+    "renderer/update-dialog.css"
   ],
   "sourceArchivePaths": [
     ".gitattributes",

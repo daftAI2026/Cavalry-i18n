@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
- * [OUTPUT]: 提供workspaceHtml，含关注手势的成功后播放/重播入口；其余主窗、About、目录及权限审查沿既有导航，revision变化重载工作台。
+ * [OUTPUT]: 更新说明场景复用生产block和当前版本notes/date fixture； 提供workspaceHtml，含关注手势的成功后播放/重播入口；其余主窗、About、目录及权限审查沿既有导航，revision变化重载工作台。
  * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与主/About 审查窗口外框，权限页不再套用会压缩原型的假窗口，动画状态机由兄弟模块独立承担。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -94,7 +94,7 @@ function workspaceHtml() {
         <button class="scenario" data-scenario="updateAvailable"><span>更新可用 · Tooltip</span></button>
         <div class="group-label">AlertDialog / Toast</div>
         <button class="scenario" data-scenario="restoreConfirm"><span>Restore English 确认</span></button>
-        <button class="scenario" data-scenario="updateConfirm"><span>Update 确认</span></button>
+        <button class="scenario" data-scenario="updateConfirm"><span>更新内容弹窗</span></button>
         <button class="scenario" data-scenario="permissionMac"><span>macOS 权限确认</span></button>
         <button class="scenario" data-scenario="permissionWindows"><span>Windows 管理员确认</span></button>
         <button class="scenario" data-scenario="aboutOpenToast"><span>主窗口 About Toast</span></button>

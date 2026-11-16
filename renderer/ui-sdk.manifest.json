@@ -9,7 +9,9 @@
     "toast",
     "progress",
     "link",
-    "log-follow"
+    "log-follow",
+    "dialog",
+    "scroll-area"
   ],
   "implementations": {
     "schemaVersion": 2,
@@ -54,6 +56,16 @@
         "mode": "core-behavior",
         "selector": "#statusViewport",
         "factory": "createStickToBottom"
+      },
+      {
+        "name": "dialog",
+        "mode": "web",
+        "selector": "ui-dialog"
+      },
+      {
+        "name": "scroll-area",
+        "mode": "web",
+        "selector": "ui-scroll-area"
       }
     ],
     "compositions": [
@@ -92,14 +104,20 @@
         "mode": "business",
         "selector": ".support-follow-hand",
         "controller": "renderer/support-follow-hand.js"
+      },
+      {
+        "name": "update-notes",
+        "mode": "business",
+        "selector": "#updateDialog",
+        "controller": "renderer/update-dialog.js"
       }
     ]
   },
   "files": [
     {
       "path": "ui-sdk.js",
-      "bytes": 238038,
-      "sha256": "b3801c59410455eef594dfbb3a4aad3cd76fa3aa352b819f3893fc2bd192fb1e"
+      "bytes": 256819,
+      "sha256": "308dc013bc60b609e8dd5803997d7fc586b72ee82ce505ecbc660da130cf458d"
     },
     {
       "path": "ui-sdk.LICENSE",

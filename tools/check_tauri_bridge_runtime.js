@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证2.8正常启动沿用p12待机且真实故障保留；SDK组件用公开属性/事件fixture（真实行为另由浏览器验收）；验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证更新说明与既有安装、恢复链路隔离； 验证2.8正常启动沿用p12待机且真实故障保留；SDK组件用公开属性/事件fixture（真实行为另由浏览器验收）；验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,6 +23,7 @@ class Element {
   removeAttribute(key) { this.attributes.delete(key); }
   toggleAttribute(key, force) { const present=force ?? !this.attributes.has(key); if(present)this.setAttribute(key,'');else this.removeAttribute(key);return present; }
   querySelectorAll() { return []; }
+  querySelector(selector) { return this.ownerDocument.querySelector(selector); }
   focus() { this.focused = true; if (this.ownerDocument) this.ownerDocument.activeElement = this; }
   showModal() { this.open = true; this.setAttribute('open', ''); }
   close() { this.open = false; this.removeAttribute('open'); for (const callback of this.listeners.get('close') || []) callback(); }
@@ -53,7 +54,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectBadge', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryAction', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['updateDialog', 'updateDialogTitle', 'updateDialogVersion', 'updateDialogDate', 'updateDialogNotes', 'updateDialogScroll', 'updateDialogClose', 'updateDialogLater', 'updateDialogInstall', 'skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectBadge', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryAction', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   elements['#languageSelectBadge'].id = 'languageSelectBadge';
   elements['#languageSelectBadge'].hidden = true;
@@ -69,13 +70,25 @@ function runtime({
     documentElement: new Element(), body: new Element(), activeElement: null, title: '',
     visibilityState: 'visible', hasFocus: () => true,
     listeners: new Map(),
-    querySelector(selector) { return elements[selector]; },
+    querySelector(selector) { return elements[selector] || (selector === 'ui-scroll-area-viewport' ? elements['#updateDialogScroll'] : null); },
     createElement(tag) { const element = new Element(); element.ownerDocument = this; if (tag === 'template') element.content = new Element(); return element; },
     createElementNS() { const element = new Element(); element.ownerDocument = this; return element; },
     addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); },
   };
   for (const element of [...Object.values(elements), document.documentElement, document.body]) {
     element.ownerDocument = document;
+  }
+  elements['#updateDialogScroll'].api = { scrollToStart() {} };
+  let updateOpen = false;
+  Object.defineProperty(elements['#updateDialog'], 'open', {
+    get: () => updateOpen,
+    set(value) { updateOpen = value; if (!value) document.body.focus(); },
+  });
+  for (const [id, returnValue] of [['updateDialogClose', undefined], ['updateDialogLater', 'later'], ['updateDialogInstall', 'install']]) {
+    elements['#' + id].addEventListener('click', () => {
+      elements['#updateDialog'].open = false;
+      dispatch(elements['#updateDialog'], 'openchange', { detail: { value: false, reason: 'close-press', returnValue } });
+    });
   }
   let modalOpen = false;
   let modalFocus = null;
@@ -276,6 +289,7 @@ function boot(options) {
   vm.runInNewContext(read('renderer/operation-log.js'), r.context, { filename: 'operation-log.js' });
   vm.runInNewContext(read('renderer/permission-handoff.js'), r.context, { filename: 'permission-handoff.js' });
   vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
+  vm.runInNewContext(read('renderer/update-dialog.js'), r.context, { filename: 'update-dialog.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
   mockToastView(r);
   vm.runInNewContext(read('renderer/project-link-control.js'), r.context, { filename: 'project-link-control.js' });
@@ -789,7 +803,15 @@ test('installation location keeps the macOS bundle and reduces a long Windows ex
   assert.equal(mac.elements['#appPathLeaf'].textContent, '/Cavalry.app');
 });
 
-test('checked update is announced, confirmed, and installed without renderer-controlled artifact data', async () => {
+test('update notes retain the publisher limit instead of truncating long changes at 4000 characters', async () => {
+  const notes = '新增功能。'.repeat(4000);
+  const r = runtime({ update: { available: true, version: '1.2.3', notes } });
+  vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context);
+  const checked = await r.window.cavalryI18n.checkUpdate();
+  assert.equal(checked.notes, notes.slice(0, 16384));
+});
+
+test('checked update is announced, reviewed, and installed without renderer-controlled artifact data', async () => {
   const r = boot({
     update: {
       currentVersion: '0.7.0',
@@ -824,13 +846,14 @@ test('checked update is announced, confirmed, and installed without renderer-con
   r.window.createTooltipControl({root:r.elements['#updateControl']}).close();
   dispatch(r.elements['#updateButton'], 'click');
   assert.equal(r.elements['#updateControl'].open, false);
-  assert.equal(r.elements['#modalBackdrop'].open, true);
-  assert.equal(r.context.document.activeElement, r.elements['#modalSecondaryButton'], 'SDK AlertDialog starts focus on Cancel');
-  assert.match(r.elements['#modalTitle'].textContent, /Update the Switcher/);
-  assert.doesNotMatch(r.elements['#modalBody'].textContent, /Security and UI fixes/);
-  assert.match(r.elements['#modalBody'].textContent, /ad-hoc/);
+  assert.equal(r.elements['#updateDialog'].open, true);
+  assert.match(r.elements['#updateDialogTitle'].textContent, /What’s New/);
+  assert.match(r.elements['#updateDialogNotes'].textContent, /Security and UI fixes/);
+  assert.doesNotMatch(r.elements['#updateDialogNotes'].textContent, /ad-hoc|Gatekeeper/);
+  assert.equal(r.elements['#updateTooltipText'].textContent, 'Update 0.7.1');
 
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  r.elements['#updateDialogInstall'].listeners.get('click')[0]();
+  r.elements['#updateDialogInstall'].listeners.get('click')[0]();
   await flush();
   const installs = r.calls.filter(({ command }) => command === 'install_update');
   assert.equal(installs.length, 1);
@@ -864,7 +887,7 @@ test('successful updater events advance one task through download, install, and 
   });
   await flush();
   dispatch(r.elements['#updateButton'], 'click');
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  r.elements['#updateDialogInstall'].listeners.get('click')[0]();
   await flush();
 
   assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
@@ -890,7 +913,7 @@ test('updater refusal never fabricates a downloading phase before the backend em
   });
   await flush();
   dispatch(r.elements['#updateButton'], 'click');
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  r.elements['#updateDialogInstall'].listeners.get('click')[0]();
   await flush();
 
   assert.doesNotMatch(activityText(r), /Downloading version/);

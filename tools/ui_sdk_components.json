@@ -41,6 +41,16 @@
       "mode": "core-behavior",
       "selector": "#statusViewport",
       "factory": "createStickToBottom"
+    },
+    {
+      "name": "dialog",
+      "mode": "web",
+      "selector": "ui-dialog"
+    },
+    {
+      "name": "scroll-area",
+      "mode": "web",
+      "selector": "ui-scroll-area"
     }
   ],
   "compositions": [
@@ -79,6 +89,12 @@
       "mode": "business",
       "selector": ".support-follow-hand",
       "controller": "renderer/support-follow-hand.js"
+    },
+    {
+      "name": "update-notes",
+      "mode": "business",
+      "selector": "#updateDialog",
+      "controller": "renderer/update-dialog.js"
     }
   ]
 }
