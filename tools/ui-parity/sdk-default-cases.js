@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 固定SDK官方默认约定、真实renderer、相同本地只读bridge与浏览器输入。
- * [OUTPUT]: 组件默认焦点/搜索/队列及业务接线验收；不把旧自绘交互当SDK预期。
+ * [OUTPUT]: 组件默认焦点/搜索/队列及业务接线验收；真实SDK核Windows 2.8.1禁用期同步与成功后清空，不把旧自绘交互当SDK预期。
  * [POS]: 当前SDK默认组件合同；legacy cases.js仅供历史对照。
  * [PROTOCOL]: 变更时更新此头部，然后检查CLAUDE.md。
  */
@@ -83,6 +83,60 @@ const cases = [
     assert.equal((await d.state()).activity.state,'completed');await d.capture('switch-completed');
     await d.fresh('error');await d.tick(7000);
     assert.equal((await d.state()).activity.state,'error');await d.capture('failure-kept');
+  }],
+  ['sdk-disabled-sync', async d => {
+    await d.fresh('nativeWindows281');await d.choose('zh-Hant');
+    await d.page.evaluate(()=>setBusy(true));
+    await d.page.evaluate(()=>languageSelectControl.setValue(''));
+    assert.equal(await d.page.locator('#languageSelect').inputValue(),'');
+    assert.ok(!(await d.page.locator('#languageSelectRoot').evaluate(e=>e.value)));
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.disabled),true);
+    assert.equal(await d.page.locator('#languageSelectTrigger').isDisabled(),true);
+    await d.page.evaluate(()=>languageSelectControl.setValue('ja_JP'));
+    assert.equal(await d.page.locator('#languageSelect').inputValue(),'ja_JP');
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.value),'ja_JP');
+    await d.page.evaluate(()=>languageSelectControl.setOptions([{value:'en',label:'English'}]));
+    assert.equal(await d.page.locator('#languageSelect').inputValue(),'');
+    assert.ok(!(await d.page.locator('#languageSelectRoot').evaluate(e=>e.value)));
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.disabled),true);
+    assert.equal(await d.page.locator('#languageSelectTrigger').isDisabled(),true);
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.api.setValue('en')),false);
+    assert.deepEqual((await d.state()).calls,[]);await d.capture('disabled-data-sync');
+  }],
+  ['sdk-switch-value-reset', async d => {
+    await d.fresh('nativeWindows281');
+    assert.equal(await d.page.locator('html').getAttribute('data-platform'),'windows');
+    assert.ok((await d.page.locator('#appVersion').textContent()).includes('2.8.1'));
+    const expected=[];
+    for(const language of ['zh-Hans','zh-Hant','ja_JP']) {
+      await d.choose(language);await d.click('#applyButton');
+      assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.disabled),true);
+      await d.tick(7000);expected.push(['applyLanguage',language]);
+      assert.deepEqual((await d.state()).calls.filter(c=>c[0]==='applyLanguage'),expected);
+      assert.equal((await d.state()).activity.state,'completed');
+      assert.equal(await d.page.locator('#languageSelect').inputValue(),'');
+      assert.ok(!(await d.page.locator('#languageSelectRoot').evaluate(e=>e.value)));
+      assert.equal(await d.page.locator('#languageSelectValue').textContent(),await d.page.locator('#languageSelectPopupPlaceholder').textContent());
+      assert.equal(await d.page.locator('#applyButton').isDisabled(),true);
+      assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.disabled),false);
+      await d.click('#languageSelectTrigger');
+      assert.equal(await d.page.locator('.select-item[value="'+language+'"]').getAttribute('aria-disabled'),'true');
+      await d.key('Escape');await d.capture('reset-after-'+language);
+    }
+  }],
+  ['sdk-busy-closes-select', async d => {
+    await d.fresh('nativeWindows281');await d.choose('zh-Hant');await d.click('#languageSelectTrigger');
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.open),true);
+    await d.page.evaluate(()=>setBusy(true));await d.tick(300);
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.open),false);
+    assert.equal(await d.page.locator('#languageSelectPopup').isVisible(),false);
+    assert.equal(await d.page.locator('#languageSelectTrigger').isDisabled(),true);
+    await d.page.locator('#languageSelectRoot').evaluate(e=>e.api.open());
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.open),false);
+    await d.page.evaluate(()=>setBusy(false));await d.click('#languageSelectTrigger');
+    assert.equal(await d.page.locator('#languageSelectRoot').evaluate(e=>e.open),true);
+    assert.equal(await d.page.locator('#languageSelect').inputValue(),'zh-Hant');
+    assert.deepEqual((await d.state()).calls,[]);await d.key('Escape');await d.capture('busy-popup-closed');
   }],
   ['sdk-tooltip', async d => {
     await d.fresh('windowsClean','&preview=update');await d.hover('#updateButton');await d.tick(1000);

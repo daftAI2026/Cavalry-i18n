@@ -25,7 +25,7 @@ support-footer.js: 主窗口 footer 控制器；把四语短文案、操作title
 THIRD_PARTY_NOTICES.md: 另完整保留x-hands MIT许可证、素材及动作来源提交；renderer 内适配的 shadcn/ui 组件行为与 Phosphor SVG path（含 About 的 Regular XLogo）的 MIT 来源，以及 pinned Simple Icons GitHub/小红书 SVG 的 CC0 来源；仅记录实际进入本地源码的第三方材料，不把远程组件库/CDN 引入运行时。
 about.css: About 专属视觉层，以共享 icons.js SVG carrier 呈现品牌mark；将主窗口40px可拖动Chrome覆盖在完整内容画布之上并复用共享caption Button/排印/token，同时移除重复视觉标题与分隔线；Twitter/X与小红书用4px列间距，GitHub/License保持全宽，80px应用标识、版本与入口纵向间距用10px收口；底边距固定20px；macOS使用Overlay和原生交通灯，Windows使用transparent compositor外壳、无系统装饰Chrome和共享Close。
 window-controls.css: Windows caption 的 Button 变体层；40px 标题栏以 4px 间距和 4px 右边距排列 32px ghost icon-sm Button，Info/Minus/Square-or-Copy/X 统一使用 16px Phosphor Regular；主窗口依次为 Info/Minus/Square-or-Copy/X，About 窗口只消费 X，关闭按钮仅在 hover/active 进入危险态并保留 forced-colors；最大化状态同时驱动 styles.css compositor 外壳归零阴影与圆角。
-select-control.js: SDK Select的选项、原生值镜像与四方法业务适配；Value交给SDK自动渲染，选中业务徽章作为独立兄弟槽位。空值保留只读展示行，以SDK公开side-offset覆盖触发器；有值时交给SDK选中对齐。搜索、焦点、禁用选择、碰撞定位与ARIA归SDK。
+select-control.js: SDK Select的选项、原生值镜像与四方法业务适配；业务禁用先用公开open关闭菜单，程序赋值在同一JS任务内临时解除并恢复SDK禁用，回调前归还业务锁，选项重建复用该入口；Value交给SDK自动渲染，选中业务徽章作为独立兄弟槽位。空值保留只读展示行，以SDK公开side-offset覆盖触发器；有值时交给SDK选中对齐。搜索、焦点、禁用选择、碰撞定位与ARIA归SDK。
 ui-sdk.js / ui-sdk.manifest.json / ui-sdk.LICENSE: 从固定 SDK 公共 API 按需编译的共享离线包、摘要与 Apache 许可证；主窗/About 在组件适配器之前加载，不手改生成包；两页 head 的无 nonce csp-nonce meta 让 SDK 使用 constructed stylesheets，兼容既有 Tauri CSP。
 tooltip-control.js: 只公开SDK Tooltip的open/close接线；默认延迟、分组、焦点与定位由SDK拥有。
 path-display.js: 无依赖安装位置投影器，Windows 将 executable 路径降为其所在安装目录，macOS 保留 app bundle；不超过 36 字符时完整显示，超限后按路径层级保留盘符/根与末级安装目录，极长 UNC authority 保留根而不能保证字符上限；默认候选逐路径复用同一截断并以独立 label 投影，再由现有可收缩前缀承担像素级兜底。完整语义位置只保留在 aria-label，禁止原生 title 生成第二套不可控 Tooltip，也不改变后端选择的真实路径。

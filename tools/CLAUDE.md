@@ -3,7 +3,8 @@
 
 成员清单
 ui-parity/: 当前sdk-default验SDK默认组件与业务接线，legacy合同保留历史main精确对照；真实时钟浏览器/原生AB测性能、工作量和资源，所有证据写仓库外。
-ui_review_workspace.js / ui_review_server.js 的followHand场景：工作台显式“成功后播放/重播”沿真实app成功流程；仅本地fixture清除审查origin的已播标记，生产不提供重播/重置入口，Reduce Motion仍跳过。
+ui_review_server.js: 只读真实renderer审查服务；nativeWindows281复用官方userProfile状态、Windows根与2.8.1目标验证SDK连续切换/禁用期同步；followHand仅清审查origin已播标记，不写宿主。
+ui_review_workspace.js: 工作台显式“成功后播放/重播”沿真实app成功流程；生产不提供重播/重置入口，Reduce Motion仍跳过。
 support_follow_hand.test.js: fake clock/DOM执行真实footer控制器，验证完整成功结果+前台落稳才触发、一次性持久化、后台延期、输入/新事务取消、Reduce Motion及三个随机落点；布局/像素另由真实renderer和Mac App审图。
 cavalry_native_target.json / native_281_delta.test.js: 当前Cavalry 2.8.1完整source lock与33键三语增补/12移除合同；生产target锁定17个catalog、runtime与schema source摘要。历史2.8.0 source fixture只供旧审批合同测试。
 watch_cavalry_release.js / .test.js: 独立官网稳定版本监控；以native target比较，匹配同版官方发行说明，按隐藏版本marker/标题在全部issue（含关闭项）中去重；默认dry-run，--write只建按翻译影响范围验收的兼容评估issue，不改变产品准入，不将CLI/后台渲染或Intel实机设为默认门槛；离线合同覆盖网络/源漂移、数值版本、范围清单及重复运行。

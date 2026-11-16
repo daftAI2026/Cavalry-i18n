@@ -696,7 +696,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(read('tools/ui_sdk_entry.mjs'), /@ui-sdk\/web\/select/);
   assert.doesNotMatch(selectControl, /getBoundingClientRect|keydown|pointermove/, 'SDK owns Select focus, search and placement');
   assert.match(selectControl, /root\.items = items/);
-  assert.match(selectControl, /root\.value = items\.some/);
+  assert.match(selectControl, /setValue\(items\.some/);
   assert.match(selectControl, /badge\.hidden = !status/);
   assert.match(selectControl, /select\.value = nextValue \|\| ''/);
   assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|TwitterLink|TwitterLabel|XiaohongshuLink|XiaohongshuLabel|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');

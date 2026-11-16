@@ -1,8 +1,8 @@
 /**
  * [INPUT]: SDK原生Select、业务选项/徽章及保留的原生值镜像。
- * [OUTPUT]: 四方法接线；SDK拥有搜索、焦点、选择和ARIA；空值展示行与公开side-offset维持既有展开外观。
+ * [OUTPUT]: 四方法接线；业务锁定时关闭展开菜单，程序同步在同一任务内临时解除SDK禁用并立即恢复，保证锁定期也能清空；SDK拥有搜索、焦点、选择和ARIA，公开side-offset维持展开外观。
  * [POS]: 只做数据/展示映射，不复刻组件状态机。
- * [PROTOCOL]: 变更时更新此头部，然后检查CLAUDE.md。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachSelectControl(global) {
   'use strict';
@@ -46,12 +46,25 @@
         option.append(copy, indicator); list.append(option);
       }
       root.items = items;
-      root.value = items.some(item => item.value === previous) ? previous : null;
+      setValue(items.some(item => item.value === previous) ? previous : null);
+    }
+    function setValue(nextValue) {
+      const disabled = root.disabled;
+      // SDK将value赋值视为交互：程序同步须在同一JS任务内解除并恢复禁用，回调前归还业务锁。
+      try {
+        if (disabled) root.disabled = false;
+        root.value = nextValue || null;
+      } finally {
+        if (disabled) root.disabled = true;
+      }
       syncValue();
     }
-    function setValue(nextValue) { root.value = nextValue || null; syncValue(); }
     function setPlaceholder(text) { root.placeholder = String(text || ''); value.placeholder = root.placeholder; popupPlaceholder.textContent = root.placeholder; }
-    function setDisabled(disabled) { root.disabled = Boolean(disabled); select.disabled = Boolean(disabled); }
+    function setDisabled(disabled) {
+      if (disabled) root.open = false;
+      root.disabled = Boolean(disabled);
+      select.disabled = Boolean(disabled);
+    }
     root.addEventListener('valuechange', event => syncValue(event.detail.value));
     return Object.freeze({ setOptions, setValue, setPlaceholder, setDisabled });
   }
