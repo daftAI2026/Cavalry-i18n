@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 固定SDK官方默认约定、真实renderer、相同本地只读bridge与浏览器输入。
- * [OUTPUT]: 组件默认焦点/搜索/队列及业务接线验收；真实SDK核Windows 2.8.1禁用期同步与成功后清空，不把旧自绘交互当SDK预期。
+ * [OUTPUT]: 组件默认焦点/搜索/队列及业务接线验收；更新说明的四语、长文滚动、关闭回焦、文本安全、缺说明及安装单次；真实SDK核Windows 2.8.1禁用期同步与成功后清空，不把旧自绘交互当SDK预期。
  * [POS]: 当前SDK默认组件合同；legacy cases.js仅供历史对照。
  * [PROTOCOL]: 变更时更新此头部，然后检查CLAUDE.md。
  */
@@ -191,9 +191,129 @@ const cases = [
     assert.deepEqual((await d.state()).calls,[['openProjectLink','repository']]);await d.capture('about');
   }],
   ['sdk-update', async d => {
-    await d.fresh('updateAvailable');await d.click('#updateButton');await d.tick(200);await d.click('#modalPrimaryButton');await d.tick(5000);
+    await d.fresh('updateAvailable');await d.click('#updateButton');await d.tick(200);await d.click('#updateDialogInstall');await d.tick(5000);
     assert.ok(await d.page.locator('ui-progress[role="progressbar"]').count());
     assert.equal(await d.page.locator('ui-progress').first().getAttribute('aria-valuenow'),'100');await d.capture('download-progress');
+  }],
+  ['sdk-update-dialog', async d => {
+    await d.fresh('updateAvailable');await d.click('#updateButton');await d.tick(250);
+    const copy=await d.page.evaluate(()=>{
+      const locale=new URL(location.href).searchParams.get('locale')||'en';
+      const source=UI_TEXT[locale]||UI_TEXT.en;
+      return {title:source.updateNotesTitle,later:source.updateLater,install:source.installUpdate,close:source.close,
+        empty:source.updateNotesEmpty,adhoc:source.updateMacAdhocNote};
+    });
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),true);
+    assert.equal(await d.page.locator('#updateDialogTitle').textContent(),copy.title);
+    assert.equal(await d.page.locator('#updateDialogLater').textContent(),copy.later);
+    assert.equal(await d.page.locator('#updateDialogInstall').textContent(),copy.install);
+    assert.equal(await d.page.locator('#updateDialogClose').getAttribute('aria-label'),copy.close);
+    assert.equal(await d.page.locator('#updateDialogDate').getAttribute('datetime'),'2026-11-16T08:00:00Z');
+    assert.equal(await d.page.locator('#updateDialogDate').isVisible(),true);
+    assert.ok((await d.page.locator('#updateDialogNotes').textContent()).includes('升级前查看'));
+    assert.equal(await d.page.locator('#updateDialogAdhoc').textContent(),copy.adhoc);
+    assert.equal(await d.page.locator('#updateDialogAdhoc').isVisible(),true);
+    await d.capture('release-notes-fixture');
+    await d.key('Escape');await d.tick(350);
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
+    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    assert.equal(await d.page.locator('ui-progress').count(),0);
+
+    await d.page.evaluate(()=>{
+      const original=document.querySelector('#updateDialog');
+      const root=original.cloneNode(true);
+      original.remove();document.body.append(root);
+      const locale=new URL(location.href).searchParams.get('locale')||'en';
+      const source=UI_TEXT[locale]||UI_TEXT.en;
+      const text=(key,params={})=>(source[key]??UI_TEXT.en[key]??key).replace(/\{(\w+)\}/g,(_,name)=>String(params[name]??''));
+      window.__sdkUpdateInstallCalls=[];
+      window.__sdkUpdateDialog=createUpdateDialog({root,text,icons:window.cavalryIcons,
+        onInstall:update=>window.__sdkUpdateInstallCalls.push(update.version)});
+    });
+    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.0',version:'0.7.1',notes:'Close with Escape.',pubDate:null,available:true},'windows'));
+    await d.tick(300);await d.key('Escape');await d.tick(350);
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
+    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),[]);
+    const longNotes=Array.from({length:32},(_,index)=>`### Section ${index+1}\n- Stable update detail ${index+1}: review the change before continuing.`).join('\n\n')+
+      '\n\n<script>window.__sdkUpdateNotesExecuted = true</script>\n<img src=x onerror="window.__sdkUpdateNotesExecuted = true">';
+    const longUpdate={currentVersion:'0.7.0',version:'0.7.2',notes:longNotes,pubDate:'2026-11-16T08:00:00Z',available:true};
+    await d.page.evaluate(update=>window.__sdkUpdateDialog.show(update,'macos'),longUpdate);await d.tick(300);
+    assert.equal(await d.page.locator('#updateDialogVersion').textContent(),'0.7.2');
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),true);
+    assert.equal(await d.page.locator('#updateDialogNotes h3').count(),32);
+    assert.equal(await d.page.locator('#updateDialogNotes script, #updateDialogNotes img').count(),0);
+    assert.ok((await d.page.locator('#updateDialogNotes').textContent()).includes('<script>window.__sdkUpdateNotesExecuted = true</script>'));
+    assert.equal(await d.page.evaluate(()=>window.__sdkUpdateNotesExecuted),undefined);
+    const layout=await d.page.evaluate(()=>{
+      const bounds=selector=>{const {top,bottom}=document.querySelector(selector).getBoundingClientRect();return {top,bottom};};
+      const header=bounds('.update-dialog-header'),scroll=bounds('#updateDialogScroll'),footer=bounds('.update-dialog-actions');
+      const viewport=document.querySelector('#updateDialogScroll ui-scroll-area-viewport');
+      return {header,scroll,footer,viewportHeight:viewport.clientHeight,scrollHeight:viewport.scrollHeight,scrollTop:viewport.scrollTop,
+        windowHeight:innerHeight,role:viewport.getAttribute('role'),label:viewport.getAttribute('aria-label')};
+    });
+    assert.ok(layout.scrollHeight>layout.viewportHeight);
+    assert.equal(layout.role,'region');assert.equal(layout.label,copy.title);
+    assert.ok(layout.header.top>=0&&layout.header.bottom<layout.scroll.top);
+    assert.ok(layout.scroll.bottom<layout.footer.top&&layout.footer.bottom<=layout.windowHeight);
+    await d.capture('long-notes-top');
+    await d.hover('#updateDialogScroll');await d.page.mouse.wheel(0,420);await d.tick(100);await d.page.waitForTimeout(300);
+    const afterWheel=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop);
+    assert.ok(afterWheel>0);await d.capture('long-notes-wheel');
+    await d.page.mouse.wheel(0,-10000);await d.tick(150);await d.page.waitForTimeout(300);
+    const beforeKey=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>({scrollTop:e.scrollTop,
+      scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,active:document.activeElement.localName}));
+    assert.ok(beforeKey.scrollTop<afterWheel);
+    await d.focus('#updateDialogScroll ui-scroll-area-viewport');
+    assert.equal(await d.page.evaluate(()=>document.activeElement.localName),'ui-scroll-area-viewport');
+    await d.page.evaluate(()=>{
+      window.__sdkPageDownDebug=null;
+      document.addEventListener('keydown',event=>{
+        if(event.key==='PageDown')window.__sdkPageDownDebug={target:event.target.localName,targetId:event.target.id,
+          defaultPrevented:event.defaultPrevented,active:document.activeElement.localName};
+      },{once:true});
+    });
+    await d.key('PageDown');await d.page.waitForTimeout(300);
+    let afterKeyTop=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop);
+    for(let attempt=0;attempt<8&&afterKeyTop<=beforeKey.scrollTop;attempt++){
+      await d.page.waitForTimeout(50);
+      afterKeyTop=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop);
+    }
+    const keyboardState=await d.page.evaluate(()=>{
+      const viewport=document.querySelector('#updateDialogScroll ui-scroll-area-viewport');
+      return {scrollTop:viewport.scrollTop,scrollHeight:viewport.scrollHeight,clientHeight:viewport.clientHeight,
+        active:document.activeElement.localName,key:window.__sdkPageDownDebug};
+    });
+    assert.ok(keyboardState.scrollTop>beforeKey.scrollTop,`PageDown should scroll the focused notes viewport (${JSON.stringify({beforeKey,...keyboardState})})`);
+    await d.click('#updateDialogClose');await d.tick(350);
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
+    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),[]);
+
+    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.2',version:'0.7.3',notes:null,pubDate:'not-a-date',available:true},'windows'));
+    await d.tick(300);
+    assert.equal(await d.page.locator('#updateDialogVersion').textContent(),'0.7.3');
+    assert.equal(await d.page.locator('#updateDialogDate').isVisible(),false);
+    assert.equal(await d.page.locator('#updateDialogDate').getAttribute('datetime'),null);
+    assert.equal(await d.page.locator('#updateDialogNotes').textContent(),copy.empty);
+    assert.equal(await d.page.locator('#updateDialogAdhoc').isVisible(),false);
+    assert.equal(await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop),0);
+    await d.capture('notes-unavailable');
+    await d.click('#updateDialogLater');await d.tick(350);
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
+    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),[]);
+
+    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.3',version:'0.7.4',notes:'A concise release note.',pubDate:'2026-11-17T08:00:00Z',available:true},'windows'));
+    await d.tick(300);
+    assert.equal(await d.page.locator('#updateDialogVersion').textContent(),'0.7.4');
+    assert.equal(await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop),0);
+    assert.equal(await d.page.locator('#updateDialogAdhoc').isVisible(),false);
+    await d.click('#updateDialogInstall');await d.tick(350);
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
+    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),['0.7.4']);
+    await d.capture('install-once');
   }],
   ['sdk-agent', async d => {
     const path = require('node:path');

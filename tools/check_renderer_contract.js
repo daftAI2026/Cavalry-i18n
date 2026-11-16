@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、user-profile-text→ui-text四语字典、project-link-control固定外链适配、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review补丁状态与fake bridge/动态目录、nativeDefaultEnglish/nativeOfficialDefaultEnglish/nativeOwnedHans preview fixture、Restore/remediation/permission handoff、Issue form、来源通知/窗口配置、冻结bridge API与scope/locale/resource策略合同、node:crypto。
- * [OUTPUT]: 守住 UI 单向依赖、400×504主窗（40px标题栏+434px内容+30px footer）/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About（含四语「关注+平台图标」双列、GitHub/License全宽、平台区分的可访问名称、Phosphor XLogo与Simple Icons CC0路径指纹及固定链接合同）、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、用户级Switch直达事务、仅Restore确认、固定英文恢复、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
+ * [OUTPUT]: 验证更新说明与既有安装、恢复链路隔离； 守住 UI 单向依赖、400×504主窗（40px标题栏+434px内容+30px footer）/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About（含四语「关注+平台图标」双列、GitHub/License全宽、平台区分的可访问名称、Phosphor XLogo与Simple Icons CC0路径指纹及固定链接合同）、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、普通验证失败才显露固定报告入口/四语文案且不得要求重装或不可见详情、typed 缺失基线错误才要求重装的 Activity 原位合同、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源；另锁定 installation/userProfile DTO 投影、原厂English/Japanese与unknown+owned zh-Hans徽章矩阵、scope不推断安装来源、用户级Switch直达事务、仅Restore确认、固定英文恢复、Switch-only resource gate 与 hostless owned-only strict grant、nativeRestoreOnly结果不启动及host-probe不能伪造 Channel error 三项回归、三类固定 native 错误路由、仅 explicit Cavalry 2.8.0 preview + installed 2.7.2 时显露的闭合 legacyRelease 项和四语标签。
  * [POS]: renderer 的快速静态契约测试；冻结宽品牌标识的等可见间距；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -441,6 +441,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const supportStyles = read('renderer/support-footer.css');
   const operationStyles = read('renderer/operation-log.css');
   const toastStyles = read('renderer/toast.css');
+  const updateDialogStyles = read('renderer/update-dialog.css');
   const toastControl = read('renderer/toast-control.js');
   const icons = read('renderer/icons.js');
   const operationLog = read('renderer/operation-log.js');
@@ -458,8 +459,8 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const versionGuidance = read('renderer/version-guidance.js');
   for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
   const staticButtons = [...html.matchAll(/<button\b[^>]*>/g)].map((match) => match[0]);
-  assert.equal(staticButtons.length, 14, 'production shell must keep fourteen static button elements');
-  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 13, 'every static action except the Select Trigger must consume ui-button');
+  assert.equal(staticButtons.length, 17, 'production shell includes three update-notes actions');
+  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 16, 'every static action except the Select Trigger must consume ui-button');
   assert.match(staticButtons.find((tag) => tag.includes('id="languageSelectTrigger"')) || '', /class="select-trigger"/, 'Select Trigger must preserve its independent component state');
   assert.match(toastControl, /class="ui-button toast-close" data-variant="ghost"/);
   assert.doesNotMatch(
@@ -468,7 +469,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'the single-task UI must not retain the old Recovery controls'
   );
   const htmlWithoutSvgNamespace = html.replace(/\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '');
-  const implementationCss = `${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
+  const implementationCss = `${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${updateDialogStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
   const operationWithoutRuntimeState = operationStyles.replace(
     /--operation-(?:scroll-fade-(?:top|bottom)|shimmer-(?:base|highlight))\s*:[^;]+;/g,
     ''
@@ -483,6 +484,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(supportStyles, /@import|url\([\"']?https?:/i, 'support footer styles must not load remote resources');
   assert.doesNotMatch(operationStyles, /@import|url\([\"']?https?:/i, 'operation log styles must not load remote resources');
   assert.doesNotMatch(toastStyles, /@import|url\([\"']?https?:/i, 'Toast styles must not load remote resources');
+  assert.doesNotMatch(updateDialogStyles, /@import|url\([\"']?https?:/i, 'Update notes must not load remote resources');
   assert.doesNotMatch(icons, /@import|url\([\"']?https?:/i, 'icon registry must not load remote resources');
   assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
@@ -505,12 +507,12 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(thirdPartyNotices, /simple-icons\/simple-icons\/blob\/4d29a35c954699b389a834aacc97dd6e7e74143c\/icons\/github\.svg[\s\S]*CC0 1\.0/);
   assert.match(
     html,
-    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/support-footer\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/support-footer\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/update-dialog\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
     'semantic tokens must load before shared and platform visual implementations'
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/ui-sdk\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-follow-hand\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/user-profile-text\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/language-scope\.js"><\/script>\s*<script src="\.\/version-guidance\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/ui-sdk\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/update-dialog\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/project-link-control\.js"><\/script>\s*<script src="\.\/support-follow-hand\.js"><\/script>\s*<script src="\.\/support-footer\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
     'renderer scripts must load bridge, copy, policies, components, then app'
   );
   assert.match(profileText, /const NATIVE_USER_PROFILE_TEXT = Object\.freeze\(/);
@@ -543,7 +545,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}\n${supportFooter}\n${supportFollowHand}\n${read('tools/ui_sdk_entry.mjs')}`;
+  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${supportStyles}\n${operationStyles}\n${toastStyles}\n${updateDialogStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}\n${supportFooter}\n${supportFollowHand}\n${read('tools/ui_sdk_entry.mjs')}`;
   assert.deepEqual(
     tokenDefinitions.filter(
       (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
@@ -1190,7 +1192,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.deepEqual(Object.keys(nativeCopies).sort(), [...localeNames].sort());
   for (const locale of localeNames) {
     assert.deepEqual(Object.keys(nativeCopies[locale]).sort(), [...PROFILE_TEXT_KEYS].sort(), `${locale} userProfile copy domain drifted`);
-    assert.equal(Object.keys(mergedCopies[locale]).length, 192, `${locale} merged UI_TEXT key count must omit obsolete startup notice and duplicate default-label keys`);
+    assert.equal(Object.keys(mergedCopies[locale]).length, 193, `${locale} includes update-notes copy without obsolete startup notices`);
     for (const removedSwitchKey of ['nativeUserProfileSwitchConfirmTitle', 'nativeUserProfileSwitchConfirmBody']) {
       assert.equal(Object.hasOwn(nativeCopies[locale], removedSwitchKey), false, `${locale} no longer owns ${removedSwitchKey}`);
       assert.equal(Object.hasOwn(mergedCopies[locale], removedSwitchKey), false, `${locale} no longer exports ${removedSwitchKey}`);
@@ -1311,8 +1313,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'restoreSuccess',
     'restoreWithWarnings',
     'updateAvailableAnnouncement',
-    'updateConfirmTitle',
-    'updateConfirmBody',
+    'updateNotesTitle',
+    'updateNotesEmpty',
+    'updateLater',
     'updateMacAdhocNote',
     'installUpdate',
     'updateDownloadRunningTitle',

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，nativeWindows281复用官方用户级语言状态并绑定Windows 2.8.1，notFound 给出两条固定候选以审查逐路径截断，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
- * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、双列社交入口和全宽 GitHub/License 行的 About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告状态矩阵，以及 nativeLocaleState 的 unset+en/unknown、unset+en/official、explicit+zh-Hans/unknown 三种 Cavalry 2.8 userProfile 预览，与缺少语言资源、恢复协调、2.7.2 固定旧版入口、owned hostless restoreOnly 和宿主探测失败后 restoreOnly fixture；厂商来源不由语言码推断；只有后端合成投影 official 才显示原厂徽章，userProfile 不伪造官方恢复或英语恢复权限；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入同一 handoff 合同的 fake API，更新 fixture 不向真实确认框注入审查占位文案，并以 applyTransaction 提交作为 success cleanup、只让显式 Back reverse 到持久 Activity 动作；三个固定 local-reference 路由分别承载落稳 helper、箭头与系统行，缺图即 404，浏览器默认 favicon 请求静默返回空响应。
+ * [OUTPUT]: 更新说明场景复用生产block和当前版本notes/date fixture； 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、双列社交入口和全宽 GitHub/License 行的 About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/补丁新旧与结构拒绝/普通验证失败报告入口/typed 错误/成功/阻塞/警告状态矩阵，以及 nativeLocaleState 的 unset+en/unknown、unset+en/official、explicit+zh-Hans/unknown 三种 Cavalry 2.8 userProfile 预览，与缺少语言资源、恢复协调、2.7.2 固定旧版入口、owned hostless restoreOnly 和宿主探测失败后 restoreOnly fixture；厂商来源不由语言码推断；只有后端合成投影 official 才显示原厂徽章，userProfile 不伪造官方恢复或英语恢复权限；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入同一 handoff 合同的 fake API，更新 fixture 不向真实确认框注入审查占位文案，并以 applyTransaction 提交作为 success cleanup、只让显式 Back reverse 到持久 Activity 动作；三个固定 local-reference 路由分别承载落稳 helper、箭头与系统行，缺图即 404，浏览器默认 favicon 请求静默返回空响应。
  * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock、运行时 DOM clone 与不入库的本机视觉参考，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -259,7 +259,7 @@ function fixtureSource() {
       return '0.7.0';
     },
     checkUpdate: async () => ['updateAvailable', 'updateConfirm', 'update', 'updateFailure'].includes(scenario)
-      ? { currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null, available: true, errorCode: null }
+      ? { currentVersion: '0.7.0', version: '0.7.1', notes: '### 新增\n- 升级前查看此版本的更新内容。\n\n### 修复\n- 修复语言选项在忙碌状态下的同步与关闭。', pubDate: '2026-11-16T08:00:00Z', available: true, errorCode: null }
       : { currentVersion: '0.7.0', version: null, notes: null, pubDate: null, available: false, errorCode: null },
     installUpdate: async (onEvent = () => {}) => {
       const total = 1000;
@@ -332,7 +332,7 @@ function fixtureSource() {
     const trigger = await waitForReady(selector);
     trigger?.click();
     if (!['restore', 'update', 'updateFailure', 'nativeRestoreOnly', 'nativeRestoreOnlyHostFailure'].includes(scenario)) return;
-    const confirm = await waitForReady('#modalPrimaryButton');
+    const confirm = await waitForReady(['update', 'updateFailure'].includes(scenario) ? '#updateDialogInstall' : '#modalPrimaryButton');
     confirm?.click();
   });
 })();`;

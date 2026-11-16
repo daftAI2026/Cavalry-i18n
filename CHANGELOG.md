@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 升级前可查看新版本的更新内容、版本号和发布日期，确认后再下载并重启；长说明可在弹窗内滚动。
 - 首次成功切换后，回到切换器时显示一次从左斜上方伸出、随机指向底部 GitHub、X 或小红书图标的手势；继续操作或开启减少动态效果时不播放，原有关注链接保持可用。
 - 适配 Cavalry 2.8.1 的 macOS Apple Silicon 与 Windows x64 版本，增补简体中文、繁体中文与日文原生语言资源；Intel 的 2.8.1 适配尚未完成。
 

@@ -20,6 +20,8 @@ Windows 2.8.1生产入口沿2.8.0成功基线复用native资源与用户事务�
 Windows2.8.1窄补充在`injector/windows/native/`：Windows独立核官方PE、fmt11与全部既有caller；节点图只在直属header paint内捕获原厂完整串，同次测量/绘制复用字体并沿Mac纯策略修复UTF8省略；保存/Open caption与五项菜单继续由共享策略投影，不改身份。复用225项/固定状态及Graph目录/完整字形覆盖与标题、保存caption、Guide、内置Easing及Fast Unicode策略；384/17帮助说明及401根四行布局共用既有producer，Windows单独证明MSVC文档/调用布局。Demo沿共享297源/489位置，仅将完整源等价的Windows CRLF映射到实际SHA/位置，在动态官方Preset根与菜单工厂/Onboarding两个已证reader投影。Welcome沿共享裸句/精确节日策略，Windows先核logger及启动producer才读取影子payload。Qt6.9.2构建且只用宿主Qt。runtime-only沿既有QPA/vendor备份/CAS和固定payload journal，普通根/Program Files共用执行器；状态同时比较编译期runtime来源。完整实屏与首帧验收独立，不继承Mac或私人helper信用。
 
 Windows固定工具帮助的Alt组合仅在字体准入时对应共享Option/Alt组合；原显示字节、75项共享lane及准确owner调用链不变，三语隔离合同与实屏复验分账。
+更新说明弹窗由renderer/update-dialog独立block消费已检查的Updater notes/date；CHANGELOG版本段经现有发布脚本进入latest.json，不新增内容源或HTTP请求。
+
 <directory>
 .agents/ - 项目技能入口；翻译与macOS显示分别路由；显示按影响合批补验，显式隔离Switcher状态，发布前清测试副本并回交安装选择；脚本自测留tools，不参与产品构建或运行 (1 子目录: skills)
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)

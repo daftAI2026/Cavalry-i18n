@@ -311,3 +311,5 @@ verify_ci_action_pins逐job核验紧邻Node的npm安装，并要求Windows PYTHO
 native_dg_context_menu_data.js: 声明5个2.8.1 TransformTool helper/source审批；Group复用native key、无&项目复用精确TS、Lock绑定AGY refined复核记录。
 build_native_dg_context_menu_table.js: 校验官方281 assets catalog SHA和native/TS source身份，仓外生成菜单投影表；不改官方catalog或language pack统计。
 native_dg_context_menu.test.js: 验证五项审批源、翻译结果、source/catalog漂移拒绝、AGY回执与仓外生成合同。
+
+更新说明：ui_review_server/workspace的updateConfirm直接复用生产更新内容弹窗；bridge运行时/SDK浏览器合同验证notes、关闭、安装单次和长文滚动。

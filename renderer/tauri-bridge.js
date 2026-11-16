@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只归一化 installation/userProfile scope、受控 locale/unknown、camelCase nativeLocaleState（userProfile仅接受unset/explicit/unrecognized，旧安装置null）、严格 ownership-gated English restore availability、原枚举语言补丁状态与固定中性旧字段，内部 journal/签名清理事实不进入 DTO；英文 restore-only 成功不冒充启动；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发twitter/xiaohongshu/repository/license/reportIssue/legacyRelease 固定 project-link、About 与窗口操作，拒绝 snake_case/debug 扩展并丢弃 raw warning/error prose、URL/签名/路径。
+ * [OUTPUT]: notes按发布器16384字符上限投影； 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只归一化 installation/userProfile scope、受控 locale/unknown、camelCase nativeLocaleState（userProfile仅接受unset/explicit/unrecognized，旧安装置null）、严格 ownership-gated English restore availability、原枚举语言补丁状态与固定中性旧字段，内部 journal/签名清理事实不进入 DTO；英文 restore-only 成功不冒充启动；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发twitter/xiaohongshu/repository/license/reportIssue/legacyRelease 固定 project-link、About 与窗口操作，拒绝 snake_case/debug 扩展并丢弃 raw warning/error prose、URL/签名/路径。
  * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js/about-window.js 前加载；业务只消费稳定 DTO，About 创建仍归单一 Rust owner，窗口插件调用只允许源码固定的 main/about label。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -276,7 +276,7 @@
     return {
       currentVersion: typeof result.currentVersion === 'string' ? result.currentVersion : '',
       version: available ? result.version.slice(0, 64) : null,
-      notes: typeof result.notes === 'string' ? result.notes.slice(0, 4000) : null,
+      notes: typeof result.notes === 'string' ? result.notes.slice(0, 16384) : null,
       pubDate: typeof result.pubDate === 'string' ? result.pubDate.slice(0, 64) : null,
       available,
       errorCode,

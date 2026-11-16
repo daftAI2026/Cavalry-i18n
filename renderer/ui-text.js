@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖先行加载的user-profile-text.js，再合并renderer稳定的其余四语copy。
- * [OUTPUT]: 对外提供统一四语 UI_TEXT 与状态标题路由；用户级恢复确认、资源故障与恢复阶段copy由独立子域spread合并，旧宿主仅提示不支持，2.7.2另保留既有p12入口；About社交按钮提供四语「关注」与平台区分名称，主窗单行关注入口提供四语操作提示与可访问名称；Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
+ * [OUTPUT]: 含更新说明标题、稍后与缺说明状态； 对外提供统一四语 UI_TEXT 与状态标题路由；用户级恢复确认、资源故障与恢复阶段copy由独立子域spread合并，旧宿主仅提示不支持，2.7.2另保留既有p12入口；About社交按钮提供四语「关注」与平台区分名称，主窗单行关注入口提供四语操作提示与可访问名称；Official说明只声明已验证原厂App及无Switcher语言覆盖，不冒称任意第三方/全UI原样。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -32,8 +32,9 @@ const UI_TEXT = {
     updateTooltip: 'New version available',
     updatePreviewAvailable: 'Update preview is active. No download or installation will run.',
     updateAvailableAnnouncement: 'Version {version} is available.',
-    updateConfirmTitle: 'Update the Switcher?',
-    updateConfirmBody: 'Version {version} is ready. The Switcher will download, verify, replace itself, and restart.',
+    updateNotesTitle: 'What’s New',
+    updateNotesEmpty: 'Release notes are unavailable for this version.',
+    updateLater: 'Later',
     updateMacAdhocNote: 'This update installs a new macOS app bundle. If the release is not Developer ID notarized, complete the documented local ad-hoc and Gatekeeper step again for the new bundle.',
     installUpdate: 'Update & Restart',
     updateDownloadRunningTitle: 'Downloading update',
@@ -211,8 +212,9 @@ const UI_TEXT = {
     updateTooltip: '发现新版本',
     updatePreviewAvailable: '更新预览已启用，不会执行下载或安装。',
     updateAvailableAnnouncement: '发现版本 {version}。',
-    updateConfirmTitle: '更新语言切换器？',
-    updateConfirmBody: '版本 {version} 已准备好。语言切换器将下载并验证更新，替换自身后重新启动。',
+    updateNotesTitle: '更新内容',
+    updateNotesEmpty: '此版本暂无更新说明。',
+    updateLater: '稍后',
     updateMacAdhocNote: '此次更新会安装一个新的 macOS 应用包。若发布版本没有 Developer ID 公证，新包仍需重新执行发布说明中的本地 ad-hoc 与 Gatekeeper 步骤。',
     installUpdate: '更新并重启',
     updateDownloadRunningTitle: '正在下载更新',
@@ -386,8 +388,9 @@ const UI_TEXT = {
     updateTooltip: '發現新版本',
     updatePreviewAvailable: '更新預覽已啟用，不會執行下載或安裝。',
     updateAvailableAnnouncement: '發現版本 {version}。',
-    updateConfirmTitle: '更新語言切換器？',
-    updateConfirmBody: '版本 {version} 已準備好。語言切換器將下載並驗證更新，替換自身後重新啟動。',
+    updateNotesTitle: '更新內容',
+    updateNotesEmpty: '此版本暫無更新說明。',
+    updateLater: '稍後',
     updateMacAdhocNote: '此次更新會安裝一個新的 macOS 應用程式套件。若發布版本沒有 Developer ID 公證，新套件仍需重新執行發布說明中的本機 ad-hoc 與 Gatekeeper 步驟。',
     installUpdate: '更新並重新啟動',
     updateDownloadRunningTitle: '正在下載更新',
@@ -561,8 +564,9 @@ const UI_TEXT = {
     updateTooltip: '新しいバージョンがあります',
     updatePreviewAvailable: '更新プレビューが有効です。ダウンロードやインストールは実行されません。',
     updateAvailableAnnouncement: 'バージョン {version} を利用できます。',
-    updateConfirmTitle: '言語スイッチャーを更新しますか？',
-    updateConfirmBody: 'バージョン {version} を利用できます。更新をダウンロードして検証し、アプリを置き換えて再起動します。',
+    updateNotesTitle: '更新内容',
+    updateNotesEmpty: 'このバージョンの更新内容はありません。',
+    updateLater: 'あとで',
     updateMacAdhocNote: 'この更新では新しい macOS アプリバンドルがインストールされます。Developer ID で公証されていないリリースでは、新しいバンドルに対してリリース案内のローカル ad-hoc と Gatekeeper の手順をもう一度実行してください。',
     installUpdate: '更新して再起動',
     updateDownloadRunningTitle: 'アップデートをダウンロード中',

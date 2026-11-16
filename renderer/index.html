@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖tokens/button及原视觉层、冻结bridge和各业务适配器；SDK默认Web Components拥有交互，展示资源使用标准DOM
-  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、SDK Trigger/Value 保留占位语义的 Select + scope-aware Switch/Restore English 主任务流、2.8 切换器遇 Cavalry 2.7.2 时显露的固定 legacyRelease 按钮、三轨 Activity 与条件权限/Issue 表单动作、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点，以及文字与固定 GitHub/X/小红书入口整组居中的无分割线单行 footer；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
+  [OUTPUT]: 包含独立SDK更新说明Dialog与ScrollArea； 对外提供原生标题区、按需显露安装选择入口的安装摘要、SDK Trigger/Value 保留占位语义的 Select + scope-aware Switch/Restore English 主任务流、2.8 切换器遇 Cavalry 2.7.2 时显露的固定 legacyRelease 按钮、三轨 Activity 与条件权限/Issue 表单动作、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点，以及文字与固定 GitHub/X/小红书入口整组居中的无分割线单行 footer；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起共享外壳窗口，Windows 以 Info/Minus/Square/Copy/X 的统一 Phosphor Regular 语义驱动右侧控件
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="./support-footer.css" />
   <link rel="stylesheet" href="./operation-log.css" />
   <link rel="stylesheet" href="./toast.css" />
+  <link rel="stylesheet" href="./update-dialog.css" />
   <link rel="stylesheet" href="./about.css" />
   <link rel="stylesheet" href="./window-controls.css" />
 </head>
@@ -165,6 +166,28 @@
   </ui-alert-dialog-content>
   </ui-alert-dialog>
 
+  <ui-dialog id="updateDialog">
+    <ui-dialog-backdrop class="update-dialog-backdrop" hidden></ui-dialog-backdrop>
+    <ui-dialog-content class="update-dialog" initial-focus="content" final-focus="#updateButton" hidden>
+      <header class="update-dialog-header">
+        <ui-dialog-title id="updateDialogTitle"></ui-dialog-title>
+        <ui-dialog-close><button id="updateDialogClose" type="button" class="ui-button" data-variant="ghost" data-size="icon-sm"></button></ui-dialog-close>
+      </header>
+      <div class="update-dialog-meta"><strong id="updateDialogVersion"></strong><time id="updateDialogDate" hidden></time></div>
+      <ui-scroll-area id="updateDialogScroll" class="update-notes-scroll" type="auto">
+        <ui-scroll-area-viewport><ui-scroll-area-content class="update-notes-content">
+          <div id="updateDialogNotes"></div>
+          <p id="updateDialogAdhoc" class="update-dialog-adhoc" hidden></p>
+        </ui-scroll-area-content></ui-scroll-area-viewport>
+        <ui-scroll-area-scrollbar orientation="vertical"><ui-scroll-area-thumb></ui-scroll-area-thumb></ui-scroll-area-scrollbar>
+      </ui-scroll-area>
+      <footer class="update-dialog-actions">
+        <ui-dialog-close value="later"><button id="updateDialogLater" type="button" class="ui-button button button-outline"></button></ui-dialog-close>
+        <ui-dialog-close value="install"><button id="updateDialogInstall" type="button" class="ui-button button button-primary"></button></ui-dialog-close>
+      </footer>
+    </ui-dialog-content>
+  </ui-dialog>
+
   <script src="./tauri-bridge.js"></script>
   <script src="./user-profile-text.js"></script>
   <script src="./ui-text.js"></script>
@@ -178,6 +201,7 @@
   <script src="./operation-log.js"></script>
   <script src="./permission-handoff.js"></script>
   <script src="./update-progress.js"></script>
+  <script src="./update-dialog.js"></script>
   <script src="./toast-control.js"></script>
   <script src="./project-link-control.js"></script>
   <script src="./support-follow-hand.js"></script>
