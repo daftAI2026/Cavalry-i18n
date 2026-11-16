@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 提供預覽、2.8.0重點、使用與還原、Release安裝說明及摺疊的開發和翻譯資料
+[OUTPUT]: 提供預覽、2.8.1重點、使用與還原、Release安裝說明及摺疊的開發和翻譯資料
 [POS]: 倉庫繁體中文使用者入口；與英文及其他本地化 README 同步發布真相，不替代平台真機驗收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -8,7 +8,7 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>在 macOS 和 Windows 上，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.8.0 切換為英文、簡體中文、繁體中文或日本語。</p>
+  <p>在 macOS 和 Windows 上，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.8.1 切換為英文、簡體中文、繁體中文或日本語。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases/latest"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?sort=date&display_name=tag&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
@@ -22,19 +22,19 @@
 
 Cavalry 2.8.0 實機截圖，展示三級選單、屬性編輯器、圖層名稱與加入圖層面板。
 
-## 2.8.0 版本重點
+## 2.8.1 版本重點
 
-- 適配 Cavalry 2.8.0 的選單、節點、屬性、外掛說明及內建指南譯文。
+- 適配 Cavalry 2.8.1 的選單、節點、屬性、外掛說明及內建指南譯文。
 - 翻譯官方示例選單、合成名稱及作者命名的圖層，不改寫既有使用者專案。
 - 改善時間編輯器、檢視區及工具提示中的中文、日文字型顯示，並修正部分日文快速新增查詢。
 - 加快套用修補程式後的語言切換，並在進度中補上設定還原檢查。
 
-[查看 p1 完整更新內容](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.8.0-p1)。
+[查看 p1 完整更新內容](https://github.com/daftAI2026/Cavalry-i18n/releases/tag/cavalry-2.8.1-p1)。
 
 ## 使用方式
 
 1. 儲存工作並結束 Cavalry。
-2. 開啟 Cavalry Language Switcher，確認自動偵測到的 Cavalry 2.8.0 路徑；也可以手動選擇安裝位置。
+2. 開啟 Cavalry Language Switcher，確認自動偵測到的 Cavalry 2.8.1 路徑；也可以手動選擇安裝位置。
 3. 選擇語言並點選 **「切換」**；完成後 Cavalry 會自動開啟。
 
 切換器會通知可用的應用程式更新。目前語言出現更新標記時，選取它並點選 **「更新」**，即可更新語言資源及所需執行階段，不必先還原英文；只有資源已是最新時，目前語言才無法重複選取。操作進度顯示在按鈕下方。
@@ -93,7 +93,7 @@ npm run test:tauri             # Rust 測試
 npm run check:app              # JavaScript 語法
 ```
 
-2.8.0 生產建置使用 Qt 6.9.2。發布套件不得依賴浮動工具版本；請遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)。
+2.8.1 生產建置使用 Qt 6.9.2。發布套件不得依賴浮動工具版本；請遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)。
 
 ### AI / Agent Guide
 
@@ -104,10 +104,10 @@ npm run check:app              # JavaScript 語法
 
 ### 工作原理
 
-2.8.0 語言包會將原生介面文字和語言設定寫入目前使用者的 Cavalry 設定。它不使用歷史 2.7 JSON 資源覆蓋。macOS 需要變更原生執行階段時，會先驗證 Cavalry 目標和官方基線。基線缺失或無效時，執行階段寫入會停止。
+2.8.1 語言包會將原生介面文字和語言設定寫入目前使用者的 Cavalry 設定。它不使用歷史 2.7 JSON 資源覆蓋。macOS 需要變更原生執行階段時，會先驗證 Cavalry 目標和官方基線。基線缺失或無效時，執行階段寫入會停止。
 
-1. 驗證所選 Cavalry 2.8.0 安裝和內嵌原生資源清單。
-2. 載入由固定 Cavalry 2.8.0 目錄建置的已核准語言包。
+1. 驗證所選 Cavalry 2.8.1 安裝和內嵌原生資源清單。
+2. 載入由固定 Cavalry 2.8.1 目錄建置的已核准語言包。
 3. 將語言設定和 `strings.json` 包寫入目前使用者的 Cavalry 設定。
 4. 需要變更執行階段時，呼叫經驗證的平台原生執行階段交易。
 5. 語言交易提交後開啟 Cavalry。
@@ -123,11 +123,11 @@ npm run check:app              # JavaScript 語法
 
 ### 翻譯面
 
-2.8.0 原生使用者設定包使用 `languages/native/` 中綁定原文的核准譯文，並讀取固定於 `tools/cavalry_native_target.json` 的官方目錄。`tools/native_resource_bundle.js` 會驗證並建置三種目標語言包。請勿手動修改生成包。
+2.8.1 原生使用者設定包使用 `languages/native/` 中綁定原文的核准譯文，並讀取固定於 `tools/cavalry_native_target.json` 的官方目錄。`tools/native_resource_bundle.js` 會驗證並建置三種目標語言包。請勿手動修改生成包。
 
 建置器預設保留官方 `dontTranslate` 項目。顯示例外只涵蓋 100 個身分與譯值均已核對的內建示例選單標籤。它不會修改預設集路徑、模型名稱、選單動作或使用者輸入文字。
 
-`languages/` 中的 JSON 覆蓋包和 `tools/*.ts` 注入器譯文屬於獨立的歷史或執行階段路徑，不是 Cavalry 2.8.0 原生使用者設定包的來源。生成的注入器表也不得手動修改。翻譯規則和實機驗證流程見 [docs/translation-guidelines.md](docs/translation-guidelines.md) 與 [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md)。
+`languages/` 中的 JSON 覆蓋包和 `tools/*.ts` 注入器譯文屬於獨立的歷史或執行階段路徑，不是 Cavalry 2.8.1 原生使用者設定包的來源。生成的注入器表也不得手動修改。翻譯規則和實機驗證流程見 [docs/translation-guidelines.md](docs/translation-guidelines.md) 與 [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md)。
 
 ### 倉庫結構
 
@@ -136,7 +136,7 @@ Cavalry-i18n/
 ├── renderer/          # Tauri WebView 介面
 ├── src-tauri/         # Rust 命令與平台作業
 ├── injector/          # macOS 與 Windows Qt 執行階段翻譯器
-├── languages/         # 歷史 JSON 包與 2.8.0 原生核准譯文
+├── languages/         # 歷史 JSON 包與 2.8.1 原生核准譯文
 ├── tools/             # 構建、驗證與發布工具
 ├── docs/              # 公開規則、可重複 SOP 與圖片
 └── .github/workflows/ # CI、平台打包與 Release 發布
