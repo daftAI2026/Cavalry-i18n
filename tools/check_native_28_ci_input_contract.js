@@ -26,8 +26,9 @@ const resourceProducer = read('tools/native_resource_bundle.js');
 const windowsNativeBuildSource = read('tools/windows_native_build.js');
 const windowsNativeBuild = require('./windows_native_build.js');
 const buildScript = read('src-tauri/build.rs');
-const x86Builder = read('injector/native/build_x86_64_candidate.sh');
-const x86TimelineContract = read('injector/native/check_timeline_owner_observer_x86_64.py');
+const x86BuilderEntry = read('injector/native/build_x86_64_candidate.sh');
+const x86Builder = read('injector/native/abi_2_8_1/x86_64/build_x86_64_candidate.sh');
+const x86TimelineContract = read('injector/native/abi_2_8_1/x86_64/check_timeline_owner_observer_x86_64.py');
 const x86SourceManifest = read('injector/native/native_source_manifest_x86_64.py');
 const x86SourceManifestFixture = read('injector/native/native_source_manifest_x86_64_contract_test.py');
 
@@ -199,6 +200,7 @@ assert.match(packageJob, /label: x64[\s\S]*rust_target: x86_64-apple-darwin[\s\S
 assert.match(workflowMap, /macOS.*arm64.*x86_64/);
 
 // x86 native source is a real builder, not the ARM binary under a new asset name.
+assert.match(x86BuilderEntry, /build_candidate_2_8_1\.py.*--architecture x86_64/);
 assert.match(inputPreparer, /aarch64-apple-darwin[\s\S]*build_candidate\.sh/);
 assert.match(inputPreparer, /x86_64-apple-darwin[\s\S]*build_x86_64_candidate\.sh/);
 assert.match(x86Builder, /check_timeline_owner_observer_x86_64\.py/);

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.9.2 QAction/QWidget、唯一 gLocale、冻结显示行与 ABI 合同。
- * [OUTPUT]: 为精确 Magic Easing addAction caller 投影文字并单次转发原方法。
+ * [OUTPUT]: 为精确 Easing/281菜单 caller 投影文字并单次转发；Intel菜单独立核Qt身份与导出。
  * [POS]: 同 TU 窄 interpose；未知caller不读取文本或locale，不改动作身份。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -30,9 +30,9 @@
 
 #include "easing_menu_abi_contract.h"
 #include "easing_menu_policy.h"
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 #ifndef NATIVE_DG_CONTEXT_MENU_TABLE
-#error "281 arm64必须由source-bound builder提供DG/TransformTool显示表。"
+#error "281目标必须由source-bound builder提供DG/TransformTool显示表。"
 #endif
 #include "dg_context_menu_abi_contract.h"
 #include "dg_context_menu_policy.h"
@@ -58,7 +58,7 @@ std::atomic<std::uintptr_t> gEasingMenuExpectedReturnPc{0};
 LoadedImage gEasingMenuExtensionImage{};
 LoadedImage gEasingMenuQtWidgetsImage{};
 LoadedImage gEasingMenuQtGuiImage{};
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 std::atomic<bool> gDgContextMenuContractReady{false};
 std::atomic<std::uintptr_t> gDgContextMenuExpectedReturnPc{0};
 #endif
@@ -70,12 +70,27 @@ EasingMenuAddAction requireEasingMenuOriginal() noexcept
     return original != nullptr ? original : &easingMenuAddActionTarget;
 }
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 bool verifyDgContextMenuContract() noexcept
 {
     using namespace native_dg_context_menu::contract;
     gDgContextMenuContractReady.store(false, std::memory_order_release);
     gDgContextMenuExpectedReturnPc.store(0, std::memory_order_release);
+
+#if defined(__x86_64__)
+    // Intel DG has its own Qt identity; the ARM-only easing gate stays separate.
+    const char *runtimeVersion = qVersion();
+    if (runtimeVersion == nullptr || std::strcmp(runtimeVersion, kQtVersion) != 0 ||
+        !imageUuidEquals(gEasingMenuQtWidgetsImage, kQtWidgetsUuid) ||
+        !imageUuidEquals(gEasingMenuQtGuiImage, kQtGuiUuid) ||
+        findMachOSymbol(gEasingMenuQtWidgetsImage, kAddActionSymbol) !=
+            imageAddress(gEasingMenuQtWidgetsImage, kAddActionExportOffset) ||
+        findMachOSymbol(gEasingMenuQtGuiImage, kActionTextSymbol) !=
+            imageAddress(gEasingMenuQtGuiImage, kActionTextExportOffset) ||
+        findMachOSymbol(gEasingMenuQtGuiImage, kActionSetTextSymbol) !=
+            imageAddress(gEasingMenuQtGuiImage, kActionSetTextExportOffset))
+        return false;
+#endif
 
     const bool symbolsMatch =
         imageUuidEquals(gEasingMenuExtensionImage, kExtensionUuid) &&
@@ -241,7 +256,7 @@ extern "C" __attribute__((noinline)) void nativeEasingMenuAddActionInterpose(
         return;
     }
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     std::uintptr_t helperReturnOffset = 0;
     const bool dgContractReady =
         gDgContextMenuContractReady.load(std::memory_order_acquire);

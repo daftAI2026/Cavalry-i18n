@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖2.8.1 NodeView ABI合同、原Skia函数、owner adapter与共享回退。
  * [OUTPUT]: 将NodeView Measure/Draw原始span交给精确owner路由与省略边界修复。
- * [POS]: 仅由CAVALRY_NATIVE_TARGET_281 arm64分支include；2.8.0实现保持原样。
+ * [POS]: 仅由CAVALRY_NATIVE_TARGET_281分架构profile分支include；2.8.0实现保持原样。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 extern "C" float timelineMeasureDispatch(

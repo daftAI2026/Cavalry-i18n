@@ -49,10 +49,10 @@ native_ten_owner_translations.test.js: 官方catalogId+owner双身份选择，�
 native_ten_owner_semantic_contract.js: 纯测试合同；以既有Auto Animate显示词约束Stagger引用，按source-notes绑定通用宽度渐变、沿路径移动与仅未设置材质时替换的已审caption，双端渐细独立守边界；共享正向guard与单槽真实旧译反例，改译须重新审定，不进入产品运行时。
 native_resource_bundle.js: 构建期生成当前2.8.1三语native包；默认development-preview，显式production-2.8要求10843键完整。两模式复用当前审批与payload；freshness核完整target/source摘要，缺译或profile不符拒绝。
 native_resource_bundle.test.js: 纯生成合同覆盖DNT、vendor优先与补充源；另锁生产完整度、计数一致性、资源overlay及2.8.0独立endpoint。
-prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8.1 macOS矩阵调用；ARM runner使用281 composer，Intel分支仍指向旧x86 builder并待补281 ABI，不能宣称双架构都可生产构建；官方Cavalry/Qt字节在runner隔离目录校验，成功后才写入GitHub环境。
+prepare_cavalry_28_ci_inputs.sh: 仅被显式2.8.1 macOS矩阵调用；ARM runner使用281 composer，Intel分支委托共享composer选择281独立x86 profile，真实构建结果与实屏分别验收；官方Cavalry/Qt字节在runner隔离目录校验，成功后才写入GitHub环境。
 prepare_native_qt_headers.py: 验证官方Qt6.9.2 qtbase归档SHA与长度；兼容include与framework Versions/A/Headers布局，将三个模块归一到include前缀，只复制公开头文件。
 prepare_native_qt_headers.test.py: 标准库路径合同与可选锁定py7zr的合成7z输入；验证framework成员映射、私有版本目录排除及旧include兼容，不读取网络或Qt运行库。
-check_native_28_ci_input_contract.js: YAML解析同SHA源码前置条件，mock Mac架构下载/构建边界；验证Rust测试仅用TAURI_CONFIG清空打包资源、CI分派与2.8.1三平台tag发布guard，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions；Intel profile与Windows生产闭包仍未迁移。
+check_native_28_ci_input_contract.js: YAML解析同SHA源码前置条件，mock Mac架构下载/构建边界；验证Rust测试仅用TAURI_CONFIG清空打包资源、CI分派与2.8.1三平台tag发布guard，并调用native源码manifest临时树合同核生成/消费及漂移拒绝，不运行vendor或GitHub Actions；Intel281使用独立profile，Windows沿当前官方目标；完整发行由tag流水线核验。
 native_schema_supplement.js: 2.8.0 nodeDefinitions原始SHA、Forge owner父链、八字段完整schema及Inspector顺序的source-only投影；固定catalogId/source notes与dontTranslate=false、补充target字段及官方键碰撞门，不生成locale译文、不扩展任意ID。
 native_schema_supplement.test.js: 合成nodeDefinitions边界合同；验证8个owner/ID/fallback source及显式DNT=false、父链/schema/UI顺序/重复身份/官方碰撞和原始字节摘要拒绝，不依赖安装、App或profile。
 native_schema_gap_sources.js: SHA锁定的2.8.0 nodeDefinitions adapter；历史365源行摘要不变，额外输出隐藏Background Rendering行，当前投影366；固定行继续校验父链/schema/Inspector顺序，隐藏字段另校验hide=true、无UI自有字段、bool/default及碰撞；不装配审批或运行时。
@@ -130,7 +130,7 @@ ui_review_server.js: 补丁 fixture 明确区分 current/updateAvailable/unknown
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles 与 user-profile-text→ui-text 字典加载顺序读取四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 classify_ci_changes.js: GitHub Actions 变更风险分类器；禁止重命名隐藏被删除源码；Windows catalog guard生成器精确归属Windows门，近似未知路径仍fail-closed；项目技能Markdown只走文档门，技能脚本仍按未知源码全门；以 PR merge-base、push before/head 或事件强制策略投影 documentation/source/vulnerability/windows/macOS-injector 门，未知源码路径和不可解析 diff 均 fail-closed，tag/workflow_dispatch 永远跑完整闭环；共享 Quick Add 顶部标签与显示适配器、Classic 评分、描述输入/策略与生成表进入双平台 native 门。
 classify_ci_changes.test.js: CI 风险分类器离线合同；真实 Git 覆盖源码改名为文档；覆盖Windows catalog guard单文件/混合变更/近似未知路径边界；覆盖技能Markdown/脚本/混合原生/tag边界、纯文档、合同/SOP、Windows、macOS、共享翻译表及翻译/输入/Quick Add 顶部标签/显示/搜索/Classic 搜索与评分策略的逐文件双平台门、macOS-only 原生源码、依赖/workflow、定时漏洞复审、空 diff 与未知源码/自动化路径边界。
-check_tauri_build_sop.js: 逐事件执行真实YAML条件，取消运行停止源/Windows重任务但保留聚合证据，核验定时仅审计与非定时失败传播；NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify；macOS arm64/Windows x64的2.8.1官方输入、构建与实屏/发行分账及Intel待验边界合同；保留统一latest.json、p12历史资产、三平台tag发布guard及既有配置/provenance合同。injector检查与镜像记录均固定macos-15。
+check_tauri_build_sop.js: 逐事件执行真实YAML条件，取消运行停止源/Windows重任务但保留聚合证据，核验定时仅审计与非定时失败传播；NSIS夹具读取真实production overlay与安装语言配置，验证三语包、源变更、语言文件漂移及完整prepare/record/verify；macOS双架构/Windows x64的2.8.1官方输入、构建与实屏/发行分账合同；保留统一latest.json、p12历史资产、三平台tag发布guard及既有配置/provenance合同。injector检查与镜像记录均固定macos-15。
 check_tauri_packaged_app.js: 最终App资源验收；production-2.8按显式arm64/x86_64目标核App架构、架构中立manifest/三payload、同架构runtime内嵌与renderer字节闭包。默认仍选arm64；不把SKIP当生产通过。
 packaged_native_resources.js: 纯文件校验production包与构建输入一致；按显式目标架构将runtime Mach-O切片绑定可执行文件，manifest保持架构中立；不启动App。
 packaged_native_resources.test.js: 临时fixture验证资源manifest中立性、arm64/x86_64 runtime正反例、错误profile/缺译/字节漂移与错误目标架构。
@@ -148,7 +148,7 @@ check_git_hooks.js: Windows 兼容 Git hook 合同测试，模拟 stale PATH、�
 python_command.js: Python 3 命令边界，优先尊重 `PYTHON`；Windows 先探测用户级 Python Launcher 的绝对路径，再回退 `py -3`/`python`，隔离 IDE/Codex 继承旧 PATH 与 Windows Store 假别名；其余平台使用 `python3`，供 Node 验证器与 Qt SDK 解析器复用。
 npm_command.js: npm 工具链身份命令边界，优先以当前 Node 执行 `npm_execpath` 保持无 shell；仅在缺少 CLI 路径的 Windows 宿主为固定 `npm --version` 使用 shell fallback，供漏洞门与 toolchain evidence recorder 复用。
 powershell_command.js: Windows 开发脚本宿主边界；优先单次启动 `pwsh.exe`，仅在宿主不存在时清除继承的 `PSModulePath` 并回退 `powershell.exe`，脚本非零或启动拒绝原样失败，供 injector 构建与 NSIS 安装态守门复用。
-release.config.json / release-2.8.config.json: 冻结2.7.2 p12默认profile与当前2.8.1 release metadata；共用latest.json通道，tag-pinned archive URL由profile生成。完整公开release仍需要Intel与Windows 2.8.1闭包，目前未就绪。
+release.config.json / release-2.8.config.json: 冻结2.7.2 p12默认profile与当前2.8.1 release metadata；共用latest.json通道，tag-pinned archive URL由profile生成。完整公开release需要三平台生产构建、签名与资产回读闭包。
 release_metadata.js: GitHub Release 元数据守门器；默认 `release.config.json` 保留2.7 `latest.json`历史命名，显式2.8.1 profile生成元数据；workflow按profile要求三平台发布闭包。
 create_updater_manifest.js: 静态 Tauri updater manifest producer；从所选 profile、当前 package SemVer、已审阅 notes、三个 exact-name artifact 与 base64 `.sig` 确定性生成指定 JSON；2.8.1 archive URL 固定到 tag，资产模板包含macOS双架构与Windows x64，但平台构建未全部迁移/验证。
 create_updater_manifest.test.js: updater manifest 离线对抗测试；以临时伪 artifact/signature验证共享latest.json、tag-pinned URL、三平台映射、时间归一化及命名/签名/symlink失败关闭；不代表各平台runtime已支持2.8.1。

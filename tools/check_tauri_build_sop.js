@@ -1243,7 +1243,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(localSop, /p12终版只作历史下载/);
   assert.doesNotMatch(localSop, /当前发布器只读复核p12|当前2\.7只准p12只读回读/);
   assert.match(localSop, /workflow按所选2\.8\.1 profile向tag打包命令传统一endpoint overlay/);
-  assert.match(localSop, /Intel仍需281 ABI\/build验证/);
+  assert.match(localSop, /Intel已通过281独立ABI\/native\/App打包检查，实机UI另账/);
   assert.match(localSop, /Windows已锁2\.8\.1官方输入与native路径/);
   assert.match(localSop, /其实屏和安装生命周期独立验收/);
   assert.match(localSop, /共享native resource target均锁2\.8\.1/);

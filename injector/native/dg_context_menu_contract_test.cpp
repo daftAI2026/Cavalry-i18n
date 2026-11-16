@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖281 arm64菜单ABI偏移、source-bound表、Qt QAction与locale策略。
+ * [INPUT]: 依赖281目标架构菜单ABI偏移、source-bound表、Qt QAction与locale策略。
  * [OUTPUT]: 验证helper/source双门、三语投影、单次转发及QAction身份/数据/信号保留。
  * [POS]: Vendor-free合同；不证明真实二进制加载或实屏菜单显示。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -51,9 +51,15 @@ int main(int argc, char **argv)
     QGuiApplication application(argc, argv);
     (void)application;
     static_assert(kRows.size() == 5);
+#if defined(__x86_64__)
+    static_assert(callTarget(kAddGroupActionCallOffset,
+                            kAddGroupActionBranchBytes.data()) ==
+                  static_cast<std::int64_t>(kToolMenuAddMenuItemOffset));
+#else
     static_assert(arm64BranchTarget(kAddGroupActionCallOffset,
                                     kAddGroupActionBranchBytes) ==
                   kToolMenuAddMenuItemOffset);
+#endif
     if (!uniqueRows()) return 1;
 
     struct Expected {

@@ -13,6 +13,33 @@ from build_candidate_2_8_1 import prepare_tree
 
 
 class TargetComposition(unittest.TestCase):
+    def test_intel_selects_only_its_profile_and_preserves_shared_sources(self):
+        with tempfile.TemporaryDirectory() as directory:
+            base = Path(directory)
+            root, output = base / "source", base / "build"
+            native = root / "injector/native"
+            profile = native / "abi_2_8_1/x86_64"
+            profile.mkdir(parents=True)
+            for name in ("languages", "tools"):
+                (root / name).mkdir()
+            original = 'appFrameworkPath("libfmt.10.dylib", path);\nif (values[2].cstring.unused != 0 || suffix == nullptr) return false;'
+            (native / "title_format_adapter.inc").write_text(original)
+            (native / "viewport_font_adapter.inc").write_text('unchanged shared viewport')
+            (native / "skia_original_bindings.inc").write_text('unchanged shared bindings')
+            (profile.parent / "title_format_abi_contract.h").write_text('ARM contract')
+            (profile / "title_format_abi_contract.h").write_text('Intel contract')
+            (profile / "build_x86_64_candidate.sh").write_text('xcrun clang++ source.mm\n')
+            receipt = prepare_tree(root, output, "x86_64")
+            staged = output / "injector/native"
+            self.assertEqual(receipt['architecture'], 'x86_64')
+            self.assertEqual((staged / "title_format_abi_contract.h").read_text(), 'Intel contract')
+            self.assertEqual((staged / "viewport_font_adapter.inc").read_text(), 'unchanged shared viewport')
+            self.assertEqual((staged / "skia_original_bindings.inc").read_text(), 'unchanged shared bindings')
+            self.assertIn('-DCAVALRY_NATIVE_TARGET_281=1', (staged / "build_x86_64_candidate.sh").read_text())
+            self.assertIn('libfmt.11.dylib', (staged / "title_format_adapter.inc").read_text())
+            self.assertNotIn('cstring.unused', (staged / "title_format_adapter.inc").read_text())
+            self.assertEqual((native / "title_format_adapter.inc").read_text(), original)
+
     def test_target_rebinds_blob_without_changing_280_source(self):
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)

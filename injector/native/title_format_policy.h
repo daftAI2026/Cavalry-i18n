@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖唯一native locale、借用视图、平台证明的空值及格式化结果；Mac保留源std::string快照适配。
+ * [INPUT]: 依赖唯一native locale、借用视图、平台证明的空值及格式化结果；Mac保留源std::string快照和分架构fallback相对位置。
  * [OUTPUT]: 提供共享标题字节投影与兼容Mac入口；占位身份由平台ABI层证明。
  * [POS]: 主标题无状态策略；分隔符与用户名称按长度保全，Windows不借用Mac对象布局。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -76,11 +76,16 @@ inline bool segmentEquals(std::string_view source, std::size_t offset,
 }
 
 inline bool isFallbackAt(std::uintptr_t valuesAddress, BorrowedText value,
-                         std::uintptr_t distance, std::size_t length) noexcept
+                         std::intptr_t distance, std::size_t length) noexcept
 {
-    if (valuesAddress < distance || value.size != length || value.data == nullptr)
-        return false;
-    return reinterpret_cast<std::uintptr_t>(value.data) == valuesAddress - distance;
+    if (value.size != length || value.data == nullptr) return false;
+    const auto address = reinterpret_cast<std::uintptr_t>(value.data);
+    if (distance >= 0) {
+        const auto before = static_cast<std::uintptr_t>(distance);
+        return valuesAddress >= before && address == valuesAddress - before;
+    }
+    const auto after = std::uintptr_t{0} - static_cast<std::uintptr_t>(distance);
+    return address >= valuesAddress && address - valuesAddress == after;
 }
 
 // -- 平台层证明占位身份；共享层只处理已核对的原厂标题字节 -----------------

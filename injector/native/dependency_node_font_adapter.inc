@@ -118,11 +118,18 @@ bool snapshotTextViewSource(const void *textView, std::uintptr_t extensionBase,
     std::array<unsigned char, abi::kLibcxxStringObjectBytes> object{};
     if (!readSelf(stringObjectAddress, object.size(), object.data())) return false;
 
-    // The existing Viewport decoder owns the same libc++ string layout and limit.
+    // Each architecture reuses its already verified Viewport libc++ decoder.
+#if defined(__x86_64__)
+    ::native_viewport_blob_x86_64::StringView span{};
+    if (!::native_viewport_blob_x86_64::decodeNameString(object,
+            reinterpret_cast<std::uintptr_t>(stringObjectAddress), &span) ||
+        span.size > snapshot->bytes.size()) return false;
+#else
     ::viewport_owner::Span span{};
     if (!::viewport_owner::decode(object,
             reinterpret_cast<std::uintptr_t>(stringObjectAddress), &span) ||
         span.size > snapshot->bytes.size()) return false;
+#endif
     unsigned char terminator = 1;
     if (!readSelf(reinterpret_cast<const void *>(span.data + span.size),
                   sizeof(terminator), &terminator) || terminator != 0 ||
@@ -174,8 +181,8 @@ bool textViewForExactSkiaCaller(Caller caller, std::uintptr_t callerPc,
 
     std::uintptr_t textViewAddress = 0;
     if (caller == Caller::Measure) {
-        // TextView::elideTextToWidth saves its caller's x20=this at elideFP-0x10.
-        // TextView::paint's own -0x10 is the caller's x20 and can be ViewComposer state.
+        // elide saves its caller's this (ARM x20 / Intel r14) in its own frame.
+        // The paint frame's saved register belongs to paint's caller instead.
         const auto readFrameWord = [](std::uintptr_t address, std::size_t size,
                                       void *destination) noexcept {
             return readSelf(reinterpret_cast<const void *>(address), size, destination);

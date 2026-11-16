@@ -31,7 +31,7 @@ bool verifyWelcomeLogItContract() noexcept
         !imageUuidEquals(gWelcomeExtensionImage, welcome_contract::kExtensionUuid))
         return false;
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     if (findMachOSymbol(gWelcomeExtensionImage,
                         welcome_contract::kExtensionAsyncWelcomeSymbol) !=
             imageAddress(gWelcomeExtensionImage,

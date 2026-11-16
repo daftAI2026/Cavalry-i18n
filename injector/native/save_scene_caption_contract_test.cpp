@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖Qt 6.9.2 QString/QFileDialog公开头与caption策略。
+ * [INPUT]: 依赖Qt 6.9.2 QString/QFileDialog公开头、目标架构caption合同与共享策略。
  * [OUTPUT]: 验证Save captions及281 Load .cv的call-site、QString槽与透传边界。
  * [POS]: 不加载Cavalry；不创建窗口或调用Qt文件面板。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -17,7 +17,7 @@ namespace {
 using ExactSaveFileNameSignature = QString (*)(
     QWidget *, const QString &, const QString &, const QString &,
     QString *, QFileDialog::Options);
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 using ExactOpenFileNameSignature = QString (*)(
     QWidget *, const QString &, const QString &, const QString &,
     QString *, QFileDialog::Options);
@@ -28,7 +28,7 @@ extern "C" QString saveSceneDialogAbiTarget(
     QWidget *, const QString &, const QString &, const QString &, QString *,
     QFileDialog::Options)
     __asm__("__ZN11QFileDialog15getSaveFileNameEP7QWidgetRK7QStringS4_S4_PS2_6QFlagsINS_6OptionEE");
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 extern "C" QString openSceneDialogAbiTarget(
     QWidget *, const QString &, const QString &, const QString &, QString *,
     QFileDialog::Options)
@@ -39,16 +39,22 @@ static_assert(std::is_same_v<decltype(&saveSceneDialogAbiTarget),
                              ExactSaveFileNameSignature>);
 static_assert(std::is_same_v<decltype(&QFileDialog::getSaveFileName),
                              ExactSaveFileNameSignature>);
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 static_assert(std::is_same_v<decltype(&openSceneDialogAbiTarget),
                              ExactOpenFileNameSignature>);
 static_assert(std::is_same_v<decltype(&QFileDialog::getOpenFileName),
                              ExactOpenFileNameSignature>);
+#if defined(__x86_64__)
+static_assert(native_save_scene_caption::contract::kCallOffset == 0x7556f3U);
+static_assert(native_save_scene_caption::contract::kOpenFileNameCallOffset == 0x755150U);
+static_assert(native_save_scene_caption::contract::kOpenFileNameReturnOffset == 0x755155U);
+#else
 static_assert(native_save_scene_caption::contract::kCallOffset == 0x6c1760U);
 static_assert(native_save_scene_caption::contract::kOpenFileNameCallOffset ==
               0x6c1220U);
 static_assert(native_save_scene_caption::contract::kOpenFileNameReturnOffset ==
               0x6c1224U);
+#endif
 #elif defined(__x86_64__)
 static_assert(native_save_scene_caption::contract::kCallOffset == 0x7bb931U);
 #else
@@ -95,7 +101,7 @@ QString fakeSaveFileName(
     return returned;
 }
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 QString fakeOpenFileName(
     QWidget *parent, const QString &caption, const QString &directory,
     const QString &filter, QString *selectedFilter,
@@ -194,7 +200,7 @@ bool checkFallback(
                 "fallback preserves the QString return value");
 }
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 bool checkOpenCall(
     bool localized, cavalry_native_font::Locale locale,
     const QString &expectedCaption, bool shouldReadLocale)
@@ -331,7 +337,7 @@ int main()
                        QStringLiteral("Other caption"),
                        QStringLiteral("Other caption"), Locale::Hans, false)) return 1;
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     if (!checkOpenCall(true, Locale::Hans, QStringLiteral("加载工程文件"), true) ||
         !checkOpenCall(true, Locale::Hant, QStringLiteral("載入專案檔案"), true) ||
         !checkOpenCall(true, Locale::Japanese, QStringLiteral(".cv を読み込み"), true) ||
@@ -349,7 +355,7 @@ int main()
             QStringLiteral("Load .cv"), Locale::Hans, false)) return 1;
 #endif
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     std::puts("PASS: Save and exact 2.8.1 Load .cv preserve parameters, QString return, and unknown-caller/source passthrough");
 #else
     std::puts("PASS: 2.8.0 Save captions preserve QString return/ref/lifetime and exact caller/source contract");

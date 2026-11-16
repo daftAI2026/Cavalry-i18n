@@ -28,7 +28,7 @@ extern "C" QString saveSceneDialogTarget(
 extern "C" QString nativeSaveSceneDialogInterpose(
     QWidget *, const QString &, const QString &, const QString &, QString *,
     QFileDialog::Options);
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 extern "C" QString openSceneDialogTarget(
     QWidget *, const QString &, const QString &, const QString &, QString *,
     QFileDialog::Options)
@@ -48,7 +48,7 @@ using SaveSceneDialogOriginal = QString (*)(
 std::atomic<SaveSceneDialogOriginal> gOriginalSaveSceneDialog{nullptr};
 std::atomic<bool> gSaveSceneCaptionContractReady{false};
 std::atomic<std::uintptr_t> gSaveSceneCaptionExpectedReturnPc{0};
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 using OpenSceneDialogOriginal = QString (*)(
     QWidget *, const QString &, const QString &, const QString &, QString *,
     QFileDialog::Options);
@@ -106,7 +106,7 @@ bool verifySaveSceneCaptionContract() noexcept
         std::memory_order_release);
     gSaveSceneCaptionContractReady.store(saveReady, std::memory_order_release);
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
     const void *openExport = findMachOSymbol(
         widgets, save_caption_contract::kGetOpenFileNameSymbol);
     if (openExport != nullptr) {
@@ -151,7 +151,7 @@ __attribute__((used)) static struct {
     reinterpret_cast<const void *>(nativeSaveSceneDialogInterpose),
     reinterpret_cast<const void *>(saveSceneDialogTarget),
 };
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 OpenSceneDialogOriginal requireOpenSceneDialogOriginal() noexcept
 {
     OpenSceneDialogOriginal original =
@@ -188,7 +188,7 @@ extern "C" __attribute__((noinline)) QString nativeSaveSceneDialogInterpose(
         options, []() noexcept { return gLocale.value(); });
 }
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 extern "C" __attribute__((noinline)) QString nativeOpenSceneDialogInterpose(
     QWidget *parent, const QString &caption, const QString &directory,
     const QString &filter, QString *selectedFilter,

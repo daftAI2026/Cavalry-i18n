@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖arm64或x86字体ABI合同、独立locale门及分架构owner校验；显式2.8.1 arm64另依赖NodeView合同。
+ * [INPUT]: 依赖arm64或x86字体ABI合同、独立locale门及分架构owner校验；显式2.8.1另依赖分架构NodeView合同。
  * [OUTPUT]: 提供唯一gLocale、字体准入门与精确caller文字投影；目标宏启用时加NodeView Measure/Draw路由和fmt v11导入符号。
- * [POS]: 默认2.8.0实现保持原样；NodeView与fmt v11只在CAVALRY_NATIVE_TARGET_281 arm64目标编译。
+ * [POS]: 默认2.8.0实现保持原样；NodeView与fmt v11只在CAVALRY_NATIVE_TARGET_281目标编译。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include <CoreText/CoreText.h>
@@ -57,7 +57,7 @@ namespace native_candidate_arch = native_candidate_architecture;
 #include "title_format_abi_contract.h"
 #include "help_description_abi_contract.h"
 #include "demo_reader_abi_contract.h"
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 #include "dependency_node_font_abi_contract.h"
 #include "dependency_node_font_policy.h"
 #endif
@@ -596,7 +596,7 @@ FontSlot *findOrCreateSlot(const FontKey &key, CTFontRef resolvedFont,
 }
 
 #include "shared_verified_text_fallback.inc"
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 #include "dependency_node_font_adapter.inc"
 #endif
 #include "viewport_font_adapter.inc"
@@ -739,7 +739,7 @@ extern "C" __attribute__((noinline)) std::string nativeActiveLocaleInterpose(Api
     return result;
 }
 
-#if defined(CAVALRY_NATIVE_TARGET_281) && defined(__aarch64__)
+#if defined(CAVALRY_NATIVE_TARGET_281)
 #include "skia_text_dispatch_281.inc"
 #else
 extern "C" float timelineMeasureDispatch(

@@ -8,7 +8,7 @@ GetPath每语lane由27→31→75项；旧225项表不变，Graph空态使用独�
 main与def两条已证caller各读独立source-bound表。
 未知caller由对应架构veneer透明尾跳原导入；x86偏移只取官方x86切片。
 字体适配只消费同bundle四个已验映像。
-标题另依赖fmt10，帮助依赖CavalryUI，布局依赖同bundle Qt 6.9.2。
+281标题依赖fmt11，历史280合同依赖fmt10，帮助依赖CavalryUI，布局依赖同bundle Qt 6.9.2。
 Guide正文只接精确Keep going caller/source；ABI门在构造时核对QtWidgets与Extension。
 Easing只投影精确20个预设显示标签；回调捕获的枚举身份保持原值。
 Demo reader只投影精确Preset读取caller、官方文件路径、源SHA和文字位置；其它调用原样返回optional。
@@ -17,9 +17,9 @@ Demo reader只投影精确Preset读取caller、官方文件路径、源SHA和文
 
 成员清单
 ABI合同默认保持950e713的2.8.0完整内容；仅定义`CAVALRY_NATIVE_TARGET_281`时，14个既有合同头才包含`abi_2_8_1/`中的arm64合同。
-abi_2_8_1/: Cavalry 2.8.1 arm64合同快照；SetSize使用已复核`0x6f`字节，title合同只含arm64 fmt11，不定义Intel合同。
+abi_2_8_1/: Cavalry 2.8.1 arm64合同快照及x86_64独立profile；composer按目标架构覆盖隔离树，ARM快照不变。
 abi_2_8_1/contract_snapshot_test.py: 校验14个2.8.0默认头的SHA快照、15个281 profile头及标题/SetSize边界；不调用vendor。
-dependency_node_font_abi_contract.h: 仅在281 arm64显式配置下转入profile；280没有NodeView字体准入合同。
+dependency_node_font_abi_contract.h: 在281显式配置下按arm64/x86_64转入独立profile；280没有NodeView字体准入合同。
 native_font_candidate.mm: 定位同bundle Frameworks；接通Graph空态、Demo、字体、标题、帮助、Guide、Easing与Welcome，并装配Save caption及281固定Open caption。
 candidate_contract_test.cpp: 验证FPS/Graph直连帧、Graph三语精确门、旧owner透传与75项lane。
 guide_body_abi_contract.h: 锁定唯一Guide正文caller、尾跳callee、双映像UUID与Qt setter符号。
@@ -28,19 +28,20 @@ guide_body_runtime.inc: 复用同TU gLocale；ABI失败只关投影，未知call
 guide_body_contract_test.cpp: 验证Guide caller/source/locale门、单次调用与异常传播。
 easing_menu_abi_contract.h: 锁定addEasingMenu的addAction调用窗、Extension与Qt 6.9.2导出。
 easing_menu_policy.h: 仅按完整源标签选择三语预设显示文本；拒绝歧义与未知输入。
-easing_menu_runtime.inc: 同TU复用gLocale；精确caller才改QAction显示文本，再单次调用原addAction。
+easing_menu_runtime.inc: 同TU复用gLocale；精确caller才改QAction显示文本，再单次调用原addAction；Intel281菜单用独立Qt身份与导出门。
 easing_menu_contract_test.cpp: vendor-free验证20项表形状、精确匹配、短路、单次转发与异常。
 save_scene_caption_abi_contract.h: 锁定Save调用窗；281额外锁定chooseSceneOpen的Load .cv source、getOpenFileName调用及QtWidgets导入。
 save_scene_caption_policy.h: Save按精确caller映射两种caption；281仅把精确Open caller的Load .cv source投影三语。
 save_scene_caption_runtime.inc: 绑定同bundle QtWidgets；281 Open gate独立于Save gate，未知caller与参数原样单次转发。
-save_scene_caption_contract_test.cpp: QtCore-only验证Save/281 Open翻译源、QString返回、参数引用、单次转发与透传。
+save_scene_caption_contract_test.cpp: QtCore-only按arm64/x86_64验证Save/281 Open翻译源、QString返回、参数引用、单次转发与透传。
 candidate_static_contract_test.py: 用合成反汇编锁定目标符号边界，并拒绝混合FAT UUID。
 macho_bindings.py: 读取候选LLVM Bind/Lazy bind表；按精确符号、库与section校验GOT/interpose槽。
 macho_bindings_test.py: 离线验证LLVM列解析、错库、缺slot、flat反例与多合同汇总。
 check_help_popup_layout_contract_test.py: 验证arm Popup checker接受arm alias并拒绝x86/generic alias。
 native_uuid_slice_selector_contract_test.py: 用双slice双路径顺序fixture验证281 ARM实际profile与Intel构建器按dwarfdump第三字段选UUID；不读取仅委托composer的ARM入口包装器，不调用vendor。
 check_candidate_contract.py: 核GetPath/FPS、281 Load .cv source/caller/QtWidgets import与三语TS来源、Welcome producer及候选two-level绑定。
-build_candidate.sh: 当前2.8.1 ARM默认入口，调用已验build_candidate_2_8_1.py在隔离树编译并运行完整vendor/夹具门；2.8.0仅历史release。
+build_candidate.sh: 当前2.8.1 ARM默认入口，调用build_candidate_2_8_1.py在隔离树编译并运行完整vendor/夹具门；2.8.0仅历史release。
+title_format_x86_64_contract_test.cpp: Intel标题fallback位于参数表之后的地址证明、真实libc++短字符串空值与三语用户同名保全。
 demo_reader_abi_contract.h: 锁定Core optional<string>结果槽、Extension Preset caller、GOT与返回点。
 demo_reader_policy.h: 跨平台纯策略只替换审批位置的JS字面量，optional单次转发不依赖Mach-O ABI；未知locale与源结果保持不变。
 demo_reader_source_identity.h: 验证实际原厂脚本SHA，macOS用CommonCrypto、Windows复用宿主Qt摘要；不读路径或语言状态。
@@ -83,7 +84,7 @@ help_popup_layout_adapter.mm: 仅在精确setContent caller前改布局；未知
 help_popup_layout_contract_test.cpp: 用同bundleQt离线测401项上限、QLabel绘制行界、枚举词完整性与未知结构。
 help_popup_layout_sequence_test.inc: 三语核长短参数/返回切换、fresh行几何及隐藏行恢复。
 check_help_popup_layout_contract.py: 核精确arm caller、401表、arm popup_abi与候选LLVM Qt绑定；保留全局no-flat门。
-title_format_policy.h: 共享Project/Scene字节投影保留名称、分隔符和后缀；Mac兼容入口仍核24字节源对象/借用地址，Windows薄适配另证MSVC空值，不互借ABI。
+title_format_policy.h: 共享Project/Scene字节投影保留名称、分隔符和后缀，支持分架构证明的正向/反向fallback相对位置；Mac兼容入口仍核24字节源对象/借用地址，Windows薄适配另证MSVC空值，不互借ABI。
 title_format_abi_contract.h: 默认锁定2.8.0 fmt10标题合同；显式281配置选择arm64 fmt11合同，不新增Intel准入。
 title_format_adapter.inc: 复用唯一gLocale与fmt原函数；fmt前快照源对象，原调用后只适配精确LR/format/descriptor。
 shared_verified_text_fallback.inc: CoreText首选；仅覆盖拒绝后用三语固定PostScript名创建候选；复用8槽与单次RAII锁。
@@ -130,7 +131,7 @@ preview协调器部署该字节，现场加载另验。
 
 ## x86_64 机器相
 
-build_x86_64_candidate.sh: 快照源码闭包，核x86构造器、owner与veneer并链接隔离dylib；Popup失败回显原日志，不启动或部署产品。
+build_x86_64_candidate.sh: Intel281生产入口，委托共享composer选择abi_2_8_1/x86_64完整构建输入；快照源码闭包，核owner、veneer和同bundle依赖后链接隔离dylib，不启动或部署产品。
 native_source_manifest_x86_64.py: 从仓库现行native编译闭包生成外部逐文件SHA/字节/模式快照；不读私档或vendor安装。
 native_source_manifest_x86_64_contract_test.py: 临时源码树行为合同；验证生成/消费、文件闭包与字节/模式漂移拒绝，不调用vendor或编译器。
 check_font_abi_x86_64.py: 逐字节核官方x86字体、Viewport、FPS机器码并输出回执。
@@ -174,8 +175,8 @@ skia_text_dispatch_281.inc: 仅供CAVALRY_NATIVE_TARGET_281 arm64使用；把两
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
-build_candidate_2_8_1.py：在临时源树使用abi_2_8_1合同与测试构建显式arm64候选；fmt11标题只核C字符串指针，不要求未初始化的第二word；不覆盖280原源或安装App。
-build_candidate_2_8_1_test.py：核281 fmt/Viewport/TextBlob输入；编译实际选中的标题suffix判断，验证281允许非零第二word、未知/空指针仍拒绝，280零值合同与原源保留。
+build_candidate_2_8_1.py：在临时源树按arm64/x86_64选择独立abi_2_8_1合同与目标构建脚本；fmt11标题只核C字符串指针，不要求未初始化的第二word；不覆盖280原源或安装App。
+build_candidate_2_8_1_test.py：核281架构选择、隔离源及fmt/Viewport/TextBlob输入；编译实际选中的标题suffix判断，验证281允许非零第二word、未知/空指针仍拒绝，280零值合同与原源保留。
 check_dependency_node_font_contract.py：对281 NodeView两header定位的符号与调用窗做只读vendor校验。
 dg_context_menu_abi_contract.h: 仅281 arm64锁定ToolMenu及五个TransformTool菜单helper的符号、frame prologue与调用字节。
 dg_context_menu_policy.h: 纯source/helper策略供Mac与Windows复用；构建器只生成五条已批准三语菜单文本，未知locale与源原样透传。

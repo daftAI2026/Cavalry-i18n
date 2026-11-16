@@ -15,7 +15,7 @@ import unittest
 NATIVE_DIR = pathlib.Path(__file__).resolve().parent
 BUILDERS = {
     "arm64": (NATIVE_DIR / "abi_2_8_1/build_candidate.sh", "ARM-UUID", 3),
-    "x86_64": (NATIVE_DIR / "build_x86_64_candidate.sh", "X86-UUID", 2),
+    "x86_64": (NATIVE_DIR / "abi_2_8_1/x86_64/build_x86_64_candidate.sh", "X86-UUID", 2),
 }
 FIXTURE_ROWS = (
     "UUID: ARM-UUID (arm64) /fixtures/arm64-inputs/x86_64-framework.dylib",

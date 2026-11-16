@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-[INPUT]: 依赖仓库中的x86 native编译源、语言表与构建期producer。
+[INPUT]: 依赖仓库中的x86 native编译源、语言表与完整tools构建期producer依赖。
 [OUTPUT]: 在候选输出目录生成逐文件SHA、字节数和模式清单。
 [POS]: x86 builder的源码快照producer；不读取私档或Cavalry安装。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -16,6 +16,7 @@ import sys
 
 RECURSIVE_INPUTS = (
     "injector",
+    "tools",
     "languages/native",
     "languages/en/MetaData",
     "languages/zh-Hans/MetaData",
