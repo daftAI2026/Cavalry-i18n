@@ -105,4 +105,4 @@ SOFTWARE.
 
 ## UI SDK (experiment)
 
-The local `ui-sdk.js` bundle is built from the public APIs of `@ui-sdk/web` and `@ui-sdk/core` 0.1.0-beta.2 from https://github.com/vercel-labs/ui using pinned esbuild. Only imported components and their dependencies are included. The full Apache License 2.0 is preserved in `ui-sdk.LICENSE`; exact build versions and file hashes are in `ui-sdk.manifest.json`. Upstream code is not modified.
+The local `ui-sdk.js` bundle is built from the public APIs of `@ui-sdk/web` and `@ui-sdk/core` 0.1.0-beta.5 from https://github.com/vercel-labs/ui using pinned esbuild. Only imported components and their dependencies are included. The full Apache License 2.0 is preserved in `ui-sdk.LICENSE`; exact build versions and file hashes are in `ui-sdk.manifest.json`. Upstream code is not modified.

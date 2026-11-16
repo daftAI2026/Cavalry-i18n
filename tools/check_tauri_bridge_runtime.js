@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/user-profile-text/ui-text/language-scope/version-guidance/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/support-footer/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证2.8正常启动沿用p12待机且真实故障保留；验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
+ * [OUTPUT]: 验证2.8正常启动沿用p12待机且真实故障保留；SDK组件用公开属性/事件fixture（真实行为另由浏览器验收）；验证unset/explicit共用English标签且不改变恢复能力；验证单行关注 footer 四语文案/提示/无障碍名称与 GitHub/X/小红书固定 ID 分发；验证 About「关注」文案和平台区分的四语名称；验证旧宿主四语不支持提示、2.7.2专用p12入口和禁用Switch；保留 camelCase scope/错误白名单、严格 Restore/恢复语义、失败 Activity、局部外链 Toast、任务流、权限、Updater 与组件状态机合同。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -48,12 +48,17 @@ function runtime({
   locale = 'en-US',
   preview = false,
   statusRequest = null,
+  permissionRequest = null,
   styleValues = {},
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectBadge', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryAction', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
+  elements['#languageSelectBadge'].id = 'languageSelectBadge';
+  elements['#languageSelectBadge'].hidden = true;
+  elements['#modalPrimaryAction'].setAttribute('action', '');
+  elements['#modalPrimaryAction'].setAttribute('value', 'confirm');
   const calls = [];
   const channels = [];
   const updateChannels = [];
@@ -79,17 +84,46 @@ function runtime({
     set(value) {
       modalOpen = value;
       elements['#modalBackdrop'].open = value;
-      if (value) { modalFocus = document.activeElement; elements['#modalPrimaryButton'].focus(); }
+      if (value) { modalFocus = document.activeElement; elements['#modalSecondaryButton'].focus(); }
       else modalFocus?.focus();
     },
   });
-  elements['#statusScrollArea'].api = { isSticking: () => true, scrollToEnd() {} };
-  elements['#languageSelectRoot'].api = { setDisabled(value) { elements['#languageSelectRoot'].disabled=value; } };
+  let modalActionPending = false;
+  const requestModalClose = (reason = 'close-press', returnValue = undefined) => {
+    if (modalActionPending) return false;
+    dispatch(elements['#confirmationDialog'], 'openchange', { detail: { value: false, reason, returnValue } });
+    elements['#confirmationDialog'].open = false;
+    dispatch(elements['#confirmationDialog'], 'openchangecomplete', { detail: { value: false, reason } });
+    return true;
+  };
+  elements['#modalPrimaryButton'].addEventListener('click', () => {
+    const waits = [];
+    dispatch(elements['#modalPrimaryAction'], 'action', {
+      detail: { waitUntil(promise) { waits.push(Promise.resolve(promise)); } },
+    });
+    if (!waits.length) {
+      requestModalClose('close-press', 'confirm');
+      return;
+    }
+    modalActionPending = true;
+    Promise.all(waits).then(() => {
+      modalActionPending = false;
+      requestModalClose('close-press', 'confirm');
+    }, () => {
+      modalActionPending = false;
+      requestModalClose('close-press', 'confirm');
+    });
+  });
+  elements['#modalSecondaryButton'].addEventListener('click', () => requestModalClose('close-press'));
+  const selectRoot=elements['#languageSelectRoot'];let sdkValue=null,sdkPlaceholder='',sdkDisabled=false;
+  const renderSdkValue=()=>{elements['#languageSelectValue'].textContent=selectRoot.items?.find(item=>item.value===sdkValue)?.label||sdkPlaceholder;};
+  Object.defineProperties(selectRoot,{
+    value:{get:()=>sdkValue,set:value=>{sdkValue=value;renderSdkValue();}},
+    disabled:{get:()=>sdkDisabled,set:value=>{sdkDisabled=value;elements['#languageSelectTrigger'].disabled=value;}},
+    placeholder:{get:()=>sdkPlaceholder,set:value=>{sdkPlaceholder=value;renderSdkValue();}},
+  });
   for(const kind of ['update','about']) {
-    const root=elements[`#${kind}Control`],popup=elements[`#${kind}Tooltip`],trigger=elements[`#${kind}Button`];
-    const set=(open,reason='none')=>{root.dataset.tooltipState=open?'open':'closed';root.dataset.tooltipReason=reason;popup.dataset.state=root.dataset.tooltipState;popup.dataset.reason=reason;};
-    root.api={open(reason){if(!root.hidden&&!trigger.disabled)set(true,reason);},close(){set(false);}};
-    root.api.close();
+    elements[`#${kind}Control`].open=false;
   }
   document.documentElement.dataset.platform = aboutPlatform;
   const defaultStatus = {
@@ -106,7 +140,7 @@ function runtime({
   const navigator = { language: locale, languages: [locale] };
   const toasters = [];
   const window = {
-    cavalryUi: { createToaster() {
+    cavalryUi: { createStickToBottom:()=>({connect:()=>()=>{},get:()=>({following:true}),scrollToBottom(){}}),createToaster() {
       const queue = (options) => { const id=String(queue.records.length+1);queue.records.unshift({...options,id}); return id; };
       queue.records = [];
       queue.toasts=()=>queue.records;
@@ -183,7 +217,9 @@ function runtime({
       return Promise.resolve(install);
     }
     if (command === 'plugin:app|version') return Promise.resolve('0.7.0');
-    if (command === 'open_privacy_security') return Promise.resolve({ ok: true, handoffOutcome: 'opened' });
+    if (command === 'open_privacy_security') return permissionRequest
+      ? permissionRequest(payload)
+      : Promise.resolve({ ok: true, handoffOutcome: 'opened' });
     if (command === 'open_project_link') return Promise.resolve(projectLinkResult);
     if (command === 'show_about') return Promise.resolve({ ok: true });
     if (command === 'plugin:window|is_maximized') return Promise.resolve(maximized);
@@ -192,18 +228,35 @@ function runtime({
     return Promise.resolve({ ok: true });
     } },
   };
-  const context = { window, document, navigator, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }) };
+  const context = { window, document, navigator, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ height: '36px', getPropertyValue: (name) => styleValues[name] || '0ms' }) };
   context.globalThis = context;
-  return { elements, calls, channels, updateChannels, handoffChannels, callbacks, window, context, toasters };
+  return { elements, calls, channels, updateChannels, handoffChannels, callbacks, window, context, toasters, requestModalClose };
 }
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
 function dispatch(element, type, event = {}) { for (const listener of element.listeners.get(type) || []) listener(event); }
+function mockToastView(runtimeState) {
+  const document = runtimeState.context.document;
+  const createElement = document.createElement.bind(document);
+  document.createElement = (tag) => {
+    const element = createElement(tag);
+    if (tag === 'template') {
+      const nodes = new Map();
+      element.content.querySelector = (selector) => {
+        if (!['.toast-icon', '.toast-close'].includes(selector)) return null;
+        if (!nodes.has(selector)) nodes.set(selector, new Element());
+        return nodes.get(selector);
+      };
+    }
+    return element;
+  };
+}
 function chooseLanguage(runtimeState, index = null) {
   // VM 只验证业务适配；真实 SDK 的点击/键盘由 browser 验收覆盖。
   const items = runtimeState.elements['#languageSelectList'].children;
   const target = index ?? items.findIndex((item) => !item.attributes.has('disabled'));
   if (items[target].attributes.has('disabled')) return;
+  runtimeState.elements['#languageSelectRoot'].value=items[target].attributes.get('value');
   dispatch(runtimeState.elements['#languageSelectRoot'], 'valuechange', {
     detail: { value: items[target].attributes.get('value'), reason: 'item-press' },
   });
@@ -224,6 +277,7 @@ function boot(options) {
   vm.runInNewContext(read('renderer/permission-handoff.js'), r.context, { filename: 'permission-handoff.js' });
   vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
+  mockToastView(r);
   vm.runInNewContext(read('renderer/project-link-control.js'), r.context, { filename: 'project-link-control.js' });
   vm.runInNewContext(read('renderer/support-follow-hand.js'), r.context, { filename: 'support-follow-hand.js' });
   vm.runInNewContext(read('renderer/support-footer.js'), r.context, { filename: 'support-footer.js' });
@@ -240,6 +294,7 @@ function bootAbout(options) {
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/icons.js'), r.context, { filename: 'icons.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
+  mockToastView(r);
   vm.runInNewContext(read('renderer/project-link-control.js'), r.context, { filename: 'project-link-control.js' });
   vm.runInNewContext(read('renderer/about-window.js'), r.context, { filename: 'about-window.js' });
   return r;
@@ -373,25 +428,32 @@ test('language patch status controls the current option, badge, and localized up
     assert.equal(r.elements['#languageSelect'].value, '', `${locale}: bootstrap must not select a language`);
     assert.equal(current.attributes.get('value'), 'zh-Hans');
     assert.equal(current.attributes.has('disabled'), false);
-    assert.equal(current.attributes.has('disabled'), false);
+    assert.equal(current.attributes.get('label'), '简体中文');
+    assert.match(current.attributes.get('aria-label'), new RegExp(`${badgeText}$`), 'option label can include its status for accessibility');
     assert.equal(current.children[0].className, 'select-item-copy');
     assert.equal(current.children[0].children[1].className, 'badge select-item-badge');
     assert.equal(current.children[0].children[1].textContent, badgeText);
     assert.equal(current.children[0].children[1].attributes.get('aria-hidden'), 'true');
-    assert.match(current.attributes.get('aria-label'), new RegExp(`${badgeText}$`));
 
     chooseLanguage(r, 0);
     assert.equal(r.elements['#languageSelect'].value, 'zh-Hans');
-    const selectedCopy = r.elements['#languageSelectValue'];
-    assert.equal(selectedCopy.textContent, `简体中文${badgeText}`,
-      `${locale}: selecting an update must retain its status in the closed trigger`);
-    assert.equal(selectedCopy.attributes.get('aria-label'), current.attributes.get('aria-label'));
+    const selectedValue = r.elements['#languageSelectValue'];
+    const selectedBadge = r.elements['#languageSelectBadge'];
+    assert.equal(selectedValue.textContent, '简体中文', `${locale}: SDK Value shows only the language label`);
+    assert.equal(selectedBadge.textContent, badgeText, `${locale}: status is projected to its sibling badge`);
+    assert.equal(selectedBadge.hidden, false);
+    assert.equal(r.elements['#languageSelectTrigger'].attributes.get('aria-describedby'), 'languageSelectBadge');
     assert.equal(r.elements['#applyButton'].textContent, updateAction, locale);
     assert.equal(r.elements['#applyButton'].disabled, false, `${locale}: update action must be available`);
     chooseLanguage(r, 1);
-    assert.equal(selectedCopy.textContent, '繁體中文', `${locale}: another language must not inherit the badge`);
+    assert.equal(selectedValue.textContent, '繁體中文', `${locale}: SDK Value shows only the language label`);
+    assert.equal(selectedBadge.hidden, true, `${locale}: another language must not inherit the badge`);
+    assert.equal(selectedBadge.textContent, '');
+    assert.equal(r.elements['#languageSelectTrigger'].attributes.has('aria-describedby'), false);
     chooseLanguage(r, 0);
-    assert.equal(selectedCopy.textContent, `简体中文${badgeText}`);
+    assert.equal(selectedValue.textContent, '简体中文');
+    assert.equal(selectedBadge.textContent, badgeText);
+    assert.equal(selectedBadge.hidden, false);
   }
 
   const current = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'current' } });
@@ -428,7 +490,7 @@ test('selected badge follows option refresh and clears stale content', () => {
   const e = r.elements;
   const control = r.window.createSelectControl({
     root: e['#languageSelectRoot'], select: e['#languageSelect'],
-    trigger: e['#languageSelectTrigger'], value: e['#languageSelectValue'],
+    trigger: e['#languageSelectTrigger'], value: e['#languageSelectValue'], badge: e['#languageSelectBadge'],
     popup: e['#languageSelectPopup'], popupPlaceholder: e['#languageSelectPopupPlaceholder'],
     list: e['#languageSelectList'],
   });
@@ -436,15 +498,20 @@ test('selected badge follows option refresh and clears stale content', () => {
   const option = { value: 'zh-Hans', label: '简体中文', badge: { label: '可更新' } };
   control.setOptions([option]);
   control.setValue('zh-Hans');
-  assert.equal(e['#languageSelectValue'].textContent, '简体中文可更新');
+  assert.equal(e['#languageSelectValue'].textContent, '简体中文');
+  assert.equal(e['#languageSelectBadge'].textContent, '可更新');
+  assert.equal(e['#languageSelectBadge'].hidden, false);
   control.setDisabled(true);
-  assert.equal(e['#languageSelectValue'].textContent, '简体中文可更新', 'busy state retains selected status');
+  assert.equal(e['#languageSelectValue'].textContent, '简体中文', 'SDK Value keeps the language label');
+  assert.equal(e['#languageSelectBadge'].textContent, '可更新', 'busy state retains selected status');
   control.setOptions([{ ...option, badge: null, disabled: true }]);
-  assert.equal(e['#languageSelectValue'].textContent, '简体中文', 'new backend status removes the old badge');
-  assert.equal(e['#languageSelectValue'].attributes.get('aria-label'), '简体中文');
+  assert.equal(e['#languageSelectValue'].textContent, '简体中文');
+  assert.equal(e['#languageSelectBadge'].hidden, true, 'new backend status removes the old badge');
+  assert.equal(e['#languageSelectBadge'].textContent, '');
+  assert.equal(e['#languageSelectTrigger'].attributes.has('aria-describedby'), false);
   control.setValue('');
   assert.equal(e['#languageSelectValue'].textContent, 'Choose');
-  assert.equal(e['#languageSelectValue'].attributes.has('aria-label'), false);
+  assert.equal(e['#languageSelectBadge'].hidden, true);
 });
 
 test('legacy permission hints do not fabricate a startup warning before an operation fails', async () => {
@@ -481,8 +548,6 @@ test('Select adapter consumes SDK events without owning keyboard or click behavi
   assert.equal(r.elements['#languageSelect'].value, 'zh-Hant');
   assert.equal(r.elements['#languageSelectValue'].textContent, '繁體中文');
   assert.equal(r.elements['#applyButton'].disabled, false);
-  dispatch(root, 'openchange', { detail: { value: false } });
-  assert.equal(root.dataset.state, 'closed');
 });
 
 test('About entry delegates to one native window command and keeps links fixed', async () => {
@@ -687,22 +752,22 @@ test('update icon stays hidden by default and exposes an explicit development-on
   await flush();
   assert.equal(preview.elements['#updateControl'].hidden, false);
   const root = preview.elements['#updateControl'];
-  assert.equal(root.dataset.tooltipState, 'closed');
-  preview.window.createTooltipControl({root,popup:preview.elements['#updateTooltip']}).open('hover');
-  assert.equal(root.dataset.tooltipState, 'open');
-  preview.window.createTooltipControl({root,popup:preview.elements['#updateTooltip']}).close();
-  assert.equal(root.dataset.tooltipState, 'closed');
+  assert.equal(root.open, false);
+  preview.window.createTooltipControl({root}).open();
+  assert.equal(root.open, true);
+  preview.window.createTooltipControl({root}).close();
+  assert.equal(root.open, false);
 
 });
 
-test('Tooltip adapter delegates the public interface to the Core parts', async () => {
-  const r = boot({ preview: true });await flush();const calls=[];
-  const popup = new Element();
-  const control=r.window.createTooltipControl({root:{id:'tooltip-test',api:{open:reason=>calls.push(['open',reason]),close:()=>calls.push(['close'])}},popup});
-  assert.equal(popup.attributes.get('for'),'tooltip-test');
-  assert.ok(r.context.document.body.children.includes(popup));
-  control.open('focus');control.close();
-  assert.deepEqual(calls,[['open','focus'],['close']]);
+test('Tooltip adapter only requests open and close on the SDK root', async () => {
+  const r = boot({ preview: true }); await flush();
+  const root = new Element();
+  const control = r.window.createTooltipControl({ root });
+  control.open();
+  assert.equal(root.open, true);
+  control.close();
+  assert.equal(root.open, false);
 });
 
 test('installation location keeps the macOS bundle and reduces a long Windows executable to drive plus install folder', async () => {
@@ -753,14 +818,14 @@ test('checked update is announced, confirmed, and installed without renderer-con
     'currentVersion', 'version', 'notes', 'pubDate', 'available', 'errorCode',
   ]);
 
-  r.window.createTooltipControl({root:r.elements['#updateControl'],popup:r.elements['#updateTooltip']}).open('hover');
-  assert.equal(r.elements['#updateControl'].dataset.tooltipState, 'open');
+  r.window.createTooltipControl({root:r.elements['#updateControl']}).open();
+  assert.equal(r.elements['#updateControl'].open, true);
   r.context.document.activeElement = r.elements['#updateButton'];
-  r.window.createTooltipControl({root:r.elements['#updateControl'],popup:r.elements['#updateTooltip']}).close();
+  r.window.createTooltipControl({root:r.elements['#updateControl']}).close();
   dispatch(r.elements['#updateButton'], 'click');
-  assert.equal(r.elements['#updateControl'].dataset.tooltipState, 'closed');
+  assert.equal(r.elements['#updateControl'].open, false);
   assert.equal(r.elements['#modalBackdrop'].open, true);
-  assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
+  assert.equal(r.context.document.activeElement, r.elements['#modalSecondaryButton'], 'SDK AlertDialog starts focus on Cancel');
   assert.match(r.elements['#modalTitle'].textContent, /Update the Switcher/);
   assert.doesNotMatch(r.elements['#modalBody'].textContent, /Security and UI fixes/);
   assert.match(r.elements['#modalBody'].textContent, /ad-hoc/);
@@ -878,19 +943,17 @@ test('manual installation selection appears only when no installation is found',
   assert.equal(elevationAvailable.elements['#browseButton'].hidden, true);
 });
 
-test('Restore AlertDialog requires an explicit action, blocks Escape dismissal, and restores focus', async () => {
+test('Restore AlertDialog uses SDK Cancel focus and Escape closes without applying', async () => {
   const r = boot({ status: { currentLang: 'zh-Hans' } });
   await flush();
   const trigger = r.elements['#restoreButton'];
   r.context.document.activeElement = trigger;
   trigger.listeners.get('click')[0]();
   assert.equal(r.elements['#modalBackdrop'].open, true);
-  assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
+  assert.equal(r.context.document.activeElement, r.elements['#modalSecondaryButton']);
 
-  let cancelPrevented = false;
   assert.equal(r.elements['#confirmationDialog'].open, true);
-  assert.equal(r.elements['#modalBackdrop'].open, true, 'Escape must not dismiss an AlertDialog');
-  r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
+  assert.equal(r.requestModalClose('escape-key'), true, 'SDK Escape close event reaches the business boundary');
   assert.equal(r.elements['#modalBackdrop'].open, false);
   assert.equal(trigger.focused, true, 'the original trigger regains focus after close');
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
@@ -1216,9 +1279,12 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
   assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
 });
 
-test('macOS handoff captures the forward action plus persistent return target and only its session Channel retries', async () => {
+test('macOS handoff captures geometry and keeps AlertDialog open until native acknowledgement', async () => {
+  let acknowledge;
+  const nativeAck = new Promise((resolve) => { acknowledge = resolve; });
   const r = boot({
     status: { platform: 'macos', currentLang: 'en', permissionAction: 'openPrivacy' },
+    permissionRequest: () => nativeAck,
     apply: [
       { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
       { ok: true, currentLang: 'zh-Hans' },
@@ -1236,6 +1302,7 @@ test('macOS handoff captures the forward action plus persistent return target an
   dispatch(r.elements['#modalPrimaryButton'], 'click');
   await flush();
   const call = r.calls.find(({ command }) => command === 'open_privacy_security');
+  assert.ok(call, 'primary Close action starts the native permission handoff');
   assert.deepEqual(JSON.parse(JSON.stringify(call.payload.request)), {
     permission: 'appManagement',
     sourceRect: { x: 10, y: 10, width: 100, height: 32 },
@@ -1243,8 +1310,17 @@ test('macOS handoff captures the forward action plus persistent return target an
     viewportCss: { width: 400, height: 556 },
   });
   assert.equal(call.payload.onEvent, true);
-  assert.equal(r.elements['#modalBackdrop'].open, false, 'native start acknowledgement closes the source only after capture');
+  assert.equal(r.elements['#modalBackdrop'].open, true, 'the dialog stays open while the native start acknowledgement is pending');
+  r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, true, 'Cancel cannot close while the primary action is pending');
+  assert.equal(r.requestModalClose('escape-key'), false, 'Escape cannot close while the primary action is pending');
+  assert.equal(r.elements['#modalBackdrop'].open, true);
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
+  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 1);
+
+  acknowledge({ ok: true, handoffOutcome: 'opened' });
+  await flush();
+  assert.equal(r.elements['#modalBackdrop'].open, false, 'ACK closes the source after geometry capture');
 
   const channel = r.handoffChannels[0];
   r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });

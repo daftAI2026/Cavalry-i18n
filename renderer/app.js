@@ -26,7 +26,6 @@ const languageSelect = document.querySelector('#languageSelect');
 const languageSelectTrigger = document.querySelector('#languageSelectTrigger');
 const languageSelectValue = document.querySelector('#languageSelectValue');
 const languageSelectPopup = document.querySelector('#languageSelectPopup');
-const languageSelectPopupPlaceholder = document.querySelector('#languageSelectPopupPlaceholder');
 const languageSelectList = document.querySelector('#languageSelectList');
 const browseButton = document.querySelector('#browseButton');
 const applyButton = document.querySelector('#applyButton');
@@ -49,18 +48,15 @@ const languageSelectControl = window.createSelectControl({
   select: languageSelect,
   trigger: languageSelectTrigger,
   value: languageSelectValue,
+  badge: document.querySelector('#languageSelectBadge'),
   popup: languageSelectPopup,
-  popupPlaceholder: languageSelectPopupPlaceholder,
+  popupPlaceholder: document.querySelector('#languageSelectPopupPlaceholder'),
   list: languageSelectList,
   onValueChange: () => setBusy(state.busy),
 });
-// SDK按作者的tabindex绑定；ui-sdk.js已同步升级静态DOM，现在归还浏览器原生Tab策略。
-// main未指定tabindex：Chromium可聚焦溢出的滚动区，WebKit遵循系统键盘偏好。
-statusViewport.removeAttribute('tabindex');
 const operationLog = window.createOperationLog({
   root: statusPanel, idleMessage: document.querySelector('#statusIdle'),
   intro: document.querySelector('#statusIntro'), viewport: statusViewport,
-  scrollArea: document.querySelector('#statusScrollArea'),
   list: statusText, outcome: document.querySelector('#statusOutcome'),
 });
 const updateProgress = window.createUpdateProgress({ log: operationLog, text: t });
@@ -89,6 +85,7 @@ const permissionHandoff = window.createPermissionHandoffController({
   },
   onError: () => setStatus('openPrivacyFailed', 'error'),
 });
+
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
 const uiLocale = detectUiLocale();
@@ -509,7 +506,7 @@ async function showPermissionWait(nextLanguage, phaseId = 'permissionRequired', 
         closeModal();
         void runApply(nextLanguage).catch(recoverOperationFailure);
       } else {
-        void permissionHandoff.open(modalPrimaryButton, permissionButton, closeModal).catch(recoverOperationFailure);
+        return permissionHandoff.open(modalPrimaryButton, permissionButton, closeModal);
       }
     },
     onSecondary: closeModal,
@@ -767,12 +764,15 @@ restoreButton.addEventListener('click', requestRestore);
 permissionButton.addEventListener('click', handlePermissionButton);
 reportIssueButton.addEventListener('click', () => void openProjectLink('reportIssue'));
 legacyReleaseButton.addEventListener('click', () => void openProjectLink('legacyRelease'));
-modalPrimaryButton.addEventListener('click', () =>
-  void Promise.resolve(modalPrimaryAction && modalPrimaryAction()).catch(recoverOperationFailure)
-);
-modalSecondaryButton.addEventListener('click', () =>
-  void Promise.resolve(modalSecondaryAction && modalSecondaryAction()).catch(recoverOperationFailure)
-);
+document.querySelector('#modalPrimaryAction').addEventListener('action', (event) => {
+  event.detail.waitUntil(Promise.resolve(modalPrimaryAction?.()).catch(recoverOperationFailure));
+});
+confirmationDialog.addEventListener('openchange', (event) => {
+  if (event.detail.value || event.detail.reason === 'imperative') return;
+  const action = event.detail.returnValue === 'confirm' ? null : modalSecondaryAction;
+  finalizeModalClose();
+  void Promise.resolve(action && action()).catch(recoverOperationFailure);
+});
 confirmationDialog.addEventListener('openchangecomplete', (event) => {
   if (!event.detail.value && !confirmationDialog.open) finalizeModalClose();
 });

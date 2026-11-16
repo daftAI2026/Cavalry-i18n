@@ -1,153 +1,59 @@
 /**
- * [INPUT]: 依赖 UI SDK 0.1.0-beta.2 的本地 Web Components 与既有 Select DOM、样式和业务 options。
- * [OUTPUT]: 保持 createSelectControl 四方法接口；只投影标签、徽章、原生值和业务回调，选择、键盘、焦点及弹层由 UI SDK 管理。
- * [POS]: Select 的展示适配层；不访问 Tauri、不预选语言，不保留第二套交互状态机；离线 SDK 由 build_ui_sdk.js 生成。
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ * [INPUT]: SDK原生Select、业务选项/徽章及保留的原生值镜像。
+ * [OUTPUT]: 四方法接线；SDK拥有搜索、焦点、选择和ARIA；空值展示行与公开side-offset维持既有展开外观。
+ * [POS]: 只做数据/展示映射，不复刻组件状态机。
+ * [PROTOCOL]: 变更时更新此头部，然后检查CLAUDE.md。
  */
 (function attachSelectControl(global) {
   'use strict';
-
-  function createSelectControl({ root, select, trigger, value, popup, popupPlaceholder, list, onValueChange = () => {} }) {
-    let options = [];
-    let placeholder = '';
-
-    function normalizeBadge(badge) {
-      if (typeof badge === 'string') return { label: badge, kind: '', ariaLabel: badge };
-      if (!badge || typeof badge !== 'object' || !badge.label && !badge.text) return null;
-      return {
-        label: String(badge.label || badge.text),
-        kind: badge.kind || badge.tone || badge.variant || '',
-        ariaLabel: badge.ariaLabel || badge.label || badge.text,
-      };
+  function createSelectControl({ root, select, trigger, value, badge, popup, popupPlaceholder, list, onValueChange = () => {} }) {
+    function syncValue(nextValue = root.value) {
+      select.value = nextValue || '';
+      popupPlaceholder.hidden = Boolean(nextValue);
+      if (nextValue) popup.removeAttribute('side-offset');
+      else popup.setAttribute('side-offset', String(-parseFloat(getComputedStyle(trigger).height)));
+      const status = root.items?.find(item => item.value === nextValue)?.badge;
+      badge.hidden = !status;
+      badge.textContent = typeof status === 'string' ? status : status?.label || status?.text || '';
+      badge.dataset.kind = status?.kind || status?.tone || status?.variant || '';
+      if (status) trigger.setAttribute('aria-describedby', badge.id);
+      else trigger.removeAttribute('aria-describedby');
+      onValueChange(select.value);
     }
-
-    function renderValue() {
-      const option = options.find((item) => item.value === select.value);
-      const hasSelection = Boolean(option);
-      root.dataset.placeholder = String(!hasSelection);
-      value.dataset.placeholder = String(!hasSelection);
-      value.replaceChildren();
-      if (option) {
-        value.append(createOptionCopy(option));
-        value.setAttribute('aria-label', optionAccessibleLabel(option));
-      } else {
-        value.textContent = placeholder;
-        value.removeAttribute('aria-label');
-      }
-      popupPlaceholder.textContent = placeholder;
-      popupPlaceholder.hidden = hasSelection;
-    }
-
-    function optionAccessibleLabel(option) {
-      return option.ariaLabel || [option.label, option.badge?.ariaLabel].filter(Boolean).join(', ');
-    }
-
-    function createOptionCopy(option) {
-      const copy = document.createElement('span');
-      copy.className = 'select-item-copy';
-      const label = document.createElement('span');
-      label.className = 'select-item-label';
-      label.textContent = option.label;
-      copy.append(label);
-
-      if (option.badge) {
-        const badge = document.createElement('cv-badge');
-        badge.className = 'badge select-item-badge';
-        if (option.badge.kind) badge.dataset.kind = option.badge.kind;
-        badge.textContent = option.badge.label;
-        badge.setAttribute('aria-hidden', 'true');
-        copy.append(badge);
-      }
-      return copy;
-    }
-
-    function createItem(option, index) {
-      const item = document.createElement('cv-select-item');
-      item.id = `languageSelectOption-${index}`;
-      item.className = 'select-item';
-      item.setAttribute('value', option.value);
-      item.setAttribute('label', option.label);
-      if (option.disabled) item.setAttribute('disabled', '');
-      item.setAttribute('aria-label', optionAccessibleLabel(option));
-      item.append(createOptionCopy(option));
-      const indicator = document.createElement('span');
-      indicator.className = 'select-item-indicator';
-      indicator.setAttribute('aria-hidden', 'true');
-      const check = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      check.setAttribute('viewBox', '0 0 24 24');
-      check.setAttribute('fill', 'none');
-      check.setAttribute('stroke', 'currentColor');
-      check.setAttribute('stroke-width', '2');
-      check.setAttribute('stroke-linecap', 'round');
-      check.setAttribute('stroke-linejoin', 'round');
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', 'm20 6-11 11-5-5');
-      check.append(path);
-      indicator.append(check);
-      item.append(indicator);
-      return item;
-    }
-
-    function setOptions(nextOptions) {
-      const previousValue = select.value;
-      options = nextOptions.map((option) => ({
-        value: String(option.value), label: String(option.label),
-        disabled: Boolean(option.disabled), badge: normalizeBadge(option.badge),
-        ariaLabel: typeof option.ariaLabel === 'string' ? option.ariaLabel : '',
-      }));
+    function setOptions(options) {
+      const previous = root.value;
+      const items = options.map(option => ({ ...option, value: String(option.value), label: String(option.label), disabled: Boolean(option.disabled) }));
       select.replaceChildren();
       list.replaceChildren();
-      for (const [index, option] of options.entries()) {
-        const nativeOption = document.createElement('option');
-        nativeOption.value = option.value;
-        nativeOption.textContent = option.label;
-        nativeOption.disabled = option.disabled;
-        select.append(nativeOption);
-        list.append(createItem(option, index));
+      for (const item of items) {
+        const native = document.createElement('option');
+        native.value = item.value; native.textContent = item.label; native.disabled = item.disabled;
+        select.append(native);
+        const option = document.createElement('ui-select-item');
+        option.className = 'select-item'; option.setAttribute('value', item.value); option.setAttribute('label', item.label);
+        if (item.ariaLabel) option.setAttribute('aria-label', item.ariaLabel);
+        if (item.disabled) option.setAttribute('disabled', '');
+        const copy = document.createElement('span'); copy.className = 'select-item-copy';
+        const label = document.createElement('span'); label.className = 'select-item-label'; label.textContent = item.label; copy.append(label);
+        if (item.badge) {
+          const badge = document.createElement('span'); badge.className = 'badge select-item-badge'; badge.setAttribute('aria-hidden', 'true');
+          badge.textContent = typeof item.badge === 'string' ? item.badge : item.badge.label || item.badge.text || '';
+          badge.dataset.kind = item.badge.kind || item.badge.tone || item.badge.variant || ''; copy.append(badge);
+        }
+        const indicator = document.createElement('ui-select-item-indicator'); indicator.className = 'select-item-indicator';
+        const check = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); check.setAttribute('viewBox', '0 0 24 24'); check.setAttribute('fill', 'none'); check.setAttribute('stroke', 'currentColor'); check.setAttribute('stroke-width', '2');
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', 'm20 6-11 11-5-5'); check.append(path); indicator.append(check);
+        option.append(copy, indicator); list.append(option);
       }
-      select.value = options.some((option) => option.value === previousValue) ? previousValue : '';
-      syncSdkValue();
-      renderValue();
+      root.items = items;
+      root.value = items.some(item => item.value === previous) ? previous : null;
+      syncValue();
     }
-
-    function syncSdkValue() {
-      // main允许后端刷新在禁用期同步值，Core primitive保持这一程序接口。
-      root.value = select.value || null;
-    }
-
-    function setValue(nextValue) {
-      select.value = String(nextValue || '');
-      syncSdkValue();
-      renderValue();
-      onValueChange(select.value);
-    }
-
-    function setPlaceholder(nextPlaceholder) {
-      placeholder = String(nextPlaceholder || '');
-      renderValue();
-    }
-
-    function setDisabled(disabled) {
-      select.disabled = disabled;
-      if (disabled) root.open = false;
-      root.api.setDisabled(disabled);
-      root.toggleAttribute('disabled',disabled);
-      trigger.disabled = disabled;
-    }
-
-    root.addEventListener('valuechange', (event) => {
-      select.value = event.detail.value || '';
-      renderValue();
-      onValueChange(select.value);
-    });
-    root.addEventListener('openchange', (event) => {
-      root.dataset.state = event.detail.value ? 'open' : 'closed';
-      popup.dataset.state = root.dataset.state;
-      renderValue();
-    });
-    renderValue();
+    function setValue(nextValue) { root.value = nextValue || null; syncValue(); }
+    function setPlaceholder(text) { root.placeholder = String(text || ''); value.placeholder = root.placeholder; popupPlaceholder.textContent = root.placeholder; }
+    function setDisabled(disabled) { root.disabled = Boolean(disabled); select.disabled = Boolean(disabled); }
+    root.addEventListener('valuechange', event => syncValue(event.detail.value));
     return Object.freeze({ setOptions, setValue, setPlaceholder, setDisabled });
   }
-
   global.createSelectControl = createSelectControl;
 })(window);

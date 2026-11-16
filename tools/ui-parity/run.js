@@ -12,10 +12,12 @@ const os = require('node:os');
 const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const { execFileSync, spawn } = require('node:child_process');
-const { chromium } = require('playwright');
+const { chromium, webkit } = require('playwright');
 const { PNG } = require('pngjs');
 const { createDriver } = require('./driver');
-const { cases } = require('./cases');
+const contract=process.argv.includes('--contract')?process.argv[process.argv.indexOf('--contract')+1]:'legacy';
+assert.ok(['legacy','sdk-default'].includes(contract),'Unknown UI contract');
+const { cases } = require(contract==='sdk-default'?'./sdk-default-cases':'./cases');
 const repo = path.resolve(__dirname,'../..');
 function arg(name, fallback) { const i=process.argv.indexOf(name); return i<0?fallback:process.argv[i+1]; }
 const reference = execFileSync('git',['rev-parse',`${arg('--reference','origin/main')}^{commit}`],{cwd:repo,encoding:'utf8'}).trim();
@@ -26,16 +28,18 @@ const filters = arg('--cases','').split(',').filter(Boolean);
 assert.ok(filters.every(name=>cases.some(([known])=>known===name)),'Unknown test case');
 const locales = arg('--locales','en,zh-Hans,zh-Hant,ja_JP').split(',');
 assert.ok(locales.every(locale=>['en','zh-Hans','zh-Hant','ja_JP'].includes(locale)),'Unknown UI locale');
-const variants = arg('--mode','both')==='reference'?['reference']:['reference','candidate'];
-if(variants.length>1&&!process.argv.includes('--self-reference'))execFileSync(process.execPath,[path.join(repo,'tools/build_ui_sdk.js')],{cwd:repo});
+const mode=arg('--mode',contract==='sdk-default'?'candidate':'both');
+assert.ok(['both','reference','candidate'].includes(mode),'Unknown UI mode');
+const variants = mode==='reference'?['reference']:mode==='candidate'?['candidate']:['reference','candidate'];
+if(variants.includes('candidate')&&!process.argv.includes('--self-reference'))execFileSync(process.execPath,[path.join(repo,'tools/build_ui_sdk.js')],{cwd:repo});
 const candidateFiles=[...fs.readdirSync(path.join(repo,'renderer')).filter(name=>!name.endsWith('.md')).map(name=>'renderer/'+name),
   ...fs.readdirSync(path.join(repo,'tools')).filter(name=>/^ui_review.*\.js$/.test(name)).map(name=>'tools/'+name),
   'package.json','package-lock.json','src-tauri/tauri.conf.json','tools/build_ui_sdk.js',
-  'tools/ui_sdk_primitives.mjs','tools/ui_sdk_entry.mjs','tools/ui_sdk_components.json',
-  'tools/ui-parity/run.js','tools/ui-parity/driver.js','tools/ui-parity/cases.js'];
+  'tools/ui_sdk_entry.mjs','tools/ui_sdk_components.json',
+  'tools/ui-parity/run.js','tools/ui-parity/driver.js','tools/ui-parity/cases.js','tools/ui-parity/sdk-default-cases.js'];
 const report = { reference, candidate:execFileSync('git',['rev-parse','HEAD'],{cwd:repo,encoding:'utf8'}).trim(),
   candidateSource:repo,candidateSourceHashes:Object.fromEntries(candidateFiles.filter(name=>fs.statSync(path.join(repo,name)).isFile()).map(name=>[name,crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')])),
-  selfReference:process.argv.includes('--self-reference'),probe:arg('--probe',null),scope:{filters,locales},sdkCoverage:{},output,cases:[],comparisons:[],differences:[],environment:{node:process.version,playwright:require('playwright/package.json').version,platform:os.platform(),architecture:os.arch()} };
+  contract,selfReference:process.argv.includes('--self-reference'),probe:arg('--probe',null),scope:{filters,locales},sdkCoverage:{},output,cases:[],comparisons:[],differences:[],environment:{node:process.version,playwright:require('playwright/package.json').version,platform:os.platform(),architecture:os.arch()} };
 function snapshotMain() {
   const root=path.join(output,'main-source'); fs.mkdirSync(root,{recursive:true});
   const names=execFileSync('git',['ls-tree','-r','--name-only',reference,'renderer','tools'],{cwd:repo,encoding:'utf8'}).trim().split('\n')
@@ -60,8 +64,10 @@ function pixelDiff(a,b,dest) {
 }
 let browser;const servers=[];
 (async()=>{
-  const baseline=snapshotMain();servers.push(await server(baseline));if(variants.length>1)servers.push(await server(report.selfReference?baseline:repo));
-  browser=await chromium.launch();
+  const baseline=variants.includes('reference')||report.selfReference?snapshotMain():null;
+  for(const variant of variants)servers.push(await server(variant==='reference'||report.selfReference?baseline:repo));
+  const engine=arg('--engine','chromium');assert.ok(['chromium','webkit'].includes(engine),'Unknown engine');report.environment.engine=engine;
+  browser=await({chromium,webkit}[engine]).launch();
   report.environment.browserVersion=browser.version();
   for(const locale of locales)for(const [name,run] of cases.filter(([name])=>!filters.length||filters.includes(name))) {
     const pair=[];
@@ -94,7 +100,7 @@ let browser;const servers=[];
     }
   }
   const failures=report.cases.filter(r=>r.failure).length;
-  const missing=!filters.length&&!report.selfReference&&variants.length>1?Object.entries(report.sdkCoverage).filter(([,seen])=>!seen).map(([name])=>name):[];
+  const missing=!filters.length&&!report.selfReference&&variants.includes('candidate')?Object.entries(report.sdkCoverage).filter(([,seen])=>!seen).map(([name])=>name):[];
   const changed=Object.entries(report.candidateSourceHashes).filter(([name,digest])=>crypto.createHash('sha256').update(fs.readFileSync(path.join(repo,name))).digest('hex')!==digest).map(([name])=>name);
   report.sourceChangedDuringRun=changed;report.missingSdkComponents=missing;fs.writeFileSync(path.join(output,'report.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify({reference,tests:report.cases.length,failures,differences:report.differences.length,output}));

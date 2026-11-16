@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 tokens/button 及共享 shell/Activity/About/支持 footer/本地关注手势/Toast/窗口控件视觉层，依赖冻结 bridge、先于UI_TEXT加载的user-profile-text四语子域、language-scope/version-guidance与project-link-control适配器，以及离线SDK与select/tooltip/path/operation/permission-handoff/update/toast/support-footer/about/window-controls适配器
-  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、Trigger 与空值 popup 均保留占位语义的 Select + scope-aware Switch/Restore English 主任务流、2.8 切换器遇 Cavalry 2.7.2 时显露的固定 legacyRelease 按钮、三轨 Activity 与条件权限/Issue 表单动作、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点，以及文字与固定 GitHub/X/小红书入口整组居中的无分割线单行 footer；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
+  [INPUT]: 依赖tokens/button及原视觉层、冻结bridge和各业务适配器；SDK默认Web Components拥有交互，展示资源使用标准DOM
+  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、SDK Trigger/Value 保留占位语义的 Select + scope-aware Switch/Restore English 主任务流、2.8 切换器遇 Cavalry 2.7.2 时显露的固定 legacyRelease 按钮、三轨 Activity 与条件权限/Issue 表单动作、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点，以及文字与固定 GitHub/X/小红书入口整组居中的无分割线单行 footer；Windows About 入口作为首枚 caption Button，About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起共享外壳窗口，Windows 以 Info/Minus/Square/Copy/X 的统一 Phosphor Regular 语义驱动右侧控件
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -26,45 +26,45 @@
   <ui-button><a id="skipLink" class="skip-link" href="#mainContent">Skip to controls</a></ui-button>
 
   <div class="window-surface">
-    <cv-window-frame class="titlebar" data-tauri-drag-region>
+    <header class="titlebar" data-tauri-drag-region>
       <div class="native-controls-space" aria-hidden="true" data-tauri-drag-region></div>
       <div class="titlebar-copy" data-tauri-drag-region>
         <span id="windowTitle" class="window-title" data-tauri-drag-region>Cavalry Language Switcher</span>
-        <cv-tooltip id="updateControl" class="tooltip-anchor" data-slot="tooltip" data-tooltip-state="closed" hidden>
-          <cv-tooltip-trigger><ui-button><button id="updateButton" type="button" class="ui-button update-button" data-slot="tooltip-trigger" data-variant="ghost" data-size="icon-xs" aria-label="New version available">
+        <ui-tooltip id="updateControl" class="tooltip-anchor" data-slot="tooltip" hidden>
+          <ui-tooltip-trigger><button id="updateButton" type="button" class="ui-button update-button" data-slot="tooltip-trigger" data-variant="ghost" data-size="icon-xs" aria-label="New version available">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
               <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z"></path>
             </svg>
-          </button></ui-button></cv-tooltip-trigger>
-          <cv-tooltip-content id="updateTooltip" class="tooltip" data-slot="tooltip-content" role="tooltip">
+          </button></ui-tooltip-trigger>
+          <ui-tooltip-content id="updateTooltip" class="tooltip" data-slot="tooltip-content" role="tooltip">
             <span id="updateTooltipText" class="tooltip-copy">New version available</span>
-            <cv-tooltip-arrow class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"></cv-tooltip-arrow>
-          </cv-tooltip-content>
-        </cv-tooltip>
+            <ui-tooltip-arrow class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"></ui-tooltip-arrow>
+          </ui-tooltip-content>
+        </ui-tooltip>
       </div>
       <span id="updateAnnouncement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
-      <cv-window-controls id="windowsWindowControls" class="windows-window-controls" data-maximized="false" hidden>
-        <cv-tooltip id="aboutControl" class="tooltip-anchor" data-slot="tooltip" data-tooltip-state="closed" hidden>
-          <cv-tooltip-trigger><ui-button><button id="aboutButton" type="button" class="ui-button window-control-button" data-slot="tooltip-trigger" data-variant="ghost" data-size="icon-sm" aria-label="About Cavalry Language Switcher"></button></ui-button></cv-tooltip-trigger>
-          <cv-tooltip-content id="aboutTooltip" class="tooltip" data-slot="tooltip-content" role="tooltip">
+      <div id="windowsWindowControls" class="windows-window-controls" data-maximized="false" hidden>
+        <ui-tooltip id="aboutControl" class="tooltip-anchor" data-slot="tooltip" hidden>
+          <ui-tooltip-trigger><button id="aboutButton" type="button" class="ui-button window-control-button" data-slot="tooltip-trigger" data-variant="ghost" data-size="icon-sm" aria-label="About Cavalry Language Switcher"></button></ui-tooltip-trigger>
+          <ui-tooltip-content id="aboutTooltip" class="tooltip" data-slot="tooltip-content" role="tooltip">
             <span id="aboutTooltipText" class="tooltip-copy">About</span>
-            <cv-tooltip-arrow class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"></cv-tooltip-arrow>
-          </cv-tooltip-content>
-        </cv-tooltip>
+            <ui-tooltip-arrow class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"></ui-tooltip-arrow>
+          </ui-tooltip-content>
+        </ui-tooltip>
         <ui-button><button id="windowMinimizeButton" type="button" class="ui-button window-control-button" data-slot="button" data-variant="ghost" data-size="icon-sm" aria-label="Minimize" title="Minimize"></button></ui-button>
         <ui-button><button id="windowMaximizeButton" type="button" class="ui-button window-control-button" data-slot="button" data-variant="ghost" data-size="icon-sm" aria-label="Maximize" title="Maximize"></button></ui-button>
         <ui-button><button id="windowCloseButton" type="button" class="ui-button window-control-button window-control-close" data-slot="button" data-variant="ghost" data-size="icon-sm" aria-label="Close" title="Close"></button></ui-button>
-      </cv-window-controls>
-    </cv-window-frame>
+      </div>
+    </header>
 
     <main id="mainContent" class="content">
       <section aria-labelledby="appVersion">
-        <cv-item class="installation-item">
+        <div class="installation-item">
           <div class="installation-main">
             <div class="installation-heading">
               <h1 id="appVersion" class="installation-name" translate="no">Cavalry not found</h1>
-              <cv-badge id="currentLanguage" class="badge" data-kind="language">English</cv-badge>
-              <cv-badge id="installationBadge" class="badge" data-kind="installation" data-state="unknown" hidden></cv-badge>
+              <span id="currentLanguage" class="badge" data-kind="language">English</span>
+              <span id="installationBadge" class="badge" data-kind="installation" data-state="unknown" hidden></span>
             </div>
             <p id="appPath" class="app-path" data-display="message" aria-label="Choose a Cavalry installation to begin.">
               <span id="appPathPrefix" class="app-path-prefix" aria-hidden="true">Choose a Cavalry installation to begin.</span>
@@ -74,96 +74,96 @@
             <span id="installationMode" class="sr-only"></span>
           </div>
           <ui-button><button id="browseButton" type="button" class="ui-button button button-outline folder-button" aria-label="Choose Cavalry installation" disabled hidden>
-            <cv-icon class="folder-icon" aria-hidden="true">
+            <span class="folder-icon" aria-hidden="true">
               <svg class="folder-icon-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" focusable="false">
                 <path d="M216,72H131.31L104,44.69A15.86,15.86,0,0,0,92.69,40H40A16,16,0,0,0,24,56V200.62A15.4,15.4,0,0,0,39.38,216H216.89A15.13,15.13,0,0,0,232,200.89V88A16,16,0,0,0,216,72ZM40,56H92.69l16,16H40ZM216,200H40V88H216Z"></path>
               </svg>
               <svg class="folder-icon-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" focusable="false">
                 <path d="M245,110.64A16,16,0,0,0,232,104H216V88a16,16,0,0,0-16-16H130.67L102.94,51.2a16.14,16.14,0,0,0-9.6-3.2H40A16,16,0,0,0,24,64V208h0a8,8,0,0,0,8,8H211.1a8,8,0,0,0,7.59-5.47l28.49-85.47A16.05,16.05,0,0,0,245,110.64ZM93.34,64,123.2,86.4A8,8,0,0,0,128,88h72v16H69.77a16,16,0,0,0-15.18,10.94L40,158.7V64Zm112,136H43.1l26.67-80H232Z"></path>
               </svg>
-            </cv-icon>
+            </span>
           </button></ui-button>
-        </cv-item>
+        </div>
       </section>
 
       <section class="language-section" aria-labelledby="languageSectionLabel">
         <div class="section-head">
-          <h2 id="languageSectionLabel" class="section-title"><span id="switchToLabel">Switch to</span></h2>
+          <h2 id="languageSectionLabel" class="section-title"><ui-select-label for="languageSelectRoot"><span id="switchToLabel">Switch to</span></ui-select-label></h2>
         </div>
         <div class="language-control-row">
-          <cv-select id="languageSelectRoot" class="select-root" data-state="closed" disabled>
+          <ui-select id="languageSelectRoot" class="select-root" disabled>
             <select id="languageSelect" class="sr-only" tabindex="-1" aria-hidden="true" disabled></select>
-            <cv-select-trigger>
-            <button id="languageSelectTrigger" type="button" class="select-trigger" role="combobox" aria-labelledby="languageSectionLabel languageSelectValue" aria-haspopup="listbox" aria-expanded="false" disabled>
-              <span id="languageSelectValue" class="select-value" data-placeholder="true">Choose a language</span>
-              <cv-icon class="select-chevron" aria-hidden="true">
+            <ui-select-trigger>
+            <button id="languageSelectTrigger" type="button" class="select-trigger" role="combobox" aria-haspopup="listbox" aria-expanded="false" disabled>
+              <span class="select-item-copy"><ui-select-value id="languageSelectValue" class="select-value"></ui-select-value><span id="languageSelectBadge" class="badge select-item-badge" hidden></span></span>
+              <span class="select-chevron" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
                   <path d="m6 9 6 6 6-6"></path>
                 </svg>
-              </cv-icon>
+              </span>
             </button>
-            </cv-select-trigger>
-            <cv-select-content id="languageSelectPopup" class="select-popup" aria-labelledby="languageSectionLabel" hidden>
-              <div id="languageSelectPopupPlaceholder" class="select-popup-placeholder" aria-hidden="true" hidden>Choose a language</div>
+            </ui-select-trigger>
+            <ui-select-content id="languageSelectPopup" class="select-popup" align-item-with-trigger aria-labelledby="languageSectionLabel" hidden>
+              <div id="languageSelectPopupPlaceholder" class="select-popup-placeholder" aria-hidden="true" hidden></div>
               <div id="languageSelectList" class="select-list" role="presentation"></div>
-            </cv-select-content>
-          </cv-select>
+            </ui-select-content>
+          </ui-select>
           <ui-button><button id="applyButton" type="button" class="ui-button button button-primary" disabled>Switch</button></ui-button>
           <ui-button><button id="restoreButton" type="button" class="ui-button button button-outline" disabled>Restore English</button></ui-button>
         </div>
       </section>
 
-      <cv-task-panel id="statusPanel" class="status-panel" data-state="neutral" aria-labelledby="statusLabel">
+      <section id="statusPanel" class="status-panel" data-state="neutral" aria-labelledby="statusLabel">
         <h2 id="statusLabel" class="sr-only">Operation progress</h2>
         <div class="status-task-shell">
-          <cv-message id="statusIdle" class="status-idle-message" role="paragraph"></cv-message>
-          <cv-message id="statusIntro" class="status-message status-intro" role="paragraph" hidden></cv-message>
-          <ui-scroll-area id="statusScrollArea" class="status-scroll-area" stick-to-end>
-          <ui-scroll-area-viewport as-child><div id="statusViewport" class="status-viewport" tabindex="-1">
-            <ui-scroll-area-content as-child><ol id="statusText" class="status-text" role="log" aria-live="polite" aria-relevant="additions text"></ol></ui-scroll-area-content>
-          </div></ui-scroll-area-viewport>
-          </ui-scroll-area>
-          <cv-message id="statusOutcome" class="status-message status-outcome" role="status" aria-live="polite" hidden></cv-message>
+          <div id="statusIdle" class="status-idle-message" role="paragraph"></div>
+          <div id="statusIntro" class="status-message status-intro" role="paragraph" hidden></div>
+          <div id="statusScrollArea" class="status-scroll-area">
+          <div id="statusViewport" class="status-viewport">
+            <ol id="statusText" class="status-text" role="log" aria-live="polite" aria-relevant="additions text"></ol>
+          </div>
+          </div>
+          <div id="statusOutcome" class="status-message status-outcome" role="status" aria-live="polite" hidden></div>
         </div>
         <ui-button><button id="permissionButton" type="button" class="ui-button button button-outline permission-button status-action-button" hidden>Open permission settings</button></ui-button>
         <ui-button><button id="legacyReleaseButton" type="button" class="ui-button button button-outline status-action-button" hidden>Download p12 for Cavalry 2.7.2</button></ui-button>
         <ui-button><button id="reportIssueButton" type="button" class="ui-button button button-outline status-action-button" hidden>Report a problem</button></ui-button>
-      </cv-task-panel>
+      </section>
     </main>
 
-    <cv-support-footer id="supportFooter" class="support-footer">
+    <footer id="supportFooter" class="support-footer">
       <p id="supportFooterMessage" class="support-footer-message">Follow us</p>
       <nav id="supportFooterLinks" class="support-footer-links" aria-label="Support links">
         <ui-button><a id="supportGithubLink" class="support-footer-link" href="#repository" aria-label="Star us on GitHub">
-          <cv-icon id="supportGithubIcon" class="support-footer-icon" aria-hidden="true"></cv-icon>
+          <span id="supportGithubIcon" class="support-footer-icon" aria-hidden="true"></span>
         </a></ui-button>
         <ui-button><a id="supportTwitterLink" class="support-footer-link" href="#twitter" aria-label="Follow us on X (Twitter)">
-          <cv-icon id="supportTwitterIcon" class="support-footer-icon" aria-hidden="true"></cv-icon>
+          <span id="supportTwitterIcon" class="support-footer-icon" aria-hidden="true"></span>
         </a></ui-button>
         <ui-button><a id="supportXiaohongshuLink" class="support-footer-link support-footer-link-xiaohongshu" href="#xiaohongshu" aria-label="Follow us on Xiaohongshu">
-          <cv-icon id="supportXiaohongshuIcon" class="support-footer-icon support-footer-icon-xiaohongshu" aria-hidden="true"></cv-icon>
+          <span id="supportXiaohongshuIcon" class="support-footer-icon support-footer-icon-xiaohongshu" aria-hidden="true"></span>
         </a></ui-button>
       </nav>
-    </cv-support-footer>
-    <cv-follow-hand id="supportFollowHand" class="support-follow-hand" aria-hidden="true" inert hidden>
+    </footer>
+    <div id="supportFollowHand" class="support-follow-hand" aria-hidden="true" inert hidden>
       <img id="supportFollowHandImage" src="./follow-hand.webp" alt="" draggable="false" />
-    </cv-follow-hand>
+    </div>
   </div>
 
-  <cv-alert-dialog id="confirmationDialog">
-  <cv-alert-dialog-content as-child><dialog id="modalBackdrop" class="modal-backdrop" role="alertdialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalBody">
+  <ui-alert-dialog id="confirmationDialog">
+  <ui-alert-dialog-content id="modalBackdrop" class="modal-backdrop" hidden aria-labelledby="modalTitle" aria-describedby="modalBody">
     <section class="modal-dialog">
       <div class="modal-header">
-        <h2 id="modalTitle" class="modal-title"></h2>
-        <p id="modalBody" class="modal-body"></p>
+        <ui-alert-dialog-title id="modalTitle" class="modal-title"></ui-alert-dialog-title>
+        <ui-alert-dialog-description id="modalBody" class="modal-body"></ui-alert-dialog-description>
       </div>
       <div class="modal-actions">
-        <ui-button><button id="modalSecondaryButton" type="button" class="ui-button button button-outline"></button></ui-button>
-        <ui-button><button id="modalPrimaryButton" type="button" class="ui-button button button-primary"></button></ui-button>
+        <ui-alert-dialog-close><button id="modalSecondaryButton" type="button" class="ui-button button button-outline"></button></ui-alert-dialog-close>
+        <ui-alert-dialog-close id="modalPrimaryAction" action value="confirm"><button id="modalPrimaryButton" type="button" class="ui-button button button-primary"></button></ui-alert-dialog-close>
       </div>
     </section>
-  </dialog></cv-alert-dialog-content>
-  </cv-alert-dialog>
+  </ui-alert-dialog-content>
+  </ui-alert-dialog>
 
   <script src="./tauri-bridge.js"></script>
   <script src="./user-profile-text.js"></script>

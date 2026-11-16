@@ -1,13 +1,16 @@
 /**
- * [INPUT]: 依赖 tokens.css、button.css 与 index.html 的标题区、安装 Item、无可见描边的彩色 Badge、路径、带只读 popup placeholder 的 Select、Tooltip、Button Group、支持 footer 和 AlertDialog；Activity/Toast 由独立视觉层实现
+ * [INPUT]: 依赖 tokens.css、button.css 与 index.html 的标题区、安装 Item、无可见描边的彩色 Badge、路径、SDK 默认 Select 与只读占位展示行、Tooltip、Button Group、支持 footer 和 AlertDialog；Activity/Toast 由独立视觉层实现
  * [OUTPUT]: 对外提供无窗口滚动的共享 Grid/Flex 布局、固定 40px 标题栏/原高主内容/按 token 推导的30px独立支持 footer 三轨、主窗口 20px 纵向 flow 与 10px 页面动作组间距、可收缩首个内容 Grid 项避免默认路径候选扩窗、Windows 透明表面中的 10px 阴影留白/32px 共享外壳圆角与最大化归零状态、以当前 16px Close 可见右缘为基准的 15px 标题左边距且排除阴影坐标、可选手动入口不留空轨的安装摘要、系统排印、原生标题中心线、路径截断、无描边 blue/green Badge、保持绿色语义的更新入口、带可选 Badge 的稳定 item-aligned Select、Tooltip 与保留窗口 Chrome 的内容区 AlertDialog 视觉
  * [POS]: renderer 的跨平台共享视觉实现；上游只读 tokens.css，下游由 window-controls.css 追加 Windows caption 变体，和 Tauri transparent window 共同构成单一 compositor 外壳
- * 主内容底padding消费固定support-footer-spacing，缩放不改此值。
+ * 主内容底padding消费固定support-footer-spacing；SDK公开状态属性和CSS变量驱动组件皮肤。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+@layer ui-sdk;
+
 * {
   box-sizing: border-box;
 }
+
 
 html,
 body {
@@ -213,17 +216,17 @@ html[data-platform="windows"] .titlebar {
   opacity: 0;
   pointer-events: none;
   transform: translateY(var(--tooltip-entry-distance)) scale(var(--tooltip-entry-scale));
-  transform-origin: top center;
+  transform-origin: var(--transform-origin, top center);
   transition: opacity var(--duration-feedback) ease, transform var(--duration-feedback) ease, visibility var(--duration-feedback) ease;
 }
 
-.tooltip[data-state="open"] {
+.tooltip[data-open] {
   visibility: visible;
   opacity: 1;
   transform: translateY(0) scale(1);
 }
 
-.tooltip[data-reason="focus"] {
+.tooltip[data-instant] {
   transition: none;
 }
 
@@ -232,7 +235,7 @@ html[data-platform="windows"] .titlebar {
   transform-origin: bottom center;
 }
 
-.tooltip[data-state="open"][data-side="top"] {
+.tooltip[data-open][data-side="top"] {
   transform: translateY(0) scale(1);
 }
 
@@ -244,7 +247,7 @@ html[data-platform="windows"] .titlebar {
 .tooltip-arrow {
   position: absolute;
   top: var(--tooltip-arrow-bottom-inset);
-  left: var(--tooltip-arrow-inline);
+  left: var(--arrow-offset, 50%);
   width: var(--tooltip-arrow-size);
   height: var(--tooltip-arrow-size);
   border-radius: var(--tooltip-arrow-radius);
@@ -437,7 +440,7 @@ html[data-platform="windows"] .titlebar {
 }
 
 .select-trigger:hover:not(:disabled),
-.select-root[data-state="open"] .select-trigger {
+.select-root:has(.select-popup[data-open]) .select-trigger {
   border-color: var(--border-control-hover);
   background: var(--surface-interactive);
 }
@@ -454,16 +457,14 @@ html[data-platform="windows"] .titlebar {
   white-space: nowrap;
 }
 
-.select-value[data-placeholder="true"] {
+.select-value[data-placeholder] {
   color: var(--text-secondary);
 }
 
 .select-popup {
-  position: absolute;
+  position: fixed;
   z-index: var(--z-select-popup);
-  top: 0;
-  left: 0;
-  width: 100%;
+  width: var(--anchor-width);
   margin: 0;
   padding: var(--padding-menu);
   border: 0;
@@ -471,11 +472,6 @@ html[data-platform="windows"] .titlebar {
   background: var(--surface-raised);
   color: var(--text);
   box-shadow: var(--shadow-select-popup);
-}
-
-.select-list {
-  max-height: var(--select-popup-max-height);
-  overflow-y: auto;
 }
 
 .select-popup-placeholder {
@@ -491,6 +487,11 @@ html[data-platform="windows"] .titlebar {
   user-select: none;
 }
 
+.select-list {
+  max-height: var(--select-popup-max-height);
+  overflow-y: auto;
+}
+
 .select-item {
   position: relative;
   height: var(--select-item-height);
@@ -503,6 +504,7 @@ html[data-platform="windows"] .titlebar {
   font-weight: var(--weight-medium);
   line-height: var(--line-height-compact);
   cursor: default;
+  outline: none;
   user-select: none;
 }
 
@@ -526,6 +528,7 @@ html[data-platform="windows"] .titlebar {
   flex: 0 0 auto;
   pointer-events: none;
 }
+.select-item-badge[hidden] { display: none; }
 
 .select-item[data-highlighted] {
   background: var(--surface-hover);
@@ -668,7 +671,7 @@ html[data-platform="windows"] body[data-maximized="true"] .modal-backdrop {
   inset: var(--titlebar-height) 0 0;
 }
 
-.modal-backdrop[open] {
+.modal-backdrop[data-open] {
   display: grid;
   place-items: center;
 }

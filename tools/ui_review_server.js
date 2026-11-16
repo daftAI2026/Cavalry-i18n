@@ -283,7 +283,7 @@ function fixtureSource() {
   async function waitForReady(selector) {
     for (let attempt = 0; attempt < timing.readyAttempts; attempt += 1) {
       const element = document.querySelector(selector);
-      if (element && !element.hidden && !element.disabled) return element;
+      if (element && !element.hidden && !element.disabled && element.getClientRects().length) return element;
       await wait(timing.readyPoll);
     }
     return null;
@@ -326,7 +326,7 @@ function fixtureSource() {
     if (!selector) return;
     if (selector === '#applyButton' && scenario !== 'patchDrift') {
       (await waitForReady('#languageSelectTrigger'))?.click();
-      (await waitForReady('#languageSelectOption-0'))?.click();
+      (await waitForReady('#languageSelectList [role="option"]:not([aria-disabled="true"])'))?.click();
     }
     const trigger = await waitForReady(selector);
     trigger?.click();

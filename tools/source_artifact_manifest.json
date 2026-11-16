@@ -91,13 +91,15 @@
     "renderer/ui-sdk.manifest.json",
     "tools/build_ui_sdk.js",
     "tools/ui_sdk_entry.mjs",
-    "tools/ui_sdk_primitives.mjs",
     "tools/ui_sdk_components.json",
     "tools/ui-parity/run.js",
     "tools/ui-parity/driver.js",
     "tools/ui-parity/cases.js",
     "tools/ui-parity/README.md",
-    "tools/ui-parity/CLAUDE.md"
+    "tools/ui-parity/CLAUDE.md",
+    "tools/ui-parity/sdk-default-cases.js",
+    "tools/ui-parity/benchmark.js",
+    "tools/ui-parity/native-benchmark.js"
   ],
   "sourceArchivePaths": [
     ".gitattributes",

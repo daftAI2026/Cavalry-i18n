@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 SDK ScrollArea/Progress 与标准 DOM 的文本/滚动节点与 icons.js 的冻结语义 SVG 工厂，消费 app.js 提供的本地化任务引言、整体结果、阶段说明、状态与可选图标名
- * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且在浏览器完成布局后复测中段溢出与 live edge，真实阶段按稳定 id 串行投影并让错误或显式阻塞项立即抢占；阻断项可返回完成落位后的共享可读停顿，外部权限轨显隐后可显式触发同一重测
+ * [INPUT]: 依赖SDK createStickToBottom/Progress和标准DOM；只拥有任务文字/渐隐，跟随状态由SDK按既有4px边界管理
+ * [OUTPUT]: 对外提供 createOperationLog；idle 双轴居中，running 固定首尾并只让中段滚动；DOM文字和阶段立即更新，同帧尺寸/渐隐/live edge集中在绘制前一次测量，保留可读队列、紧急抢占及阻断项落位后的共享停顿
  * [POS]: renderer 的任务反馈状态机；位于业务语义映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，不阻塞后端事务，只把已到达的机器事件按可读节奏投影
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,11 +18,13 @@
     return String(text || '').match(/\S+\s*/g) || [];
   }
 
-  function createOperationLog({ root, idleMessage, intro, viewport, list, outcome, scrollArea }) {
+  function createOperationLog({ root, idleMessage, intro, viewport, list, outcome }) {
+    const follow = window.cavalryUi.createStickToBottom({ threshold: cssNumber('--operation-live-edge-tolerance') });
+    const disconnect = follow.connect(viewport);
+    window.addEventListener('pagehide', disconnect, { once: true });
     const entries = new Map();
     const messageTokens = { intro: 0, outcome: 0 };
     const visualQueue = [];
-    let followLiveEdge = true;
     let visualGeneration = 0;
     let visualQueueRunning = false;
     let activeVisualItem = null;
@@ -118,8 +120,7 @@
       viewport.dataset.fadeAtStart = 'true';
       viewport.dataset.fadeAtEnd = 'true';
       viewport.scrollTop = 0;
-      followLiveEdge = true;
-      scrollArea.api.scrollToEnd({behavior:'instant'});
+      follow.scrollToBottom({behavior:'instant'});
     }
 
     function setMode(mode) {
@@ -143,15 +144,14 @@
       const overflowing = syncScrollFade();
       if (!overflowing) {
         viewport.scrollTop = 0;
-        followLiveEdge = true;
-      } else if (followLiveEdge) {
-        scrollArea.api.scrollToEnd({behavior:'instant'});
+        follow.scrollToBottom({behavior:'instant'});
+      } else if (follow.get().following) {
+        follow.scrollToBottom({behavior:'instant'});
         syncScrollFade();
       }
     }
 
     function syncAfterLayout() {
-      scrollToLatest();
       if (layoutFrame !== null || typeof window.requestAnimationFrame !== 'function') return;
       layoutFrame = window.requestAnimationFrame(() => {
         layoutFrame = null;
@@ -163,14 +163,14 @@
       const row = document.createElement('li');
       row.className = 'operation-event';
       row.dataset.eventId = id;
-      const marker = document.createElement('cv-marker');
+      const marker = document.createElement('span');
       marker.className = 'operation-event-marker';
       marker.setAttribute('aria-hidden', 'true');
       const copy = document.createElement('span');
       copy.className = 'operation-event-copy';
-      const title = document.createElement('cv-shimmer');
+      const title = document.createElement('span');
       title.className = 'operation-event-title';
-      const description = document.createElement('cv-message');
+      const description = document.createElement('span');
       description.className = 'operation-event-description';
       copy.append(title, description);
       row.append(marker, copy);
@@ -320,8 +320,6 @@
     }
 
     viewport.addEventListener('scroll', () => {
-      const remaining = viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop;
-      followLiveEdge = remaining <= cssNumber('--operation-live-edge-tolerance');
       syncScrollFade();
     });
     setMode('idle');

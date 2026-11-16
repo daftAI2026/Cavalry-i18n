@@ -1,28 +1,84 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "primitives": [
-    { "name": "button", "mode": "web", "selector": "ui-button:has(button)" },
-    { "name": "select", "mode": "core", "selector": "cv-select" },
-    { "name": "tooltip", "mode": "core", "selector": "cv-tooltip" },
-    { "name": "alert-dialog", "mode": "core-native-dialog", "selector": "cv-alert-dialog" },
-    { "name": "toast", "mode": "core-main-presence", "selector": "ui-toast-region" },
-    { "name": "scroll-area", "mode": "web", "selector": "ui-scroll-area" },
-    { "name": "progress", "mode": "web", "selector": "ui-progress" },
-    { "name": "badge", "mode": "core", "selector": "cv-badge" },
-    { "name": "item", "mode": "core", "selector": "cv-item" },
-    { "name": "icon", "mode": "core", "selector": "cv-icon" },
-    { "name": "link", "mode": "web", "selector": "ui-button:has(a)" },
-    { "name": "marker", "mode": "core", "selector": "cv-marker" },
-    { "name": "message", "mode": "core", "selector": "cv-message" },
-    { "name": "spinner", "mode": "core", "selector": "cv-spinner" },
-    { "name": "shimmer", "mode": "core", "selector": "cv-shimmer" }
+    {
+      "name": "button",
+      "mode": "web",
+      "selector": "ui-button:has(button)"
+    },
+    {
+      "name": "select",
+      "mode": "web",
+      "selector": "ui-select"
+    },
+    {
+      "name": "tooltip",
+      "mode": "web",
+      "selector": "ui-tooltip"
+    },
+    {
+      "name": "alert-dialog",
+      "mode": "web",
+      "selector": "ui-alert-dialog"
+    },
+    {
+      "name": "toast",
+      "mode": "web",
+      "selector": "ui-toast-region"
+    },
+    {
+      "name": "progress",
+      "mode": "web",
+      "selector": "ui-progress"
+    },
+    {
+      "name": "link",
+      "mode": "web",
+      "selector": "ui-button:has(a)"
+    },
+    {
+      "name": "log-follow",
+      "mode": "core-behavior",
+      "selector": "#statusViewport",
+      "factory": "createStickToBottom"
+    }
   ],
   "compositions": [
-    { "name": "activity", "selector": "cv-task-panel", "controller": "renderer/operation-log.js" },
-    { "name": "permission-handoff", "selector": "cv-alert-dialog", "controller": "renderer/permission-handoff.js" },
-    { "name": "window-controls", "selector": "cv-window-frame, cv-window-controls", "controller": "renderer/window-controls.js" },
-    { "name": "about", "selector": "cv-about", "controller": "renderer/about-window.js" },
-    { "name": "support-footer", "selector": "cv-support-footer", "controller": "renderer/support-footer.js" },
-    { "name": "follow-hand", "selector": "cv-follow-hand", "controller": "renderer/support-follow-hand.js" }
+    {
+      "name": "activity",
+      "mode": "business",
+      "selector": "#statusPanel",
+      "controller": "renderer/operation-log.js"
+    },
+    {
+      "name": "permission-handoff",
+      "mode": "business",
+      "selector": "ui-alert-dialog",
+      "controller": "renderer/permission-handoff.js"
+    },
+    {
+      "name": "window-controls",
+      "mode": "business",
+      "selector": ".titlebar, .windows-window-controls",
+      "controller": "renderer/window-controls.js"
+    },
+    {
+      "name": "about",
+      "mode": "business",
+      "selector": ".about-window",
+      "controller": "renderer/about-window.js"
+    },
+    {
+      "name": "support-footer",
+      "mode": "business",
+      "selector": ".support-footer",
+      "controller": "renderer/support-footer.js"
+    },
+    {
+      "name": "follow-hand",
+      "mode": "business",
+      "selector": ".support-follow-hand",
+      "controller": "renderer/support-follow-hand.js"
+    }
   ]
 }

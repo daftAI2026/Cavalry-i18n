@@ -47,10 +47,12 @@ test('the runner retains every legacy syntax path in its original order', () => 
     'tools/support_follow_hand.test.js',
     'tools/build_ui_sdk.js',
     'tools/ui_sdk_entry.mjs',
-    'tools/ui_sdk_primitives.mjs',
     'tools/ui-parity/run.js',
     'tools/ui-parity/driver.js',
     'tools/ui-parity/cases.js',
+    'tools/ui-parity/sdk-default-cases.js',
+    'tools/ui-parity/benchmark.js',
+    'tools/ui-parity/native-benchmark.js',
   ]);
   assert.equal(new Set(APP_SYNTAX_FILES).size, APP_SYNTAX_FILES.length);
 });

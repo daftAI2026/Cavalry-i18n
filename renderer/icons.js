@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的 SVG namespace 与元素创建能力，内嵌经 THIRD_PARTY_NOTICES.md 归因的 Phosphor Regular 与 Simple Icons 品牌 path
- * [OUTPUT]: 对外提供冻结window.cavalryIcons.create(name)，按受控语义名创建SDK Icon/Spinner part，内含aria-hidden、不可聚焦且继承currentColor的独立SVG；About与主窗共享品牌图标，业务语义映射保持main
+ * [OUTPUT]: 按语义名创建aria-hidden、不可聚焦且继承currentColor的SVG；图标是展示资源，不建立组件状态。
  * [POS]: renderer 的单一语义图标资产注册表；集中拥有复用 glyph 与社交品牌 mark，不包含应用 Logo 或 macOS 交通灯，业务组件只消费名称而不复制 path
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -145,10 +145,7 @@
       path.setAttribute('d', pathData);
       icon.append(path);
     }
-    const part = document.createElement(name === 'spinner' ? 'cv-spinner' : 'cv-icon');
-    part.setAttribute('as-child', '');
-    part.append(icon);
-    return part;
+    return icon;
   }
 
   window.cavalryIcons = Object.freeze({ create: createIcon });

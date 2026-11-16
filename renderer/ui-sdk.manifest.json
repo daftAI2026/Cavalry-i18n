@@ -1,5 +1,5 @@
 {
-  "sdkVersion": "0.1.0-beta.2",
+  "sdkVersion": "0.1.0-beta.5",
   "esbuildVersion": "0.28.2",
   "components": [
     "button",
@@ -7,19 +7,12 @@
     "tooltip",
     "alert-dialog",
     "toast",
-    "scroll-area",
     "progress",
-    "badge",
-    "item",
-    "icon",
     "link",
-    "marker",
-    "message",
-    "spinner",
-    "shimmer"
+    "log-follow"
   ],
   "implementations": {
-    "schemaVersion": 1,
+    "schemaVersion": 2,
     "primitives": [
       {
         "name": "button",
@@ -28,28 +21,23 @@
       },
       {
         "name": "select",
-        "mode": "core",
-        "selector": "cv-select"
+        "mode": "web",
+        "selector": "ui-select"
       },
       {
         "name": "tooltip",
-        "mode": "core",
-        "selector": "cv-tooltip"
+        "mode": "web",
+        "selector": "ui-tooltip"
       },
       {
         "name": "alert-dialog",
-        "mode": "core-native-dialog",
-        "selector": "cv-alert-dialog"
+        "mode": "web",
+        "selector": "ui-alert-dialog"
       },
       {
         "name": "toast",
-        "mode": "core-main-presence",
-        "selector": "ui-toast-region"
-      },
-      {
-        "name": "scroll-area",
         "mode": "web",
-        "selector": "ui-scroll-area"
+        "selector": "ui-toast-region"
       },
       {
         "name": "progress",
@@ -57,75 +45,52 @@
         "selector": "ui-progress"
       },
       {
-        "name": "badge",
-        "mode": "core",
-        "selector": "cv-badge"
-      },
-      {
-        "name": "item",
-        "mode": "core",
-        "selector": "cv-item"
-      },
-      {
-        "name": "icon",
-        "mode": "core",
-        "selector": "cv-icon"
-      },
-      {
         "name": "link",
         "mode": "web",
         "selector": "ui-button:has(a)"
       },
       {
-        "name": "marker",
-        "mode": "core",
-        "selector": "cv-marker"
-      },
-      {
-        "name": "message",
-        "mode": "core",
-        "selector": "cv-message"
-      },
-      {
-        "name": "spinner",
-        "mode": "core",
-        "selector": "cv-spinner"
-      },
-      {
-        "name": "shimmer",
-        "mode": "core",
-        "selector": "cv-shimmer"
+        "name": "log-follow",
+        "mode": "core-behavior",
+        "selector": "#statusViewport",
+        "factory": "createStickToBottom"
       }
     ],
     "compositions": [
       {
         "name": "activity",
-        "selector": "cv-task-panel",
+        "mode": "business",
+        "selector": "#statusPanel",
         "controller": "renderer/operation-log.js"
       },
       {
         "name": "permission-handoff",
-        "selector": "cv-alert-dialog",
+        "mode": "business",
+        "selector": "ui-alert-dialog",
         "controller": "renderer/permission-handoff.js"
       },
       {
         "name": "window-controls",
-        "selector": "cv-window-frame, cv-window-controls",
+        "mode": "business",
+        "selector": ".titlebar, .windows-window-controls",
         "controller": "renderer/window-controls.js"
       },
       {
         "name": "about",
-        "selector": "cv-about",
+        "mode": "business",
+        "selector": ".about-window",
         "controller": "renderer/about-window.js"
       },
       {
         "name": "support-footer",
-        "selector": "cv-support-footer",
+        "mode": "business",
+        "selector": ".support-footer",
         "controller": "renderer/support-footer.js"
       },
       {
         "name": "follow-hand",
-        "selector": "cv-follow-hand",
+        "mode": "business",
+        "selector": ".support-follow-hand",
         "controller": "renderer/support-follow-hand.js"
       }
     ]
@@ -133,8 +98,8 @@
   "files": [
     {
       "path": "ui-sdk.js",
-      "bytes": 117983,
-      "sha256": "1e215eb8f2a2ac4a4b8cb153172a62e497ffb48f58751e019567dfd5e20c68fd"
+      "bytes": 238038,
+      "sha256": "b3801c59410455eef594dfbb3a4aad3cd76fa3aa352b819f3893fc2bd192fb1e"
     },
     {
       "path": "ui-sdk.LICENSE",
