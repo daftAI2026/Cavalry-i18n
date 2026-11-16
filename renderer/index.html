@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="./window-controls.css" />
 </head>
 
-<body>
+<body tabindex="-1">
   <ui-button><a id="skipLink" class="skip-link" href="#mainContent">Skip to controls</a></ui-button>
 
   <div class="window-surface">
@@ -168,7 +168,7 @@
 
   <ui-dialog id="updateDialog">
     <ui-dialog-backdrop class="update-dialog-backdrop" hidden></ui-dialog-backdrop>
-    <ui-dialog-content class="update-dialog" initial-focus="content" final-focus="#updateButton" hidden>
+    <ui-dialog-content class="update-dialog" initial-focus="content" final-focus="body" hidden>
       <header class="update-dialog-header">
         <ui-dialog-title id="updateDialogTitle"></ui-dialog-title>
         <ui-dialog-close><button id="updateDialogClose" type="button" class="ui-button" data-variant="ghost" data-size="icon-sm"></button></ui-dialog-close>
@@ -177,7 +177,6 @@
       <ui-scroll-area id="updateDialogScroll" class="update-notes-scroll" type="auto">
         <ui-scroll-area-viewport><ui-scroll-area-content class="update-notes-content">
           <div id="updateDialogNotes"></div>
-          <p id="updateDialogAdhoc" class="update-dialog-adhoc" hidden></p>
         </ui-scroll-area-content></ui-scroll-area-viewport>
         <ui-scroll-area-scrollbar orientation="vertical"><ui-scroll-area-thumb></ui-scroll-area-thumb></ui-scroll-area-scrollbar>
       </ui-scroll-area>

@@ -2,7 +2,7 @@
  * [INPUT]: 依赖 tokens.css、button.css 与 index.html 的标题区、安装 Item、无可见描边的彩色 Badge、路径、SDK 默认 Select 与只读占位展示行、Tooltip、Button Group、支持 footer 和 AlertDialog；Activity/Toast 由独立视觉层实现
  * [OUTPUT]: 对外提供无窗口滚动的共享 Grid/Flex 布局、固定 40px 标题栏/原高主内容/按 token 推导的30px独立支持 footer 三轨、主窗口 20px 纵向 flow 与 10px 页面动作组间距、可收缩首个内容 Grid 项避免默认路径候选扩窗、Windows 透明表面中的 10px 阴影留白/32px 共享外壳圆角与最大化归零状态、以当前 16px Close 可见右缘为基准的 15px 标题左边距且排除阴影坐标、可选手动入口不留空轨的安装摘要、系统排印、原生标题中心线、路径截断、无描边 blue/green Badge、保持绿色语义的更新入口、带可选 Badge 的稳定 item-aligned Select、Tooltip 与保留窗口 Chrome 的内容区 AlertDialog 视觉
  * [POS]: renderer 的跨平台共享视觉实现；上游只读 tokens.css，下游由 window-controls.css 追加 Windows caption 变体，和 Tauri transparent window 共同构成单一 compositor 外壳
- * 主内容底padding消费固定support-footer-spacing；SDK公开状态属性和CSS变量驱动组件皮肤。
+ * 主内容底padding消费固定support-footer-spacing；SDK公开状态属性和CSS变量驱动组件皮肤；TooltipArrow横向定位由SDK独占，不重复平移半宽。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 @layer ui-sdk;
@@ -247,18 +247,17 @@ html[data-platform="windows"] .titlebar {
 .tooltip-arrow {
   position: absolute;
   top: var(--tooltip-arrow-bottom-inset);
-  left: var(--arrow-offset, 50%);
   width: var(--tooltip-arrow-size);
   height: var(--tooltip-arrow-size);
   border-radius: var(--tooltip-arrow-radius);
   background: inherit;
-  transform: translate(-50%, calc(-50% - var(--tooltip-arrow-join-offset))) rotate(var(--tooltip-arrow-rotation));
+  transform: translateY(calc(-50% - var(--tooltip-arrow-join-offset))) rotate(var(--tooltip-arrow-rotation));
 }
 
 .tooltip[data-side="top"] .tooltip-arrow {
   top: auto;
   bottom: 0;
-  transform: translate(-50%, calc(50% + var(--tooltip-arrow-join-offset))) rotate(var(--tooltip-arrow-rotation));
+  transform: translateY(calc(50% + var(--tooltip-arrow-join-offset))) rotate(var(--tooltip-arrow-rotation));
 }
 
 .content {

@@ -123,7 +123,7 @@ const feedbackGroups = Object.freeze([
       'updateNotesTitle',
       'updateNotesEmpty',
       'updateLater',
-      'updateMacAdhocNote',
+      'updateTooltipVersion',
       'installUpdate',
       'permissionTitle',
       'permissionBody',

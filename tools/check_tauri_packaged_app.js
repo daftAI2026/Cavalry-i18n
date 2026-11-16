@@ -200,8 +200,22 @@ test('tauri binary embeds the current permission handoff controller byte-for-byt
 
 test('tauri binary embeds the current update notes block byte-for-byte', () => {
   requirePackagedApp();
-  for (const name of ['update-dialog.js', 'update-dialog.css', 'app.js', 'ui-text.js', 'tauri-bridge.js']) {
+  for (const name of ['update-dialog.js', 'update-dialog.css', 'styles.css', 'app.js', 'ui-text.js', 'tauri-bridge.js']) {
     assert.ok(currentEmbeddedAsset(name).compressed.length > 0, `${name} is embedded`);
+  }
+  const binary = fs.readFileSync(packagedBinary());
+  const html = Array.from(walk(releaseBuildRoot)).filter(file =>
+    path.basename(path.dirname(file)) === 'tauri-codegen-assets' && path.extname(file) === '.html'
+  ).flatMap(file => {
+    const compressed = fs.readFileSync(file);
+    if (!binary.includes(compressed)) return [];
+    const content = zlib.brotliDecompressSync(compressed).toString('utf8');
+    return content.includes('id="updateDialog"') ? [content] : [];
+  });
+  assert.ok(html.length > 0, 'the packaged main HTML contains the update dialog');
+  for (const content of html) {
+    assert.match(content, /<body\b[^>]*\btabindex="-1"/);
+    assert.match(content, /<ui-dialog-content\b[^>]*\bfinal-focus="body"/);
   }
 });
 

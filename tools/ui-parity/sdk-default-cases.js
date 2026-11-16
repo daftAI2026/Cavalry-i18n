@@ -196,14 +196,76 @@ const cases = [
     assert.equal(await d.page.locator('ui-progress').first().getAttribute('aria-valuenow'),'100');await d.capture('download-progress');
   }],
   ['sdk-update-dialog', async d => {
-    await d.fresh('updateAvailable');await d.click('#updateButton');await d.tick(250);
+    await d.useRealTime();await d.fresh('updateAvailable');
+    const watchCloseCompletion=async()=>d.page.evaluate(()=>{
+      const dialog=document.querySelector('#updateDialog');
+      window.__sdkUpdateDialogCloseCompleted=false;
+      const onComplete=event=>{
+        if(event.detail.value!==false)return;
+        window.__sdkUpdateDialogCloseCompleted=true;
+        dialog.removeEventListener('openchangecomplete',onComplete);
+      };
+      dialog.addEventListener('openchangecomplete',onComplete);
+    });
+    const assertClosedWithoutTriggerFocus=async()=>{
+      await d.tick(200);
+      const state=await d.page.evaluate(()=>{
+        const dialog=document.querySelector('#updateDialog');
+        const content=dialog.querySelector('ui-dialog-content');
+        return {open:dialog.open,hidden:content.hidden,popoverOpen:content.matches(':popover-open'),
+          closeComplete:window.__sdkUpdateDialogCloseCompleted,isBody:document.activeElement===document.body,
+        activeLocalName:document.activeElement.localName,activeId:document.activeElement.id,
+        finalFocus:content.getAttribute('final-focus'),
+        bodyTabIndex:document.body.getAttribute('tabindex'),focusVisible:document.body.matches(':focus-visible'),
+          outline:getComputedStyle(document.body).outlineStyle};
+      });
+      assert.equal(state.closeComplete,true,JSON.stringify(state));
+      assert.equal(state.open,false,JSON.stringify(state));
+      assert.equal(state.hidden,true,JSON.stringify(state));
+      assert.equal(state.popoverOpen,false,JSON.stringify(state));
+      assert.equal(state.isBody,true,JSON.stringify(state));
+      assert.equal(state.outline,'none',`body focus-visible=${state.focusVisible}`);
+      assert.notEqual(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    };
     const copy=await d.page.evaluate(()=>{
       const locale=new URL(location.href).searchParams.get('locale')||'en';
       const source=UI_TEXT[locale]||UI_TEXT.en;
       return {title:source.updateNotesTitle,later:source.updateLater,install:source.installUpdate,close:source.close,
-        empty:source.updateNotesEmpty,adhoc:source.updateMacAdhocNote};
+        empty:source.updateNotesEmpty,tooltipVersion:source.updateTooltipVersion.replace('{version}','0.7.1')};
     });
+    const tooltipGeometry=()=>d.page.evaluate(()=>{
+      const button=document.querySelector('#updateButton').getBoundingClientRect();
+      const tooltip=document.querySelector('#updateTooltip');
+      const arrow=tooltip.querySelector('.tooltip-arrow').getBoundingClientRect();
+      const buttonCenter=button.left+button.width/2,arrowCenter=arrow.left+arrow.width/2;
+      return {side:tooltip.getAttribute('data-side'),buttonCenter,arrowCenter,error:arrowCenter-buttonCenter};
+    });
+    await d.hover('#updateButton');await d.tick(1000);
+    assert.equal(await d.page.locator('#updateTooltipText').textContent(),copy.tooltipVersion);
+    assert.equal(await d.page.locator('#updateTooltip').evaluate(e=>e.hasAttribute('data-open')),true);
+    const bottomTooltip=await tooltipGeometry();
+    assert.equal(bottomTooltip.side,'bottom',JSON.stringify(bottomTooltip));
+    assert.ok(Math.abs(bottomTooltip.error)<=1,`bottom tooltip arrow should center on its trigger: ${JSON.stringify(bottomTooltip)}`);
+    await d.page.mouse.move(0,0);await d.tick(1000);
+    await d.page.evaluate(()=>{
+      const button=document.querySelector('#updateButton');
+      button.style.position='fixed';button.style.left='50%';button.style.top='480px';button.style.transform='translateX(-50%)';
+    });
+    await d.hover('#updateButton');await d.tick(1000);
+    const topTooltip=await tooltipGeometry();
+    assert.equal(topTooltip.side,'top',`tooltip should flip above a trigger near the viewport bottom: ${JSON.stringify(topTooltip)}`);
+    assert.ok(Math.abs(topTooltip.error)<=1,`top tooltip arrow should center on its trigger: ${JSON.stringify(topTooltip)}`);
+    await d.page.mouse.move(0,0);await d.tick(1000);
+    await d.page.evaluate(()=>{
+      const button=document.querySelector('#updateButton');
+      button.style.removeProperty('position');button.style.removeProperty('left');
+      button.style.removeProperty('top');button.style.removeProperty('transform');
+    });
+    await d.focus('#updateButton');await d.key('Enter');await d.tick(250);
     assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),true);
+    const initialFocus=await d.page.evaluate(()=>({localName:document.activeElement.localName,
+      outline:getComputedStyle(document.activeElement).outlineStyle}));
+    assert.deepEqual(initialFocus,{localName:'ui-dialog-content',outline:'none'});
     assert.equal(await d.page.locator('#updateDialogTitle').textContent(),copy.title);
     assert.equal(await d.page.locator('#updateDialogLater').textContent(),copy.later);
     assert.equal(await d.page.locator('#updateDialogInstall').textContent(),copy.install);
@@ -211,13 +273,22 @@ const cases = [
     assert.equal(await d.page.locator('#updateDialogDate').getAttribute('datetime'),'2026-11-16T08:00:00Z');
     assert.equal(await d.page.locator('#updateDialogDate').isVisible(),true);
     assert.ok((await d.page.locator('#updateDialogNotes').textContent()).includes('升级前查看'));
-    assert.equal(await d.page.locator('#updateDialogAdhoc').textContent(),copy.adhoc);
-    assert.equal(await d.page.locator('#updateDialogAdhoc').isVisible(),true);
     await d.capture('release-notes-fixture');
-    await d.key('Escape');await d.tick(350);
-    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
-    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    // WebKit keeps macOS default keyboard access, which skips native buttons unless the system enables full keyboard access.
+    if(d.page.context().browser().browserType().name()==='chromium'){
+      for(const expected of ['updateDialogClose','updateDialogLater','updateDialogInstall']){
+        await d.key('Tab');assert.equal(await d.page.evaluate(()=>document.activeElement.id),expected);
+      }
+    }
+    await watchCloseCompletion();
+    await d.key('Escape');
+    await assertClosedWithoutTriggerFocus();
     assert.equal(await d.page.locator('ui-progress').count(),0);
+    await d.click('#updateButton');await d.tick(250);
+    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),true);
+    await watchCloseCompletion();
+    await d.key('Escape');
+    await assertClosedWithoutTriggerFocus();
 
     await d.page.evaluate(()=>{
       const original=document.querySelector('#updateDialog');
@@ -230,15 +301,15 @@ const cases = [
       window.__sdkUpdateDialog=createUpdateDialog({root,text,icons:window.cavalryIcons,
         onInstall:update=>window.__sdkUpdateInstallCalls.push(update.version)});
     });
-    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.0',version:'0.7.1',notes:'Close with Escape.',pubDate:null,available:true},'windows'));
-    await d.tick(300);await d.key('Escape');await d.tick(350);
-    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
-    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.0',version:'0.7.1',notes:'Close with Escape.',pubDate:null,available:true}));
+    await d.tick(300);await watchCloseCompletion();await d.key('Escape');
+    await assertClosedWithoutTriggerFocus();
     assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),[]);
     const longNotes=Array.from({length:32},(_,index)=>`### Section ${index+1}\n- Stable update detail ${index+1}: review the change before continuing.`).join('\n\n')+
       '\n\n<script>window.__sdkUpdateNotesExecuted = true</script>\n<img src=x onerror="window.__sdkUpdateNotesExecuted = true">';
     const longUpdate={currentVersion:'0.7.0',version:'0.7.2',notes:longNotes,pubDate:'2026-11-16T08:00:00Z',available:true};
-    await d.page.evaluate(update=>window.__sdkUpdateDialog.show(update,'macos'),longUpdate);await d.tick(300);
+    await d.page.evaluate(update=>window.__sdkUpdateDialog.show(update),longUpdate);await d.tick(300);
+    await d.page.waitForTimeout(150);await d.tick(100);await d.page.waitForTimeout(100);
     assert.equal(await d.page.locator('#updateDialogVersion').textContent(),'0.7.2');
     assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),true);
     assert.equal(await d.page.locator('#updateDialogNotes h3').count(),32);
@@ -256,11 +327,62 @@ const cases = [
     assert.equal(layout.role,'region');assert.equal(layout.label,copy.title);
     assert.ok(layout.header.top>=0&&layout.header.bottom<layout.scroll.top);
     assert.ok(layout.scroll.bottom<layout.footer.top&&layout.footer.bottom<=layout.windowHeight);
+    const tabStops=[];
+    for(let attempt=0;attempt<6;attempt++){
+      await d.key('Tab');
+      const stop=await d.page.evaluate(()=>document.activeElement.id||document.activeElement.localName);
+      tabStops.push(stop);
+      if(stop==='ui-scroll-area-viewport')break;
+    }
+    const tabViewport=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>({tabIndex:e.tabIndex,
+      tabIndexAttribute:e.getAttribute('tabindex'),role:e.getAttribute('role'),overflow:e.hasAttribute('data-overflow-y'),
+      start:e.hasAttribute('data-at-start'),end:e.hasAttribute('data-at-end'),focusableChildren:e.querySelectorAll('a,button,input,textarea,select,[tabindex]:not([tabindex="-1"])').length}));
+    assert.ok(tabStops.includes('ui-scroll-area-viewport'),`Tab should reach the overflowing notes viewport: ${JSON.stringify({tabStops,tabViewport})}`);
+    if(d.page.context().browser().browserType().name()==='chromium')
+      assert.ok(tabStops.includes('updateDialogClose'),`Tab should reach the close control: ${tabStops.join(', ')}`);
+    const readFade=()=>d.page.evaluate(()=>{
+      const area=document.querySelector('#updateDialogScroll');
+      const viewport=area.querySelector('ui-scroll-area-viewport');
+      const rootStyle=getComputedStyle(area),style=getComputedStyle(viewport);
+      const mask=style.maskImage&&style.maskImage!=='none'?style.maskImage:style.webkitMaskImage;
+      return {rootStart:rootStyle.getPropertyValue('--scroll-area-overflow-y-start').trim(),
+        rootEnd:rootStyle.getPropertyValue('--scroll-area-overflow-y-end').trim(),
+        start:style.getPropertyValue('--scroll-area-overflow-y-start').trim(),
+        end:style.getPropertyValue('--scroll-area-overflow-y-end').trim(),
+        fadeSize:style.getPropertyValue('--operation-scroll-fade-size').trim(),mask,
+        scrollTop:viewport.scrollTop,scrollHeight:viewport.scrollHeight,clientHeight:viewport.clientHeight,
+        atStart:viewport.hasAttribute('data-at-start'),atEnd:viewport.hasAttribute('data-at-end'),
+        overflow:viewport.hasAttribute('data-overflow-y')};
+    });
+    const assertFade=(state,start,end)=>{
+      assert.equal(Number.parseFloat(state.rootStart),start);
+      assert.equal(Number.parseFloat(state.rootEnd),end);
+      assert.equal(state.start,state.rootStart);assert.equal(state.end,state.rootEnd);
+      const fadeSize=Number.parseFloat(state.fadeSize);
+      assert.ok(Number.isFinite(fadeSize));
+      assert.ok(state.mask!=='none'&&/linear-gradient/i.test(state.mask));
+      const compactMask=state.mask.replace(/\s+/g,'').toLowerCase();
+      const topStop=Math.min(fadeSize,Number.parseFloat(state.start));
+      const bottomFade=Math.min(fadeSize,Number.parseFloat(state.end));
+      assert.ok(compactMask.includes(`${topStop}px`),`computed top stop should use min(fade, overflow): ${JSON.stringify(state)}`);
+      assert.ok(compactMask.includes(`calc(100%-${bottomFade}px)`)||(bottomFade===0&&compactMask.includes('100%')),
+        `computed bottom stop should use min(fade, overflow): ${JSON.stringify(state)}`);
+    };
+    await d.page.waitForTimeout(250);await d.tick(100);
+    const topFade=await readFade();
+    assertFade(topFade,0,Number.parseFloat(topFade.rootEnd));assert.ok(Number.parseFloat(topFade.rootEnd)>0);
+    assert.equal(topFade.atStart,true);assert.equal(topFade.overflow,true);
     await d.capture('long-notes-top');
-    await d.hover('#updateDialogScroll');await d.page.mouse.wheel(0,420);await d.tick(100);await d.page.waitForTimeout(300);
-    const afterWheel=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop);
-    assert.ok(afterWheel>0);await d.capture('long-notes-wheel');
-    await d.page.mouse.wheel(0,-10000);await d.tick(150);await d.page.waitForTimeout(300);
+    await d.hover('#updateDialogScroll');await d.page.mouse.wheel(0,420);await d.page.waitForTimeout(150);await d.tick(100);await d.page.waitForTimeout(150);
+    const middleFade=await readFade();
+    assert.ok(middleFade.scrollTop>0);
+    assert.ok(Number.parseFloat(middleFade.rootStart)>0&&Number.parseFloat(middleFade.rootEnd)>0,
+      `middle state should expose overflow at both edges: ${JSON.stringify(middleFade)}`);
+    assertFade(middleFade,Number.parseFloat(middleFade.rootStart),Number.parseFloat(middleFade.rootEnd));
+    assert.equal(middleFade.atStart,false);assert.equal(middleFade.atEnd,false);
+    assert.notEqual(middleFade.mask,topFade.mask);await d.capture('long-notes-wheel-middle');
+    const afterWheel=middleFade.scrollTop;
+    await d.page.mouse.wheel(0,-10000);await d.page.waitForTimeout(150);await d.tick(100);await d.page.waitForTimeout(150);
     const beforeKey=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>({scrollTop:e.scrollTop,
       scrollHeight:e.scrollHeight,clientHeight:e.clientHeight,active:document.activeElement.localName}));
     assert.ok(beforeKey.scrollTop<afterWheel);
@@ -273,7 +395,7 @@ const cases = [
           defaultPrevented:event.defaultPrevented,active:document.activeElement.localName};
       },{once:true});
     });
-    await d.key('PageDown');await d.page.waitForTimeout(300);
+    await d.key('PageDown');await d.page.waitForTimeout(150);await d.tick(100);await d.page.waitForTimeout(150);
     let afterKeyTop=await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop);
     for(let attempt=0;attempt<8&&afterKeyTop<=beforeKey.scrollTop;attempt++){
       await d.page.waitForTimeout(50);
@@ -285,33 +407,45 @@ const cases = [
         active:document.activeElement.localName,key:window.__sdkPageDownDebug};
     });
     assert.ok(keyboardState.scrollTop>beforeKey.scrollTop,`PageDown should scroll the focused notes viewport (${JSON.stringify({beforeKey,...keyboardState})})`);
-    await d.click('#updateDialogClose');await d.tick(350);
-    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
-    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    const keyboardFade=await readFade();
+    assert.ok(Number.parseFloat(keyboardFade.rootStart)>0&&Number.parseFloat(keyboardFade.rootEnd)>0);
+    assertFade(keyboardFade,Number.parseFloat(keyboardFade.rootStart),Number.parseFloat(keyboardFade.rootEnd));
+    await d.page.mouse.wheel(0,10000);await d.page.waitForTimeout(150);await d.tick(100);await d.page.waitForTimeout(150);
+    let bottomFade=await readFade();
+    for(let attempt=0;attempt<8&&Number.parseFloat(bottomFade.rootEnd)>0;attempt++){
+      await d.page.waitForTimeout(50);bottomFade=await readFade();
+    }
+    assert.ok(Number.parseFloat(bottomFade.rootStart)>0);
+    assertFade(bottomFade,Number.parseFloat(bottomFade.rootStart),0);
+    assert.equal(bottomFade.atEnd,true);assert.equal(bottomFade.atStart,false);
+    assert.notEqual(bottomFade.mask,keyboardFade.mask);await d.capture('long-notes-bottom');
+    await watchCloseCompletion();
+    await d.click('#updateDialogClose');
+    await assertClosedWithoutTriggerFocus();
     assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),[]);
 
-    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.2',version:'0.7.3',notes:null,pubDate:'not-a-date',available:true},'windows'));
-    await d.tick(300);
+    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.2',version:'0.7.3',notes:null,pubDate:'not-a-date',available:true}));
+    await d.tick(300);await d.page.waitForTimeout(150);await d.tick(100);await d.page.waitForTimeout(100);
     assert.equal(await d.page.locator('#updateDialogVersion').textContent(),'0.7.3');
     assert.equal(await d.page.locator('#updateDialogDate').isVisible(),false);
     assert.equal(await d.page.locator('#updateDialogDate').getAttribute('datetime'),null);
     assert.equal(await d.page.locator('#updateDialogNotes').textContent(),copy.empty);
-    assert.equal(await d.page.locator('#updateDialogAdhoc').isVisible(),false);
     assert.equal(await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop),0);
+    const shortFade=await readFade();
+    assertFade(shortFade,0,0);assert.equal(shortFade.overflow,false);
     await d.capture('notes-unavailable');
-    await d.click('#updateDialogLater');await d.tick(350);
-    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
-    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    await watchCloseCompletion();
+    await d.click('#updateDialogLater');
+    await assertClosedWithoutTriggerFocus();
     assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),[]);
 
-    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.3',version:'0.7.4',notes:'A concise release note.',pubDate:'2026-11-17T08:00:00Z',available:true},'windows'));
+    await d.page.evaluate(()=>window.__sdkUpdateDialog.show({currentVersion:'0.7.3',version:'0.7.4',notes:'A concise release note.',pubDate:'2026-11-17T08:00:00Z',available:true}));
     await d.tick(300);
     assert.equal(await d.page.locator('#updateDialogVersion').textContent(),'0.7.4');
     assert.equal(await d.page.locator('#updateDialogScroll ui-scroll-area-viewport').evaluate(e=>e.scrollTop),0);
-    assert.equal(await d.page.locator('#updateDialogAdhoc').isVisible(),false);
-    await d.click('#updateDialogInstall');await d.tick(350);
-    assert.equal(await d.page.locator('#updateDialog').evaluate(e=>e.open),false);
-    assert.equal(await d.page.evaluate(()=>document.activeElement.id),'updateButton');
+    await watchCloseCompletion();
+    await d.click('#updateDialogInstall');
+    await assertClosedWithoutTriggerFocus();
     assert.deepEqual(await d.page.evaluate(()=>window.__sdkUpdateInstallCalls),['0.7.4']);
     await d.capture('install-once');
   }],

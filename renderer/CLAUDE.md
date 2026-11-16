@@ -4,7 +4,7 @@
 原生userProfile的Official徽章跨平台消费后端来源与无覆盖双门；legacy Windows仍不显示厂商来源徽章。
 
 成员清单
-update-dialog.js / update-dialog.css: SDK Dialog+ScrollArea的更新说明block；展示Updater已检查版本/日期/分类条目与macOS提示，关闭不安装、确认直达现有progress，不新增网络与业务状态机。
+update-dialog.js / update-dialog.css: SDK Dialog+ScrollArea的更新说明block；展示Updater已检查版本/日期/分类条目，滚动渐隐直接消费SDK边缘变量，关闭不安装且不回焦更新图标、确认直达现有progress，不新增网络与业务状态机。
 默认组件采用SDK Web Components；SDK拥有交互与状态机。图标、Badge和任务文字是普通展示DOM，不建立额外primitive根。业务事件立即投影，每帧合并一次日志尺寸测量。
 index.html: 跨平台语义 DOM 骨架，承载原生标题区、默认隐藏手动选择入口的安装 Item、SDK Trigger/Value 占位投影的全宽 Select、scope-aware Switch/Restore English、仅精确 2.8 预览+2.7.2 目标显露的固定旧版发行 CTA、三轨 Activity 与按需权限/Issue 表单动作，footer 独立占30px轨道且不压缩原内容；按 bridge→user-profile静态copy→UI_TEXT聚合→language/version policy→状态机→app加载，并保留 Windows/About 独立窗口边界。
 app-icon.png: About 的 128px 本地应用标识投影，字节级复用 Tauri 图标集同尺寸产物，不形成第二套品牌源图或远程依赖。

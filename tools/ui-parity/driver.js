@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 同源审查夹具、真实renderer与显式暂停的Playwright Clock/Page。
+ * [INPUT]: 同源审查夹具、真实renderer与按用例选择时钟模式的Playwright Clock/Page。
  * [OUTPUT]: 对两种实现提供相同输入、桥记录、时钟和可观察状态/画面。
  * [POS]: 黑盒适配只消除实现标签和生成ID，不改业务、样式或预期结果。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -37,12 +37,17 @@ async function createDriver(context, origin, locale, dir, probe) {
   });
   await page.clock.install({ time: new Date('2026-11-15T03:59:00Z') });
   await page.clock.pauseAt(new Date('2026-11-15T04:00:00Z'));
+  let realTime = false;
+  async function useRealTime() { await page.clock.resume(); realTime = true; }
   await page.route('**/fixture.js', async route => {
     const response = await route.fetch();
     const fault=probe==='state'?`\n(()=>{const base=window.cavalryI18n;window.cavalryI18n=Object.freeze({...base,applyLanguage:(path,language,receive)=>base.applyLanguage(path,language==='zh-Hant'?'ja_JP':language,receive)});})();`:'';
     await route.fulfill({ response, body: await response.text() + bridgeProbe + fault });
   });
-  async function tick(ms = 50) { await page.clock.runFor(ms); }
+  async function tick(ms = 50) {
+    if (realTime) await page.waitForTimeout(ms);
+    else await page.clock.runFor(ms);
+  }
   async function fresh(scenario = 'nativeOfficialDefaultEnglish', extra = '', about = false) {
     await page.goto(`${origin}/${about ? 'about' : 'app'}?scenario=${scenario}&locale=${locale}${extra}`);
     await tick(100);
@@ -163,7 +168,7 @@ async function createDriver(context, origin, locale, dir, probe) {
     }
     const geometry = await readGeometry();
     const observed = await state();
-    assert.equal(await page.evaluate(()=>Date.now()),frozenTime,`${name}: capture must not advance the test clock`);
+    if (!realTime) assert.equal(await page.evaluate(()=>Date.now()),frozenTime,`${name}: capture must not advance the test clock`);
     if (omitFocus) delete observed.focus;
     checkpoints.push({ name, observed, geometry, file });
       const seen=await page.evaluate(entries=>entries.map(({name,selector,mode,factory})=>[name,[...document.querySelectorAll(selector)].some(element=>
@@ -187,6 +192,6 @@ async function createDriver(context, origin, locale, dir, probe) {
     }, count);
     await tick(100);
   }
-  return { page, errors, checkpoints, coverage, fresh, tick, point, hover, click, focus, key, choose, state, capture, toast, rows };
+  return { page, errors, checkpoints, coverage, fresh, tick, useRealTime, point, hover, click, focus, key, choose, state, capture, toast, rows };
 }
 module.exports = { createDriver };

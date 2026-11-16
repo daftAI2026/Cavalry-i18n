@@ -15,7 +15,6 @@
     const closeButton = root.querySelector('#updateDialogClose');
     const laterButton = root.querySelector('#updateDialogLater');
     const installButton = root.querySelector('#updateDialogInstall');
-    const adhoc = root.querySelector('#updateDialogAdhoc');
     let activeUpdate = null;
 
     const closeIcon = icons?.create('close');
@@ -87,7 +86,7 @@
       flushParagraph();
     }
 
-    function show(update, platform) {
+    function show(update) {
       const snapshot = Object.freeze({ ...update });
       activeUpdate = snapshot;
       const titleText = text('updateNotesTitle');
@@ -107,9 +106,6 @@
       if (formattedDate) date.dateTime = snapshot.pubDate;
       else date.removeAttribute('datetime');
 
-      const showAdhoc = platform === 'macos';
-      adhoc.hidden = !showAdhoc;
-      adhoc.textContent = showAdhoc ? text('updateMacAdhocNote') : '';
       viewport.scrollTop = 0;
       root.open = true;
     }

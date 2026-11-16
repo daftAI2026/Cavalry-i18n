@@ -634,7 +634,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.tooltip\s*\{[\s\S]*?visibility: hidden/);
   assert.match(styles, /\.tooltip\s*\{[\s\S]*?position:\s*fixed;[\s\S]*?padding:\s*var\(--tooltip-padding-block\) var\(--tooltip-padding-inline\)/);
   const tooltipArrowRule = cssRule(styles, '.tooltip-arrow');
-  assert.match(tooltipArrowRule, /left:\s*var\(--arrow-offset, 50%\)/);
+  assert.doesNotMatch(tooltipArrowRule, /\bleft\s*:/, 'SDK TooltipArrow owns horizontal positioning');
   assert.match(tooltipArrowRule, /top:\s*var\(--tooltip-arrow-bottom-inset\)/);
   assert.match(tooltipArrowRule, /width:\s*var\(--tooltip-arrow-size\)/);
   assert.match(html, /<ui-tooltip-content/);
@@ -1075,7 +1075,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /updateButton\.addEventListener/);
   assert.match(app, /updateControl\.hidden = !\(updatePreviewEnabled \|\| state\.updateInfo\?\.available\)/);
   assert.doesNotMatch(app, /parts\.push\(update\.notes\)/, 'the compact update confirmation must not inline manifest changelog text');
-  assert.match(app, /updateTooltipText\.textContent = t\('updateTooltip'\)/);
+  assert.match(app, /t\('updateTooltipVersion', \{ version: state\.updateInfo\.version \}\)/);
   assert.match(app, /state\.installationMode === 'official'/);
   assert.match(bridge, /Object\.freeze\(\{/);
   assert.match(bridge, /LANGUAGE_MANIFEST/);
@@ -1316,7 +1316,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'updateNotesTitle',
     'updateNotesEmpty',
     'updateLater',
-    'updateMacAdhocNote',
+    'updateTooltipVersion',
     'installUpdate',
     'updateDownloadRunningTitle',
     'updateDownloadProgress',
@@ -1547,7 +1547,7 @@ test('update icon stays hidden until preview or an updater check result and rend
   assert.match(html, /id="updateControl"[^>]*hidden/);
   assert.match(html, /id="updateTooltip"[^>]*role="tooltip"/);
   assert.match(uiText, /updateTooltip:/);
-  assert.match(uiText, /updateMacAdhocNote:/);
+  assert.match(uiText, /updateTooltipVersion:/);
   assert.match(app, /function updatePreviewRequested\(\)/);
   assert.match(app, /preview=update/);
   assert.match(app, /window\.__CAVALRY_I18N_PREVIEW__/);

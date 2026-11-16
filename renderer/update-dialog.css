@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 renderer/tokens.css、button.css 与 update-dialog.js 固定 DOM；Scroll Area 的状态属性由 ui-sdk/web 公共 API 提供
- * [OUTPUT]: 对外提供居中的固定尺寸更新说明卡片、独立可滚动正文、稳定标题/操作区与共享 Button/token 皮肤
+ * [OUTPUT]: 对外提供居中的固定尺寸更新说明卡片、独立可滚动正文及SDK边缘变量驱动的8px渐隐、稳定标题/操作区与共享 Button/token 皮肤
  * [POS]: renderer 更新说明 Dialog 的独立视觉层；不改变主窗 400×504 尺寸，也不重写 SDK 弹层或滚动行为
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -62,6 +62,14 @@ html[data-platform="windows"] body[data-maximized="true"] .update-dialog-backdro
 .update-dialog[data-ending-style] {
   opacity: 0;
   transform: translate(-50%, calc(-50% + var(--space-2)));
+}
+
+.update-dialog:focus-visible {
+  outline: none;
+}
+
+body[tabindex="-1"]:focus-visible {
+  outline: none;
 }
 
 .update-dialog-header {
@@ -126,6 +134,21 @@ html[data-platform="windows"] body[data-maximized="true"] .update-dialog-backdro
 
 .update-notes-scroll [data-slot="scroll-area-viewport"]::-webkit-scrollbar {
   display: none;
+}
+
+.update-notes-scroll [data-slot="scroll-area-viewport"] {
+  --scroll-area-overflow-y-start: inherit;
+  --scroll-area-overflow-y-end: inherit;
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent,
+    var(--mask-opaque) min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-start)),
+    var(--mask-opaque) calc(100% - min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-end))),
+    transparent);
+  mask-image: linear-gradient(to bottom,
+    transparent,
+    var(--mask-opaque) min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-start)),
+    var(--mask-opaque) calc(100% - min(var(--operation-scroll-fade-size), var(--scroll-area-overflow-y-end))),
+    transparent);
 }
 
 .update-notes-content {
@@ -194,16 +217,6 @@ html[data-platform="windows"] body[data-maximized="true"] .update-dialog-backdro
   background: var(--operation-scrollbar-thumb);
 }
 
-.update-dialog-adhoc {
-  margin: 0;
-  padding-block-start: var(--space-2);
-  border-top: var(--stroke-hairline) solid var(--border);
-  color: var(--text-secondary);
-  font-size: var(--type-label);
-  font-weight: var(--weight-regular);
-  line-height: var(--line-height-label);
-  overflow-wrap: anywhere;
-}
 
 .update-dialog-actions {
   display: grid;

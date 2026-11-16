@@ -54,7 +54,7 @@ function runtime({
   aboutPlatform = 'other',
   projectLinkResult = { ok: true },
 } = {}) {
-  const ids = ['updateDialog', 'updateDialogTitle', 'updateDialogVersion', 'updateDialogDate', 'updateDialogNotes', 'updateDialogScroll', 'updateDialogClose', 'updateDialogLater', 'updateDialogInstall', 'updateDialogAdhoc', 'skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectBadge', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryAction', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['updateDialog', 'updateDialogTitle', 'updateDialogVersion', 'updateDialogDate', 'updateDialogNotes', 'updateDialogScroll', 'updateDialogClose', 'updateDialogLater', 'updateDialogInstall', 'skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'supportFooterMessage', 'supportFollowHand', 'supportFollowHandImage', 'supportFooterLinks', 'supportGithubLink', 'supportGithubIcon', 'supportTwitterLink', 'supportTwitterIcon', 'supportXiaohongshuLink', 'supportXiaohongshuIcon', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutTwitterLink', 'aboutTwitterLabel', 'aboutTwitterIcon', 'aboutXiaohongshuLink', 'aboutXiaohongshuLabel', 'aboutXiaohongshuIcon', 'aboutRepositoryLink', 'aboutRepositoryIcon', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectBadge', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'legacyReleaseButton', 'reportIssueButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'confirmationDialog', 'statusScrollArea', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryAction', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   elements['#languageSelectBadge'].id = 'languageSelectBadge';
   elements['#languageSelectBadge'].hidden = true;
@@ -82,7 +82,7 @@ function runtime({
   let updateOpen = false;
   Object.defineProperty(elements['#updateDialog'], 'open', {
     get: () => updateOpen,
-    set(value) { updateOpen = value; if (!value) elements['#updateButton'].focus(); },
+    set(value) { updateOpen = value; if (!value) document.body.focus(); },
   });
   for (const [id, returnValue] of [['updateDialogClose', undefined], ['updateDialogLater', 'later'], ['updateDialogInstall', 'install']]) {
     elements['#' + id].addEventListener('click', () => {
@@ -849,7 +849,8 @@ test('checked update is announced, reviewed, and installed without renderer-cont
   assert.equal(r.elements['#updateDialog'].open, true);
   assert.match(r.elements['#updateDialogTitle'].textContent, /What’s New/);
   assert.match(r.elements['#updateDialogNotes'].textContent, /Security and UI fixes/);
-  assert.match(r.elements['#updateDialogAdhoc'].textContent, /ad-hoc/);
+  assert.doesNotMatch(r.elements['#updateDialogNotes'].textContent, /ad-hoc|Gatekeeper/);
+  assert.equal(r.elements['#updateTooltipText'].textContent, 'Update 0.7.1');
 
   r.elements['#updateDialogInstall'].listeners.get('click')[0]();
   r.elements['#updateDialogInstall'].listeners.get('click')[0]();
